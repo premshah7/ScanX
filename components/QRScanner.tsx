@@ -1,8 +1,7 @@
 "use client";
 
-import { Scanner } from '@yudiel/react-qr-scanner';
-import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
+import { useEffect, useRef, useState } from "react";
 
 interface QRScannerProps {
     onScan: (data: string) => void;
@@ -10,64 +9,88 @@ interface QRScannerProps {
 }
 
 export default function QRScanner({ onScan, onError }: QRScannerProps) {
-    const [paused, setPaused] = useState(false);
+    const scannerRef = useRef<Html5Qrcode | null>(null);
+    const isScanningRef = useRef(false);
 
-    const handleScan = (result: any) => {
-        if (result && !paused) {
-            // @yudiel/react-qr-scanner returns an array of results or single object depending on version
-            // The raw value is usually in result[0].rawValue if array
-            const rawValue = Array.isArray(result) ? result[0]?.rawValue : result?.rawValue;
+    useEffect(() => {
+        // Unique ID for the scanner element
+        const elementId = "qr-reader";
 
-            if (rawValue) {
-                setPaused(true); // Pause scanning to prevent multiple hits
-                onScan(rawValue);
-                // We don't automatically unpause, parent handles state change (e.g. navigation or success modal)
+        const startScanner = async () => {
+            try {
+                // cleanup previous instance if any
+                if (scannerRef.current) {
+                    await scannerRef.current.stop().catch(() => { });
+                    scannerRef.current.clear();
+                }
+
+                const html5QrCode = new Html5Qrcode(elementId);
+                scannerRef.current = html5QrCode;
+
+                const config = {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0
+                };
+
+                // Prefer back camera
+                const cameraConfig = { facingMode: "environment" };
+
+                await html5QrCode.start(
+                    cameraConfig,
+                    config,
+                    (decodedText) => {
+                        // Success callback
+                        if (isScanningRef.current) return; // Prevent multiple triggers
+
+                        // We don't automatically stop the scanner here, rely on parent to unmount or handle logic
+                        // But we can debounce
+                        onScan(decodedText);
+                    },
+                    (errorMessage) => {
+                        // Error callback - this triggers on every frame where QR is not found
+                        // So we generally ignore it unless it's a critical failure which start() catches
+                    }
+                );
+
+                isScanningRef.current = true;
+
+            } catch (err) {
+                console.error("Failed to start scanner", err);
+                const errorMsg = (err as any)?.message || (err as any)?.toString() || "Unknown camera error";
+                if (onError) {
+                    // Translate common errors
+                    if (errorMsg.includes("Permission denied")) {
+                        onError("Permission denied. Reset browser permissions.");
+                    } else if (errorMsg.includes("NotAllowedError")) {
+                        onError("Camera access denied.");
+                    } else {
+                        onError(errorMsg);
+                    }
+                }
             }
-        }
-    };
+        };
+
+        // Small delay to ensure DOM is ready
+        const timer = setTimeout(() => {
+            startScanner();
+        }, 100);
+
+        return () => {
+            clearTimeout(timer);
+            isScanningRef.current = false;
+            if (scannerRef.current) {
+                scannerRef.current.stop().catch(console.error).finally(() => {
+                    scannerRef.current?.clear();
+                });
+            }
+        };
+    }, []);
 
     return (
         <div className="w-full max-w-md mx-auto overflow-hidden rounded-xl border dark:border-gray-700 bg-black relative">
-            <Scanner
-                onScan={handleScan}
-                onError={(error) => {
-                    console.error("Scanner Error:", error);
-                    let errorMessage = "Camera error: " + (error as Error).message;
-
-                    // Common camera error mapping
-                    const errStr = (error as any)?.name || (error as any)?.toString() || "";
-                    if (errStr.includes("NotAllowedError") || errStr.includes("PermissionDeniedError")) {
-                        errorMessage = "Camera access denied. Please allow camera permissions in your browser settings.";
-                    } else if (errStr.includes("NotFoundError") || errStr.includes("DevicesNotFoundError")) {
-                        errorMessage = "No camera found on this device.";
-                    } else if (errStr.includes("NotReadableError") || errStr.includes("TrackStartError")) {
-                        errorMessage = "Camera is in use by another application.";
-                    } else if (errStr.includes("OverconstrainedError")) {
-                        errorMessage = "Camera settings not supported.";
-                    } else if (errStr.includes("StreamApiNotSupportedError")) {
-                        errorMessage = "Camera access not supported in this browser.";
-                    }
-
-                    if (onError) onError(errorMessage);
-                }}
-                // components={{
-                //     audio: false,
-                //     onOff: true,
-                //     torch: true,
-                //     zoom: true,
-                //     finder: true
-                // }}
-                styles={{
-                    container: { width: '100%', aspectRatio: '1/1' }
-                }}
-                constraints={{
-                    facingMode: 'environment'
-                }}
-                allowMultiple={true} // We handle "pausing" manually via state
-                scanDelay={500}
-            />
-
-            <div className="absolute bottom-4 left-0 right-0 text-center pointer-events-none">
+            <div id="qr-reader" className="w-full h-full" />
+            <div className="absolute bottom-4 left-0 right-0 text-center pointer-events-none z-10">
                 <span className="bg-black/50 text-white px-3 py-1 rounded-full text-sm backdrop-blur-sm">
                     Point camera at QR code
                 </span>
