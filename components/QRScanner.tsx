@@ -34,36 +34,37 @@ export default function QRScanner({ onScan, onError }: QRScannerProps) {
                 };
 
                 // Prefer back camera
-                const cameraConfig = { facingMode: "environment" };
+                // const cameraConfig = { facingMode: "environment" }; // This line is removed
 
-                await html5QrCode.start(
-                    cameraConfig,
-                    config,
-                    (decodedText) => {
-                        // Success callback
-                        if (isScanningRef.current) return; // Prevent multiple triggers
+                // List cameras first to debug
+                const devices = await Html5Qrcode.getCameras();
+                if (devices && devices.length) {
+                    // Try to find back camera
+                    const backCamera = devices.find(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('rear'));
+                    const cameraId = backCamera ? backCamera.id : devices[0].id;
 
-                        // We don't automatically stop the scanner here, rely on parent to unmount or handle logic
-                        // But we can debounce
-                        onScan(decodedText);
-                    },
-                    (errorMessage) => {
-                        // Error callback - this triggers on every frame where QR is not found
-                        // So we generally ignore it unless it's a critical failure which start() catches
-                    }
-                );
-
-                isScanningRef.current = true;
+                    await html5QrCode.start(
+                        cameraId,
+                        config,
+                        (decodedText) => {
+                            if (isScanningRef.current) return;
+                            onScan(decodedText);
+                        },
+                        (errorMessage) => { }
+                    );
+                    isScanningRef.current = true;
+                } else {
+                    throw new Error("No camera devices found. Please explicitly allow camera permission.");
+                }
 
             } catch (err) {
                 console.error("Failed to start scanner", err);
                 const errorMsg = (err as any)?.message || (err as any)?.toString() || "Unknown camera error";
                 if (onError) {
-                    // Translate common errors
                     if (errorMsg.includes("Permission denied")) {
-                        onError("Permission denied. Reset browser permissions.");
-                    } else if (errorMsg.includes("NotAllowedError")) {
-                        onError("Camera access denied.");
+                        onError("Permission denied (System Block). Go to Settings -> Site Settings -> Camera -> Allow.");
+                    } else if (errorMsg.includes("No camera devices found")) {
+                        onError("No cameras detected. Browser is likely blocking access completely.");
                     } else {
                         onError(errorMsg);
                     }
