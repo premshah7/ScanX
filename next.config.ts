@@ -8,7 +8,20 @@ const withPWA = require("@ducanh2912/next-pwa").default({
 
 const nextConfig: NextConfig = {
   /* config options here */
-  turbopack: {}
+  turbopack: {},
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=self, camera=(self)',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default withPWA(nextConfig);
