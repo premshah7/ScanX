@@ -34,7 +34,7 @@ export default function StudentBottomNav() {
                 </Link>
 
                 <button
-                    onClick={() => signOut({ callbackUrl: "/auth/signin" })}
+                    onClick={() => signOut({ callbackUrl: "/signin" })}
                     className="flex flex-col items-center justify-center w-full h-full text-red-400 hover:text-red-500 hover:bg-red-500/10 transition-colors"
                 >
                     <LogOut size={20} className="mb-1" />

@@ -9,7 +9,7 @@ export default async function FacultySubjectsPage() {
     const session = await getServerSession(authOptions);
 
     if (!session || session.user.role !== "FACULTY") {
-        redirect("/api/auth/signin");
+        redirect("/signin");
     }
 
     const subjects = await getFacultySubjects(session.user.email!);

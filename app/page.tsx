@@ -6,7 +6,7 @@ export default async function Home() {
     const session = await getServerSession(authOptions);
 
     if (!session) {
-        redirect("/auth/signin");
+        redirect("/signin");
     }
 
     // Role-based redirection
@@ -18,6 +18,6 @@ export default async function Home() {
         case "STUDENT":
             redirect("/student");
         default:
-            redirect("/auth/signin");
+            redirect("/signin");
     }
 }

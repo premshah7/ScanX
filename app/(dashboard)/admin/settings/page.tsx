@@ -9,7 +9,7 @@ export default async function AdminSettingsPage() {
     const session = await getServerSession(authOptions);
 
     if (!session || session.user.role !== "ADMIN") {
-        redirect("/api/auth/signin");
+        redirect("/signin");
     }
 
     return (

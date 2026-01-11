@@ -12,7 +12,7 @@ export default async function FacultyLayout({
     const session = await getServerSession(authOptions);
 
     if (!session || session.user.role !== "FACULTY") {
-        redirect("/api/auth/signin");
+        redirect("/signin");
     }
 
     const faculty = await prisma.faculty.findUnique({

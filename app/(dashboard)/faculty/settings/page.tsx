@@ -7,7 +7,7 @@ export default async function FacultySettingsPage() {
     const session = await getServerSession(authOptions);
 
     if (!session || session.user.role !== "FACULTY") {
-        redirect("/api/auth/signin");
+        redirect("/signin");
     }
 
     return (

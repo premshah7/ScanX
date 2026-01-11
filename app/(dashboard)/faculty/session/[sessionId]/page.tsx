@@ -7,7 +7,7 @@ import { endSession } from "../../actions";
 
 export default async function SessionPage({ params }: { params: Promise<{ sessionId: string }> }) {
     const session = await getServerSession(authOptions);
-    if (!session || session.user.role !== "FACULTY") redirect("/api/auth/signin");
+    if (!session || session.user.role !== "FACULTY") redirect("/signin");
 
     const { sessionId } = await params;
     const id = parseInt(sessionId);

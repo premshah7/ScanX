@@ -17,7 +17,7 @@ export default async function StudentLayout({
     const session = await getServerSession(authOptions);
 
     if (!session || session.user.role !== "STUDENT") {
-        redirect("/api/auth/signin");
+        redirect("/signin");
     }
 
     // Network Security Check

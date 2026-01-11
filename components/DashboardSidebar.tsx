@@ -92,7 +92,7 @@ export default function DashboardSidebar({ user, role }: SidebarProps) {
                         <p className="text-xs text-slate-500 truncate group-hover:text-slate-400 transition-colors">{user.email}</p>
                     </div>
                     <button
-                        onClick={() => signOut({ callbackUrl: "/auth/signin" })}
+                        onClick={() => signOut({ callbackUrl: "/signin" })}
                         className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
                         title="Logout"
                     >
