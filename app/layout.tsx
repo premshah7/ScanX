@@ -43,6 +43,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <NextTopLoader color="#2563EB" showSpinner={false} />
         <NextAuthSessionProvider>
           <FingerprintProvider>
             {children}
