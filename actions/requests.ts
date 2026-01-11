@@ -23,6 +23,8 @@ export async function requestDeviceReset() {
     });
 
     revalidatePath("/student");
+    revalidatePath("/admin/requests");
+    revalidatePath("/admin"); // Refresh main dashboard counters if any
     return { success: true, message: "Request sent to Admin." };
 }
 
