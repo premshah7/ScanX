@@ -19,10 +19,10 @@ export default function ModernQRScanner({ onScan, onError }: ModernQRScannerProp
                 }}
                 onError={(error) => {
                     console.error(error);
-                    if (onError) onError(error.message || "Failed to access camera");
+                    if (onError) onError("Failed to access camera");
                 }}
                 components={{
-                    audio: false,
+                    // audio: false,
                     finder: true,
                 }}
                 styles={{
