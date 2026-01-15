@@ -1,101 +1,97 @@
 "use client";
 
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
+import { Html5Qrcode } from "html5-qrcode";
 import { useEffect, useRef, useState } from "react";
 
 interface QRScannerProps {
-    onScan: (data: string) => void;
-    onError?: (error: string) => void;
+  onScan: (data: string) => void;
+  onError?: (error: string) => void;
 }
 
 export default function QRScanner({ onScan, onError }: QRScannerProps) {
-    const scannerRef = useRef<Html5Qrcode | null>(null);
-    const isScanningRef = useRef(false);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const [isStarted, setIsStarted] = useState(false);
 
-    useEffect(() => {
-        // Unique ID for the scanner element
-        const elementId = "qr-reader";
+  /* Safe Cleanup Ref to track if actually running to avoid stale closure issues */
+  const isRunningRef = useRef(false);
 
-        const startScanner = async () => {
-            try {
-                // cleanup previous instance if any
-                if (scannerRef.current) {
-                    await scannerRef.current.stop().catch(() => { });
-                    scannerRef.current.clear();
-                }
+  const startScanner = async () => {
+    // 1. Secure Context Check
+    if (typeof window !== "undefined" && !window.isSecureContext) {
+      if (onError) onError("Camera Access Blocked: App is running on an insecure connection (HTTP). Please using HTTPS or Localhost.");
+      return;
+    }
 
-                const html5QrCode = new Html5Qrcode(elementId);
-                scannerRef.current = html5QrCode;
+    try {
+      if (!scannerRef.current) {
+        scannerRef.current = new Html5Qrcode("qr-reader");
+      }
 
-                const config = {
-                    fps: 10,
-                    qrbox: { width: 250, height: 250 },
-                    aspectRatio: 1.0
-                };
+      await scannerRef.current.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        (decodedText) => onScan(decodedText),
+        () => { } // required but ignored
+      );
 
-                // Prefer back camera
-                // const cameraConfig = { facingMode: "environment" }; // This line is removed
+      isRunningRef.current = true;
+      setIsStarted(true);
+    } catch (err: any) {
+      console.error(err);
 
-                // List cameras first to debug
-                const devices = await Html5Qrcode.getCameras();
-                if (devices && devices.length) {
-                    // Try to find back camera
-                    const backCamera = devices.find(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('rear'));
-                    const cameraId = backCamera ? backCamera.id : devices[0].id;
+      // If start failed, ensure we don't think it's running
+      isRunningRef.current = false;
 
-                    await html5QrCode.start(
-                        cameraId,
-                        config,
-                        (decodedText) => {
-                            if (isScanningRef.current) return;
-                            onScan(decodedText);
-                        },
-                        (errorMessage) => { }
-                    );
-                    isScanningRef.current = true;
-                } else {
-                    throw new Error("No camera devices found. Please explicitly allow camera permission.");
-                }
+      if (onError) {
+        if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+          onError("Camera Permission Denied. Please unblock camera access in your browser settings (look for the lock icon in the URL bar).");
+        } else if (err.name === "NotFoundError") {
+          onError("No camera found on this device.");
+        } else if (err.name === "NotReadableError") {
+          onError("Camera is in use by another application.");
+        } else {
+          onError(`Camera Error: ${err.message || "Unknown error"}`);
+        }
+      }
+    }
+  };
 
-            } catch (err) {
-                console.error("Failed to start scanner", err);
-                const errorMsg = (err as any)?.message || (err as any)?.toString() || "Unknown camera error";
-                if (onError) {
-                    if (errorMsg.includes("Permission denied")) {
-                        onError("Permission denied (System Block). Go to Settings -> Site Settings -> Camera -> Allow.");
-                    } else if (errorMsg.includes("No camera devices found")) {
-                        onError("No cameras detected. Browser is likely blocking access completely.");
-                    } else {
-                        onError(errorMsg);
-                    }
-                }
-            }
-        };
+  useEffect(() => {
+    return () => {
+      if (scannerRef.current) {
+        // Only stop if we flagged it as running
+        if (isRunningRef.current) {
+          scannerRef.current.stop().catch((err) => {
+            console.warn("Failed to stop scanner during cleanup", err);
+          }).finally(() => {
+            scannerRef.current?.clear();
+          });
+        } else {
+          scannerRef.current.clear();
+        }
+      }
+    };
+  }, []);
 
-        // Small delay to ensure DOM is ready
-        const timer = setTimeout(() => {
-            startScanner();
-        }, 100);
+  return (
+    <div className="w-full max-w-md mx-auto">
+      <div
+        id="qr-reader"
+        className="w-full aspect-square rounded-xl border bg-black"
+      />
 
-        return () => {
-            clearTimeout(timer);
-            isScanningRef.current = false;
-            if (scannerRef.current) {
-                scannerRef.current.stop().catch(console.error).finally(() => {
-                    scannerRef.current?.clear();
-                });
-            }
-        };
-    }, []);
+      {!isStarted && (
+        <button
+          onClick={startScanner}
+          className="mt-4 w-full rounded-lg bg-blue-600 py-2 text-white"
+        >
+          Start QR Scan
+        </button>
+      )}
 
-    return (
-        <div className="w-full max-w-md mx-auto overflow-hidden rounded-xl border dark:border-gray-700 bg-black relative">
-            <div id="qr-reader" className="w-full h-full" />
-            <div className="absolute bottom-4 left-0 right-0 text-center pointer-events-none z-10">
-                <span className="bg-black/50 text-white px-3 py-1 rounded-full text-sm backdrop-blur-sm">
-                    Point camera at QR code
-                </span>
-            </div>
-        </div>
-    );
+      <p className="mt-2 text-center text-sm text-gray-400">
+        📱 iPhone users: Open in Safari (not installed app)
+      </p>
+    </div>
+  );
 }

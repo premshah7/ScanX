@@ -53,10 +53,21 @@ export default function StudentScanPage() {
             setMessage("Success! Camera access granted. " + stream.id);
             // Stop tracks to release
             stream.getTracks().forEach(t => t.stop());
-        } catch (err) {
-            setMessage("Raw Access Failed: " + (err as Error).name + " - " + (err as Error).message);
+        } catch (err: any) {
+            let errorMsg = `Raw Access Failed: ${err.name}`;
+            if (err.name === 'NotAllowedError') errorMsg += " (Permissions Denied)";
+            if (err.name === 'NotFoundError') errorMsg += " (No Camera Found)";
+
+            setMessage(errorMsg + ` - ${err.message}`);
         }
     };
+
+    // Check Secure Context on Mount
+    useEffect(() => {
+        if (typeof window !== "undefined" && !window.isSecureContext) {
+            setMessage("⚠️ Security Warning: This app is running on an insecure connection (HTTP). Camera access will likely fail. Please use HTTPS or localhost.");
+        }
+    }, []);
 
     if (isFingerprintLoading) {
         return (
@@ -116,6 +127,32 @@ export default function StudentScanPage() {
                                 Test Camera Permissions
                             </button>
                         </div>
+
+                        {/* Permission Troubleshooting Guide - Only shows if blocked */}
+                        {message.includes("Permissions Denied") && (
+                            <div className="bg-gray-800 p-4 rounded-lg border border-gray-700 text-left space-y-3 animate-in fade-in slide-in-from-top-2">
+                                <h3 className="text-white font-semibold flex items-center gap-2">
+                                    <span className="text-yellow-500">⚠️</span>
+                                    Camera Blocked
+                                </h3>
+                                <div className="text-sm text-gray-300 space-y-2">
+                                    <p>Your browser has blocked camera access for this site.</p>
+                                    <p className="font-medium text-white">To fix this on Chrome/Edge:</p>
+                                    <ol className="list-decimal list-inside space-y-1 ml-1 text-gray-400">
+                                        <li>Click the <span className="text-white font-bold border border-gray-600 rounded px-1">🔒 Lock / Settings</span> icon in the URL bar (top left).</li>
+                                        <li>Find <span className="text-white">Camera</span> and set it to <span className="text-green-400">Allow</span> or click "Reset permissions".</li>
+                                        <li>Refresh this page.</li>
+                                    </ol>
+                                </div>
+                                <button
+                                    onClick={() => window.location.reload()}
+                                    className="w-full bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-lg text-sm transition-colors mt-2"
+                                >
+                                    Reload Page
+                                </button>
+                            </div>
+                        )}
+
                         <QRScanner
                             onScan={handleScan}
                             onError={(err) => setMessage(err)}

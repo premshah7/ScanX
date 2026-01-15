@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 export async function createSession(subjectId: number, _formData: FormData) {
     const session = await getServerSession(authOptions);
@@ -46,5 +47,7 @@ export async function endSession(sessionId: number) {
         }
     });
 
+    revalidatePath("/faculty");
+    revalidatePath("/faculty/subjects");
     redirect("/faculty");
 }
