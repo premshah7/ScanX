@@ -1,73 +1,53 @@
+
 import { prisma } from "@/lib/prisma";
 import AddFacultyForm from "@/components/admin/AddFacultyForm";
-import { User } from "lucide-react";
+import FacultyTable from "@/components/admin/FacultyTable";
 
 export default async function FacultyManagementPage() {
-    const facultyList = await prisma.faculty.findMany({
-        include: {
-            user: true,
-            subjects: true,
-        },
-    });
+    try {
+        console.log("Fetching faculty list...");
+        const facultyList = await prisma.faculty.findMany({
+            include: {
+                user: true,
+                subjects: true,
+            },
+            orderBy: {
+                id: 'desc'
+            }
+        });
 
-    return (
-        <div>
-            <div className="flex justify-between items-center mb-8">
-                <h1 className="text-3xl font-bold">Faculty Management</h1>
-                <AddFacultyForm />
-            </div>
+        console.log("Faculty list fetched. Items:", facultyList.length);
 
-            <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
-                <table className="w-full text-left">
-                    <thead className="bg-gray-800 text-gray-400">
-                        <tr>
-                            <th className="p-4">Name</th>
-                            <th className="p-4">Email</th>
-                            <th className="p-4">Subjects</th>
-                            <th className="p-4">Joined</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-800">
-                        {facultyList.map((faculty) => (
-                            <tr key={faculty.id} className="hover:bg-gray-800/50">
-                                <td className="p-4 flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
-                                        <User className="w-4 h-4 text-purple-400" />
-                                    </div>
-                                    <span className="font-medium">{faculty.user.name}</span>
-                                </td>
-                                <td className="p-4 text-gray-400">{faculty.user.email}</td>
-                                <td className="p-4">
-                                    {faculty.subjects.length > 0 ? (
-                                        <div className="flex flex-wrap gap-1">
-                                            {faculty.subjects.map((sub) => (
-                                                <span
-                                                    key={sub.id}
-                                                    className="px-2 py-1 bg-blue-500/10 text-blue-400 text-xs rounded"
-                                                >
-                                                    {sub.name}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <span className="text-gray-500 text-sm">None assigned</span>
-                                    )}
-                                </td>
-                                <td className="p-4 text-gray-500">
-                                    {new Date(faculty.user.createdAt).toLocaleDateString()}
-                                </td>
-                            </tr>
-                        ))}
-                        {facultyList.length === 0 && (
-                            <tr>
-                                <td colSpan={4} className="p-8 text-center text-gray-500">
-                                    No faculty members found.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+        const serializedFaculty = facultyList.map((f) => ({
+            ...f,
+            user: {
+                ...f.user,
+                createdAt: f.user.createdAt.toISOString(),
+            },
+        }));
+
+        console.log("Faculty list serialized.");
+
+        return (
+            <div>
+                <div className="flex justify-between items-center mb-8">
+                    <h1 className="text-3xl font-bold">Faculty Management</h1>
+                    <AddFacultyForm />
+                </div>
+
+                <FacultyTable initialFaculty={serializedFaculty} />
             </div>
-        </div>
-    );
+        );
+    } catch (error: any) {
+        console.error("Error loading faculty page:", error);
+        return (
+            <div className="p-8 text-center bg-red-500/10 border border-red-500/20 rounded-xl">
+                <h2 className="text-xl font-bold text-red-500 mb-2">Error Loading Page</h2>
+                <p className="text-red-400 mb-4">{error?.message || "An unexpected error occurred."}</p>
+                <div className="text-left bg-black/50 p-4 rounded text-xs font-mono overflow-auto max-h-48">
+                    {JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}
+                </div>
+            </div>
+        );
+    }
 }

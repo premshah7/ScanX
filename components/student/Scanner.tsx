@@ -34,7 +34,7 @@ export default function Scanner() {
         setLoading(true);
 
         try {
-            const res = await markAttendance(token, deviceHash);
+            const res = await markAttendance(token, deviceHash, navigator.userAgent);
             if (res.success) {
                 setResult({ success: true });
                 setTimeout(() => router.push("/student"), 2000);

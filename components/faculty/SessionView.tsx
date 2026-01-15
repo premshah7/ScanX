@@ -140,8 +140,19 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
                                         <div className="text-xs text-gray-400">
                                             {new Date(log.timestamp).toLocaleTimeString()}
                                         </div>
+                                        <div className="text-[10px] font-mono text-gray-500 mt-1 max-w-[100px] truncate" title={log.type === 'proxy' ? log.attemptedHash : log.student.deviceHash}>
+                                            {log.type === 'proxy' ? (
+                                                <span className="text-red-400/70">
+                                                    Hash: {log.attemptedHash?.substring(0, 8)}...
+                                                </span>
+                                            ) : (
+                                                <span className="text-blue-400/50">
+                                                    ID: {log.student.deviceHash?.substring(0, 8)}...
+                                                </span>
+                                            )}
+                                        </div>
                                         {log.type === 'proxy' && (
-                                            <div className="text-[10px] text-red-400 font-bold uppercase tracking-wider">
+                                            <div className="text-[10px] text-red-400 font-bold uppercase tracking-wider mt-1">
                                                 Proxy Attempt
                                             </div>
                                         )}

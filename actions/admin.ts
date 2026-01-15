@@ -106,3 +106,22 @@ export async function resetDevice(studentId: number) {
         return { error: "Failed to reset device" };
     }
 }
+
+export async function deleteUsers(userIds: number[]) {
+    try {
+        await prisma.user.deleteMany({
+            where: {
+                id: {
+                    in: userIds,
+                },
+            },
+        });
+
+        revalidatePath("/admin/faculty");
+        revalidatePath("/admin/students");
+        return { success: true };
+    } catch (error) {
+        console.error("Error deleting users:", error);
+        return { error: "Failed to delete users" };
+    }
+}

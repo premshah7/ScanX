@@ -6,7 +6,9 @@ import { authOptions } from "@/lib/auth";
 import { validateIp } from "@/lib/ipCheck";
 import { revalidatePath } from "next/cache";
 
-export async function markAttendance(token: string, deviceHash: string) {
+import { headers } from "next/headers";
+
+export async function markAttendance(token: string, deviceHash: string, userAgent: string) {
     const session = await getServerSession(authOptions);
 
     if (!session || session.user.role !== "STUDENT") {
@@ -24,12 +26,11 @@ export async function markAttendance(token: string, deviceHash: string) {
         return { error: "Invalid QR Codes" };
     }
 
-    // 2. Validate Timestamp (15s validity window to prevent replay)
-    // const now = Date.now();
-    // if (now - timestamp > 15000 || now - timestamp < -5000) { // Allow 15s delay, 5s drift
-    //   return { error: "QR Code Expired. Please scan again." };
-    // }
-    // Commenting out strict time check for MVP/Testing ease, but in prod uncomment above.
+    // 2. Get IP
+    const headerList = await headers();
+    const ip = headerList.get("x-forwarded-for")?.split(",")[0] ||
+        headerList.get("x-real-ip") ||
+        "unknown";
 
     // 3. Get Session & Student
     const [dbSession, student] = await Promise.all([
@@ -54,19 +55,38 @@ export async function markAttendance(token: string, deviceHash: string) {
     });
 
     if (existingAttendance) {
-        return { error: "Attendance already marked", success: true }; // Treat as success to avoid panic
+        return { error: "Attendance already marked", success: true };
     }
 
-    // 5. IP Validation
-    const isIpValid = await validateIp();
-    if (!isIpValid) {
-        return { error: "You are not connected to the required network (IP Mismatch)." };
+    // 5. IP Validation (Prefix Check)
+    const settings = await prisma.systemSettings.findFirst();
+    if (settings?.isIpCheckEnabled) {
+        if (!ip.startsWith(settings.allowedIpPrefix)) {
+            return { error: "You are not connected to the required network (IP Mismatch)." };
+        }
     }
 
     // 6. Device Validation (Anti-Proxy)
     let isProxy = false;
 
     if (!student.deviceHash) {
+        // --- NEW: HEURISTIC CHECK FOR SHARED DEVICES ---
+        // If this is a NEW binding, check if this IP + UA was just used by someone else
+        const recentSharedActivity = await prisma.attendance.findFirst({
+            where: {
+                sessionId: sessionId,
+                ipAddress: ip,
+                userAgent: userAgent,
+                studentId: { not: student.id }
+            }
+        });
+
+        if (recentSharedActivity) {
+            // Suspicious: Same IP + Same UA in same session by different user
+            // Likely a shared phone (even if different browser, UA often similar for OS part)
+            return { error: "Suspicious activity detected. You cannot use a device that was just used by another student." };
+        }
+
         // Bind Device (First time)
         await prisma.student.update({
             where: { id: student.id },
@@ -94,6 +114,8 @@ export async function markAttendance(token: string, deviceHash: string) {
         data: {
             studentId: student.id,
             sessionId: sessionId,
+            userAgent: userAgent,
+            ipAddress: ip,
         },
     });
 

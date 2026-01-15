@@ -18,5 +18,14 @@ export async function validateIp() {
 
     // Simple prefix check
     // In production, use a CIDR library
-    return ip.startsWith(settings.allowedIpPrefix);
+    console.log(`[IP Check] Detected IP: ${ip}, Allowed Prefix: ${settings.allowedIpPrefix}`);
+
+    if (ip === "unknown") {
+        console.warn("[IP Check] IP detection failed (unknown). Request headers may be missing 'x-forwarded-for'.");
+        return false;
+    }
+
+    const isValid = ip.startsWith(settings.allowedIpPrefix);
+    console.log(`[IP Check] Result: ${isValid ? "PASS" : "FAIL"}`);
+    return isValid;
 }
