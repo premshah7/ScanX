@@ -49,7 +49,11 @@ export default function StudentScanPage() {
     const testCamera = async () => {
         try {
             setMessage("Requesting raw camera access...");
-            const stream = await navigator.mediaDevices.getUserMedia({ video: {facingMode : {exact :"environment"}} });
+            // const stream = await navigator.mediaDevices.getUserMedia({ video: {facingMode : {exact :"environment"}} });
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "environment" }
+            });
+
             setMessage("Success! Camera access granted. " + stream.id);
             // Stop tracks to release
             stream.getTracks().forEach(t => t.stop());
@@ -59,6 +63,10 @@ export default function StudentScanPage() {
             if (err.name === 'NotFoundError') errorMsg += " (No Camera Found)";
 
             setMessage(errorMsg + ` - ${err.message}`);
+        }
+        if (!navigator.mediaDevices?.getUserMedia) {
+            setMessage("Camera API not supported on this device.");
+            return;
         }
     };
 

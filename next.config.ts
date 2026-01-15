@@ -1,22 +1,21 @@
 import type { NextConfig } from "next";
+
 const withPWA = require("@ducanh2912/next-pwa").default({
   dest: "public",
-  disable: true, // Force disable to clear cache
+  disable: true,
   register: true,
   skipWaiting: true,
 });
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  turbopack: {},
   async headers() {
     return [
       {
-        source: '/:path*',
+        source: "/(.*)",
         headers: [
           {
-            key: 'Permissions-Policy',
-            value: 'camera=*',
+            key: "Permissions-Policy",
+            value: "camera=(self)",
           },
         ],
       },
