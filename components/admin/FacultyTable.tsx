@@ -4,7 +4,9 @@ import { useState } from "react";
 import { User, Trash2 } from "lucide-react";
 import { deleteUsers } from "@/actions/admin";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import EditFacultyModal from "@/components/admin/EditFacultyModal";
 import { useRouter } from "next/navigation";
+import FormattedTime from "@/components/FormattedTime";
 
 // Define the type based on the Prisma query
 interface FacultyMember {
@@ -98,6 +100,7 @@ export default function FacultyTable({ initialFaculty }: FacultyTableProps) {
                             <th className="p-4">Email</th>
                             <th className="p-4">Subjects</th>
                             <th className="p-4">Joined</th>
+                            <th className="p-4">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-800">
@@ -138,7 +141,10 @@ export default function FacultyTable({ initialFaculty }: FacultyTableProps) {
                                     )}
                                 </td>
                                 <td className="p-4 text-gray-500">
-                                    {new Date(faculty.user.createdAt).toLocaleDateString()}
+                                    <FormattedTime date={faculty.user.createdAt} dateOnly />
+                                </td>
+                                <td className="p-4">
+                                    <EditFacultyModal faculty={faculty} iconOnly />
                                 </td>
                             </tr>
                         ))}

@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import AddStudentForm from "@/components/admin/AddStudentForm";
 import DeviceResetButton from "@/components/admin/DeviceResetButton";
+import BulkUploadClient from "@/components/admin/BulkUploadClient";
+import EditStudentModal from "@/components/admin/EditStudentModal";
 import { User, Smartphone } from "lucide-react";
 
 import Search from "@/components/Search";
@@ -41,6 +43,7 @@ export default async function StudentManagementPage({
                     <div className="w-full max-w-md">
                         <Search placeholder="Search students..." />
                     </div>
+                    <BulkUploadClient userType="STUDENT" />
                     <AddStudentForm />
                 </div>
             </div>
@@ -95,11 +98,14 @@ export default async function StudentManagementPage({
                                     )}
                                 </td>
                                 <td className="p-4">
-                                    <DeviceResetButton
-                                        studentId={student.id}
-                                        hasDevice={!!student.deviceHash}
-                                        isRequested={student.isDeviceResetRequested}
-                                    />
+                                    <div className="flex items-center gap-2">
+                                        <EditStudentModal student={student} iconOnly />
+                                        <DeviceResetButton
+                                            studentId={student.id}
+                                            hasDevice={!!student.deviceHash}
+                                            isRequested={student.isDeviceResetRequested}
+                                        />
+                                    </div>
                                 </td>
                             </tr>
                         ))}

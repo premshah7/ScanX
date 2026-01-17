@@ -33,9 +33,11 @@ model Student {
   deviceHash             String?
   isDeviceResetRequested Boolean @default(false)
 
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  attendances   Attendance[]
-  proxyAttempts ProxyAttempt[]
+  user               User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attendances        Attendance[]
+  proxyAttempts      ProxyAttempt[]
+  subjects           Subject[]
+  ownedProxyAttempts ProxyAttempt[] @relation("DeviceOwner")
 }
 
 model Faculty {
@@ -54,6 +56,7 @@ model Subject {
 
   faculty  Faculty   @relation(fields: [facultyId], references: [id], onDelete: Cascade)
   sessions Session[]
+  students Student[]
 }
 
 model Session {
@@ -90,13 +93,15 @@ model ProxyAttempt {
   sessionId     Int
   attemptedHash String
   timestamp     DateTime @default(now())
+  deviceOwnerId Int?
 
-  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  deviceOwner Student? @relation("DeviceOwner", fields: [deviceOwnerId], references: [id])
 }
 
 model SystemSettings {
   id               Int     @id @default(autoincrement())
-  allowedIpPrefix  String  @default("") // E.g., "192.168.1." or "203.0.113.5"
+  allowedIpPrefix  String  @default("")
   isIpCheckEnabled Boolean @default(false)
 }

@@ -26,10 +26,13 @@ export default function FacultyLayout({
                     My Subjects
                 </Link>
                 {/* Placeholder for future links like History */}
-                <div className="px-4 py-3 text-gray-600 cursor-not-allowed flex items-center gap-3">
+                <Link
+                    href="/faculty/history"
+                    className="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg transition-colors hover:text-white"
+                >
                     <History className="w-5 h-5" />
-                    History (Soon)
-                </div>
+                    History
+                </Link>
             </nav>
 
             <LogoutButton />

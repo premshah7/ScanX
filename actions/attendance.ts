@@ -58,6 +58,31 @@ export async function markAttendance(token: string, deviceHash: string, userAgen
         return { error: "Attendance already marked", success: true };
     }
 
+    // --- NEW: GLOBAL DEVICE OWNERSHIP CHECK ---
+    // Check if this device is already registered to another student.
+    // This prevents shared devices even if the current student isn't bound yet.
+    const deviceOwner = await prisma.student.findFirst({
+        where: {
+            deviceHash: deviceHash,
+            id: { not: student.id } // Exclude self
+        },
+        include: { user: true }
+    });
+
+    if (deviceOwner) {
+        // Log Proxy Attempt (The current student is trying to use someone else's device)
+        await prisma.proxyAttempt.create({
+            data: {
+                studentId: student.id,
+                sessionId: sessionId,
+                attemptedHash: deviceHash,
+                deviceOwnerId: deviceOwner.id // Record the victim
+            },
+        });
+
+        return { error: "Device Verification Failed! This device is linked to another account. Proxy attempt recorded." };
+    }
+
     // 5. IP Validation (Prefix Check)
     const settings = await prisma.systemSettings.findFirst();
     if (settings?.isIpCheckEnabled) {

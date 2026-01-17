@@ -2,6 +2,7 @@
 import { prisma } from "@/lib/prisma";
 import AddFacultyForm from "@/components/admin/AddFacultyForm";
 import FacultyTable from "@/components/admin/FacultyTable";
+import BulkUploadClient from "@/components/admin/BulkUploadClient";
 
 export default async function FacultyManagementPage() {
     try {
@@ -30,9 +31,12 @@ export default async function FacultyManagementPage() {
 
         return (
             <div>
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex justify-between items-center mb-8 gap-4">
                     <h1 className="text-3xl font-bold">Faculty Management</h1>
-                    <AddFacultyForm />
+                    <div className="flex gap-3">
+                        <BulkUploadClient userType="FACULTY" />
+                        <AddFacultyForm />
+                    </div>
                 </div>
 
                 <FacultyTable initialFaculty={serializedFaculty} />

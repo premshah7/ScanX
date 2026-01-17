@@ -7,6 +7,8 @@ import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
 import RequestResetButton from "@/components/student/RequestResetButton";
 import DeviceStatus from "@/components/student/DeviceStatus";
+import EditStudentModal from "@/components/admin/EditStudentModal";
+import FormattedTime from "@/components/FormattedTime";
 
 export default async function StudentDashboard() {
     const session = await getServerSession(authOptions);
@@ -47,6 +49,9 @@ export default async function StudentDashboard() {
                 <div>
                     <h1 className="text-2xl font-bold">Welcome, {student.user.name.split(' ')[0]}</h1>
                     <p className="text-gray-400 text-sm">Track your attendance</p>
+                    <div className="mt-2">
+                        <EditStudentModal student={student} />
+                    </div>
                 </div>
                 <div className="flex items-center gap-4">
                     <LogoutButton />
@@ -89,7 +94,9 @@ export default async function StudentDashboard() {
                         <div key={record.id} className="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center justify-between">
                             <div>
                                 <div className="font-semibold">{record.session.subject.name}</div>
-                                <div className="text-xs text-gray-500">{new Date(record.timestamp).toLocaleString()}</div>
+                                <div className="text-xs text-gray-500">
+                                    <FormattedTime date={record.timestamp} includeSeconds />
+                                </div>
                             </div>
                             <CheckCircle className="w-5 h-5 text-green-500" />
                         </div>

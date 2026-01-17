@@ -91,3 +91,42 @@ export async function getFacultySubjects(email: string) {
         activeSessions: sub.sessions.length
     }));
 }
+
+export async function getFacultyHistory(email: string) {
+    if (!email) return [];
+
+    const faculty = await prisma.faculty.findFirst({
+        where: { user: { email } },
+        include: {
+            subjects: {
+                include: {
+                    sessions: {
+                        where: { isActive: false },
+                        orderBy: { startTime: 'desc' },
+                        include: {
+                            _count: {
+                                select: { attendances: true, proxyAttempts: true }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    if (!faculty) return [];
+
+    // Flatten sessions
+    const history = faculty.subjects.flatMap(subject =>
+        subject.sessions.map(session => ({
+            id: session.id,
+            subjectName: subject.name,
+            startTime: session.startTime,
+            endTime: session.endTime,
+            attendanceCount: session._count.attendances,
+            proxyCount: session._count.proxyAttempts
+        }))
+    ).sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+
+    return history;
+}

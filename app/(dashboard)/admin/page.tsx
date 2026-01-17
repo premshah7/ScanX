@@ -1,16 +1,25 @@
 import { prisma } from "@/lib/prisma";
 import { Users, GraduationCap, ShieldAlert, Activity } from "lucide-react";
 import PendingRequests from "@/components/admin/PendingRequests";
+import SecurityAlerts from "@/components/admin/SecurityAlerts";
 
 async function getStats() {
-    const [studentCount, facultyCount, proxyCount, activeSessions] = await Promise.all([
+    const [studentCount, facultyCount, proxyCount, activeSessions, recentAlerts] = await Promise.all([
         prisma.student.count(),
         prisma.faculty.count(),
         prisma.proxyAttempt.count(),
         prisma.session.count({ where: { isActive: true } }),
+        prisma.proxyAttempt.findMany({
+            take: 5,
+            orderBy: { timestamp: 'desc' },
+            include: {
+                student: { include: { user: true } },
+                deviceOwner: { include: { user: true } }
+            }
+        })
     ]);
 
-    return { studentCount, facultyCount, proxyCount, activeSessions };
+    return { studentCount, facultyCount, proxyCount, activeSessions, recentAlerts };
 }
 
 export default async function AdminDashboard() {
@@ -53,7 +62,7 @@ export default async function AdminDashboard() {
                 {/* Placeholder for Recent Proxy Attempts */}
                 <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
                     <h2 className="text-xl font-semibold mb-4">Recent Security Alerts</h2>
-                    <div className="text-gray-400 text-sm">No recent alerts found.</div>
+                    <SecurityAlerts alerts={stats.recentAlerts} />
                 </div>
 
                 {/* Placeholder for Recent Activity */}

@@ -2,10 +2,13 @@
 
 import { useState, useEffect } from "react";
 import QRCode from "react-qr-code";
-import { endSession, getSessionStats } from "@/actions/session";
+import { endSession, getSessionStats, getSessionAttendance } from "@/actions/session";
 import { useRouter } from "next/navigation";
 import { Loader2, StopCircle, RefreshCw, Users, ShieldAlert } from "lucide-react";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { Download, FileText } from "lucide-react";
 
 export default function SessionView({ sessionId, subjectName, subjectId }: { sessionId: number; subjectName: string; subjectId: number }) {
     const router = useRouter();
@@ -55,6 +58,116 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
         router.push("/faculty");
     };
 
+    const handleDownloadPDF = async () => {
+        try {
+            const result = await getSessionAttendance(sessionId);
+            if (!result.success || !result.present) {
+                alert("Failed to fetch attendance data");
+                return;
+            }
+
+            const doc = new jsPDF();
+
+            // Header
+            doc.setFontSize(18);
+            doc.text(`${subjectName} - Attendance`, 14, 22);
+            doc.setFontSize(11);
+            doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 30);
+
+            // Stats
+            doc.text(`Total Present: ${result.present.length}`, 14, 38);
+            doc.text(`Total Absent: ${result.absent?.length || 0}`, 14, 44);
+
+            let finalY = 50;
+
+            // --- PRESENT TABLE ---
+            if (result.present.length > 0) {
+                doc.setFontSize(14);
+                doc.setTextColor(22, 163, 74); // Green
+                doc.text("Present Students", 14, finalY);
+
+                const tableData = result.present.map((record: any) => [
+                    record.student.rollNumber,
+                    record.student.user.name,
+                    new Date(record.timestamp).toLocaleTimeString(),
+                    record.student.deviceHash ? "Verified" : "N/A"
+                ]);
+
+                autoTable(doc, {
+                    startY: finalY + 5,
+                    head: [['Roll No', 'Name', 'Time', 'Device Status']],
+                    body: tableData,
+                    theme: 'grid',
+                    headStyles: { fillColor: [22, 163, 74] }, // Green header
+                });
+
+                finalY = (doc as any).lastAutoTable.finalY + 15;
+            }
+
+            // --- ABSENT TABLE ---
+            if (result.absent && result.absent.length > 0) {
+                doc.setFontSize(14);
+                doc.setTextColor(220, 38, 38); // Red
+                doc.text("Absent Students", 14, finalY);
+
+                const absentData = result.absent.map((student: any) => [
+                    student.rollNumber,
+                    student.name,
+                    "ABSENT",
+                    "-"
+                ]);
+
+                autoTable(doc, {
+                    startY: finalY + 5,
+                    head: [['Roll No', 'Name', 'Status', 'Device']],
+                    body: absentData,
+                    theme: 'grid',
+                    headStyles: { fillColor: [220, 38, 38] }, // Red header
+                });
+            }
+
+            doc.save(`${subjectName}_Attendance_${new Date().toISOString().split('T')[0]}.pdf`);
+        } catch (error) {
+            console.error("PDF generation failed:", error);
+            alert("Failed to generate PDF");
+        }
+    };
+
+    const handleDownloadTXT = async () => {
+        try {
+            const result = await getSessionAttendance(sessionId);
+            if (!result.success || !result.present) {
+                alert("Failed to fetch attendance data");
+                return;
+            }
+
+            let content = `SUBJECT: ${subjectName}\nDATE: ${new Date().toLocaleDateString()}\n\n`;
+
+            content += `--- PRESENT (${result.present.length}) ---\n`;
+            content += result.present
+                .map((record: any) => record.student.rollNumber)
+                .join('\n');
+
+            if (result.absent && result.absent.length > 0) {
+                content += `\n\n--- ABSENT (${result.absent.length}) ---\n`;
+                content += result.absent
+                    .map((student: any) => student.rollNumber)
+                    .join('\n');
+            }
+
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${subjectName}_Attendance_${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("TXT generation failed:", error);
+            alert("Failed to generate TXT");
+        }
+    };
+
     // Merge and sort logs
     const logs = [
         ...stats.recentAttendance.map(a => ({ ...a, type: 'attendance' })),
@@ -100,6 +213,25 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
                         </div>
                         <div className="text-4xl font-bold text-white">{stats.proxyCount}</div>
                     </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <button
+                        onClick={handleDownloadPDF}
+                        disabled={stats.attendanceCount === 0}
+                        className="flex items-center justify-center gap-2 p-3 bg-red-600/10 border border-red-600/50 text-red-500 rounded-lg hover:bg-red-600/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                        <FileText className="w-4 h-4" />
+                        <span className="text-sm font-medium">Export PDF</span>
+                    </button>
+                    <button
+                        onClick={handleDownloadTXT}
+                        disabled={stats.attendanceCount === 0}
+                        className="flex items-center justify-center gap-2 p-3 bg-blue-600/10 border border-blue-600/50 text-blue-500 rounded-lg hover:bg-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                        <Download className="w-4 h-4" />
+                        <span className="text-sm font-medium">Export TXT</span>
+                    </button>
                 </div>
 
                 <div className="flex-1 bg-gray-900 border border-gray-800 rounded-xl p-6 overflow-hidden flex flex-col">

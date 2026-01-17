@@ -70,3 +70,60 @@ export async function getSessionStats(sessionId: number) {
         recentProxies
     };
 }
+
+export async function getSessionAttendance(sessionId: number) {
+    try {
+        // 1. Fetch Session with Subject and Enrolled Students
+        const session = await prisma.session.findUnique({
+            where: { id: sessionId },
+            include: {
+                subject: {
+                    include: {
+                        students: {
+                            include: { user: true }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!session) {
+            return { error: "Session not found" };
+        }
+
+        // 2. Fetch Present Students (Attendance Records)
+        const attendance = await prisma.attendance.findMany({
+            where: { sessionId },
+            orderBy: { timestamp: 'asc' },
+            include: {
+                student: {
+                    include: { user: true }
+                }
+            }
+        });
+
+        // 3. Calculate Absent Students
+        // Get IDs of students who are present
+        const presentStudentIds = new Set(attendance.map(a => a.studentId));
+
+        // Filter enrolled students who are NOT in the present set
+        const absentStudents = session.subject.students.filter(
+            student => !presentStudentIds.has(student.id)
+        ).map(student => ({
+            rollNumber: student.rollNumber,
+            name: student.user.name,
+            email: student.user.email
+        }));
+
+        return {
+            success: true,
+            present: attendance,
+            absent: absentStudents,
+            subjectName: session.subject.name,
+            date: session.startTime
+        };
+    } catch (error) {
+        console.error("Error fetching session attendance:", error);
+        return { error: "Failed to fetch attendance records" };
+    }
+}

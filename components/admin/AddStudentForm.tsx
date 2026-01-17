@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { createStudent } from "@/actions/admin";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, Eye, EyeOff } from "lucide-react";
 
 export default function AddStudentForm() {
     const [isOpen, setIsOpen] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -58,7 +59,22 @@ export default function AddStudentForm() {
 
                     <div>
                         <label className="block text-sm font-medium text-gray-400 mb-1">Password</label>
-                        <input name="password" type="password" required minLength={6} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500" />
+                        <div className="relative">
+                            <input
+                                name="password"
+                                type={showPassword ? "text" : "password"}
+                                required
+                                minLength={6}
+                                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 pr-10"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                            >
+                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">

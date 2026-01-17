@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LayoutDashboard, Users, GraduationCap, Settings, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, Users, GraduationCap, Settings, ShieldAlert, BookOpen } from "lucide-react";
 import LogoutButton from "@/components/LogoutButton";
 import MobileSidebar from "@/components/MobileSidebar";
 
@@ -38,6 +38,13 @@ export default function AdminLayout({
                 >
                     <GraduationCap className="w-5 h-5" />
                     Students
+                </Link>
+                <Link
+                    href="/admin/subjects"
+                    className="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg transition-colors hover:text-white"
+                >
+                    <BookOpen className="w-5 h-5" />
+                    Subjects
                 </Link>
                 <Link
                     href="/admin/attendance"
