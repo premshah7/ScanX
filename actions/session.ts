@@ -2,13 +2,22 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
-export async function createSession(subjectId: number) {
+export async function createSession(subjectId: number, batchIds?: number[]) {
     try {
+        const userSession = await getServerSession(authOptions);
+        if (userSession?.user.role !== "FACULTY") {
+            return { error: "Unauthorized Access" };
+        }
         const session = await prisma.session.create({
             data: {
                 subjectId,
                 isActive: true,
+                batches: batchIds && batchIds.length > 0 ? {
+                    connect: batchIds.map(id => ({ id }))
+                } : undefined,
             },
         });
         revalidatePath("/faculty");
@@ -21,6 +30,10 @@ export async function createSession(subjectId: number) {
 
 export async function endSession(sessionId: number) {
     try {
+        const userSession = await getServerSession(authOptions);
+        if (userSession?.user.role !== "FACULTY") {
+            return { error: "Unauthorized Access" };
+        }
         await prisma.session.update({
             where: { id: sessionId },
             data: {
@@ -83,7 +96,8 @@ export async function getSessionAttendance(sessionId: number) {
                             include: { user: true }
                         }
                     }
-                }
+                },
+                batches: true
             }
         });
 
@@ -105,10 +119,18 @@ export async function getSessionAttendance(sessionId: number) {
         // 3. Calculate Absent Students
         // Get IDs of students who are present
         const presentStudentIds = new Set(attendance.map(a => a.studentId));
+        const targetBatchIds = new Set(session.batches.map(b => b.id));
 
-        // Filter enrolled students who are NOT in the present set
+        // Filter enrolled students who are NOT in the present set AND match batch criteria
         const absentStudents = session.subject.students.filter(
-            student => !presentStudentIds.has(student.id)
+            student => {
+                const isPresent = presentStudentIds.has(student.id);
+                if (isPresent) return false; // Already present, not absent
+
+                // Check Batch Eligibility
+                if (targetBatchIds.size === 0) return true; // No restriction
+                return student.batchId && targetBatchIds.has(student.batchId);
+            }
         ).map(student => ({
             rollNumber: student.rollNumber,
             name: student.user.name,

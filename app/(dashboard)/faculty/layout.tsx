@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { BookOpen, ShieldAlert, History } from "lucide-react";
 import LogoutButton from "@/components/LogoutButton";
 import MobileSidebar from "@/components/MobileSidebar";
@@ -11,8 +12,13 @@ export default function FacultyLayout({
     const SidebarContent = () => (
         <>
             <div className="flex items-center gap-3 mb-8 px-2">
-                <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
-                    <ShieldAlert className="w-5 h-5 text-white" />
+                <div className="relative w-8 h-8 rounded-lg overflow-hidden">
+                    <Image
+                        src="/logo.png"
+                        alt="GeoGuard Logo"
+                        fill
+                        className="object-cover"
+                    />
                 </div>
                 <span className="text-xl font-bold text-white">GeoGuard</span>
             </div>
@@ -49,8 +55,13 @@ export default function FacultyLayout({
             {/* Mobile Header */}
             <header className="md:hidden bg-gray-900 border-b border-gray-800 p-4 flex items-center justify-between sticky top-0 z-30">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
-                        <ShieldAlert className="w-5 h-5 text-white" />
+                    <div className="relative w-8 h-8 rounded-lg overflow-hidden">
+                        <Image
+                            src="/logo.png"
+                            alt="GeoGuard Logo"
+                            fill
+                            className="object-cover"
+                        />
                     </div>
                     <span className="text-xl font-bold text-white">GeoGuard</span>
                 </div>

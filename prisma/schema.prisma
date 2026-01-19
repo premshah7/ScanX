@@ -38,6 +38,9 @@ model Student {
   proxyAttempts      ProxyAttempt[]
   subjects           Subject[]
   ownedProxyAttempts ProxyAttempt[] @relation("DeviceOwner")
+
+  batchId Int?
+  batch   Batch? @relation(fields: [batchId], references: [id])
 }
 
 model Faculty {
@@ -46,6 +49,15 @@ model Faculty {
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   subjects Subject[]
+  batches  Batch[]
+}
+
+model Batch {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  students  Student[]
+  sessions  Session[]
+  faculties Faculty[]
 }
 
 model Subject {
@@ -66,9 +78,7 @@ model Session {
   startTime DateTime  @default(now())
   endTime   DateTime?
 
-  // Keeping these for potential future token tracking if needed, but for now the code relies on dynamic generation.
-  // Actually, standardizing on the fields used in the code:
-  // created/updatedAt are good practice too.
+  batches Batch[]
 
   subject       Subject        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   attendances   Attendance[]

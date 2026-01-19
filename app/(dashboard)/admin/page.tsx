@@ -2,9 +2,12 @@ import { prisma } from "@/lib/prisma";
 import { Users, GraduationCap, ShieldAlert, Activity } from "lucide-react";
 import PendingRequests from "@/components/admin/PendingRequests";
 import SecurityAlerts from "@/components/admin/SecurityAlerts";
+import { getGlobalAnalytics, getSecurityOverview, getActiveSessions } from "@/actions/admin";
+import GlobalAnalytics from "@/components/admin/GlobalAnalytics";
+import ActiveSessionsFeed from "@/components/admin/ActiveSessionsFeed";
 
 async function getStats() {
-    const [studentCount, facultyCount, proxyCount, activeSessions, recentAlerts] = await Promise.all([
+    const [studentCount, facultyCount, proxyCount, activeSessionsCount, recentAlerts, trend, security, activeSessions] = await Promise.all([
         prisma.student.count(),
         prisma.faculty.count(),
         prisma.proxyAttempt.count(),
@@ -16,22 +19,40 @@ async function getStats() {
                 student: { include: { user: true } },
                 deviceOwner: { include: { user: true } }
             }
-        })
+        }),
+        getGlobalAnalytics(),
+        getSecurityOverview(),
+        getActiveSessions()
     ]);
 
-    return { studentCount, facultyCount, proxyCount, activeSessions, recentAlerts };
+    return {
+        studentCount,
+        facultyCount,
+        proxyCount,
+        activeSessionsCount,
+        recentAlerts,
+        trend,
+        security,
+        activeSessions
+    };
 }
 
 export default async function AdminDashboard() {
     const stats = await getStats();
 
     return (
-        <div>
-            <h1 className="text-3xl font-bold mb-8">System Overview</h1>
+        <div className="max-w-7xl mx-auto space-y-8 text-white">
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-bold mb-1">Admin Command Center</h1>
+                    <p className="text-gray-400">System Status & Global Overview</p>
+                </div>
+            </div>
 
             <PendingRequests />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {/* 1. Key Metrics Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard
                     title="Total Students"
                     value={stats.studentCount}
@@ -46,33 +67,33 @@ export default async function AdminDashboard() {
                 />
                 <StatCard
                     title="Active Sessions"
-                    value={stats.activeSessions}
+                    value={stats.activeSessionsCount}
                     icon={Activity}
                     color="green"
                 />
                 <StatCard
-                    title="Proxy Attempts"
+                    title="Total Proxies"
                     value={stats.proxyCount}
                     icon={ShieldAlert}
                     color="red"
                 />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Placeholder for Recent Proxy Attempts */}
-                <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-                    <h2 className="text-xl font-semibold mb-4">Recent Security Alerts</h2>
-                    <SecurityAlerts alerts={stats.recentAlerts} />
-                </div>
+            {/* 2. Global Analytics (Trend & Security) */}
+            <GlobalAnalytics trend={stats.trend} security={stats.security} />
 
-                {/* Placeholder for Recent Activity */}
-                <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-                    <h2 className="text-xl font-semibold mb-4">System Status</h2>
-                    <div className="flex items-center gap-2 text-green-400">
-                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                        System Operational
-                    </div>
+            {/* 3. Live Active Sessions Feed */}
+            <ActiveSessionsFeed sessions={stats.activeSessions} />
+
+            {/* 4. Recent Alerts (Bottom Log) */}
+            <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold flex items-center gap-2">
+                        <ShieldAlert className="w-5 h-5 text-red-500" />
+                        Recent Security Alerts
+                    </h2>
                 </div>
+                <SecurityAlerts alerts={stats.recentAlerts} />
             </div>
         </div>
     );

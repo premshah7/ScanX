@@ -27,7 +27,7 @@ export default async function SubjectsPage() {
                 <AddSubjectForm facultyList={facultyList} />
             </div>
 
-            <SubjectList subjects={subjects} />
+            <SubjectList subjects={subjects} facultyList={facultyList} />
         </div>
     );
 }

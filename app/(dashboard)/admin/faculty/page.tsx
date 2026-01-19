@@ -4,18 +4,26 @@ import AddFacultyForm from "@/components/admin/AddFacultyForm";
 import FacultyTable from "@/components/admin/FacultyTable";
 import BulkUploadClient from "@/components/admin/BulkUploadClient";
 
+import { getBatches } from "@/actions/batch";
+
 export default async function FacultyManagementPage() {
     try {
         console.log("Fetching faculty list...");
-        const facultyList = await prisma.faculty.findMany({
-            include: {
-                user: true,
-                subjects: true,
-            },
-            orderBy: {
-                id: 'desc'
-            }
-        });
+        const [facultyList, batchesRes] = await Promise.all([
+            prisma.faculty.findMany({
+                include: {
+                    user: true,
+                    subjects: true,
+                    batches: true, // Include batches
+                },
+                orderBy: {
+                    id: 'desc'
+                }
+            }),
+            getBatches()
+        ]);
+
+        const batches = batchesRes.batches || [];
 
         console.log("Faculty list fetched. Items:", facultyList.length);
 
@@ -35,11 +43,11 @@ export default async function FacultyManagementPage() {
                     <h1 className="text-3xl font-bold">Faculty Management</h1>
                     <div className="flex gap-3">
                         <BulkUploadClient userType="FACULTY" />
-                        <AddFacultyForm />
+                        <AddFacultyForm batches={batches} />
                     </div>
                 </div>
 
-                <FacultyTable initialFaculty={serializedFaculty} />
+                <FacultyTable initialFaculty={serializedFaculty} batches={batches} />
             </div>
         );
     } catch (error: any) {

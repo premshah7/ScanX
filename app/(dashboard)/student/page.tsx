@@ -17,21 +17,26 @@ export default async function StudentDashboard() {
         redirect("/auth/login");
     }
 
-    const student = await prisma.student.findUnique({
-        where: { userId: Number(session.user.id) },
-        include: {
-            attendances: {
-                include: {
-                    session: {
-                        include: { subject: true }
-                    }
+    const [student, batches] = await Promise.all([
+        prisma.student.findUnique({
+            where: { userId: Number(session.user.id) },
+            include: {
+                attendances: {
+                    include: {
+                        session: {
+                            include: { subject: true }
+                        }
+                    },
+                    orderBy: { timestamp: 'desc' },
+                    take: 20
                 },
-                orderBy: { timestamp: 'desc' },
-                take: 20
-            },
-            user: true
-        }
-    });
+                user: true
+            }
+        }),
+        prisma.batch.findMany({
+            orderBy: { name: 'asc' }
+        })
+    ]);
 
     if (!student) {
         return <div className="p-8 text-white">Student record not found.</div>;
@@ -50,7 +55,7 @@ export default async function StudentDashboard() {
                     <h1 className="text-2xl font-bold">Welcome, {student.user.name.split(' ')[0]}</h1>
                     <p className="text-gray-400 text-sm">Track your attendance</p>
                     <div className="mt-2">
-                        <EditStudentModal student={student} />
+                        <EditStudentModal student={student} batches={batches} />
                     </div>
                 </div>
                 <div className="flex items-center gap-4">

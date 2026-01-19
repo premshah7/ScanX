@@ -25,6 +25,10 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "GeoGuard",
   },
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export const viewport = {
@@ -45,7 +49,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <NextTopLoader color="#2563EB" showSpinner={false} />
+        <NextTopLoader color="#3B82F6" height={0} showSpinner={true} shadow={false} />
         <NextAuthSessionProvider>
           <FingerprintProvider>
             {children}

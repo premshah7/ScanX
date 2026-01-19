@@ -21,13 +21,18 @@ interface FacultyMember {
         id: number;
         name: string;
     }[];
+    batches: {
+        id: number;
+        name: string;
+    }[];
 }
 
 interface FacultyTableProps {
     initialFaculty: FacultyMember[];
+    batches?: { id: number; name: string }[];
 }
 
-export default function FacultyTable({ initialFaculty }: FacultyTableProps) {
+export default function FacultyTable({ initialFaculty, batches }: FacultyTableProps) {
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -99,6 +104,7 @@ export default function FacultyTable({ initialFaculty }: FacultyTableProps) {
                             <th className="p-4">Name</th>
                             <th className="p-4">Email</th>
                             <th className="p-4">Subjects</th>
+                            <th className="p-4">Batches</th>
                             <th className="p-4">Joined</th>
                             <th className="p-4">Actions</th>
                         </tr>
@@ -137,7 +143,20 @@ export default function FacultyTable({ initialFaculty }: FacultyTableProps) {
                                             ))}
                                         </div>
                                     ) : (
-                                        <span className="text-gray-500 text-sm">None assigned</span>
+                                        <span className="text-gray-500 text-sm">None</span>
+                                    )}
+                                </td>
+                                <td className="p-4">
+                                    {faculty.batches && faculty.batches.length > 0 ? (
+                                        <div className="flex flex-wrap gap-1">
+                                            {faculty.batches.map((b) => (
+                                                <span key={b.id} className="px-2 py-1 bg-green-500/10 text-green-400 text-xs rounded">
+                                                    {b.name}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <span className="text-gray-500 text-sm">None</span>
                                     )}
                                 </td>
                                 <td className="p-4 text-gray-500">

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { LoginSchema, LoginInput } from "@/types";
 import { z } from "zod";
 import { Loader2, Lock, Eye, EyeOff } from "lucide-react";
@@ -116,6 +117,13 @@ function LoginForm() {
                         )}
                     </button>
                 </form>
+
+                <p className="mt-6 text-center text-gray-400">
+                    Don't have an account?{" "}
+                    <Link href="/auth/register" className="text-blue-400 hover:text-blue-300 font-medium">
+                        Register
+                    </Link>
+                </p>
             </div>
         </div>
     );

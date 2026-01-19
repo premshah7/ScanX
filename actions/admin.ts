@@ -4,14 +4,23 @@ import { prisma } from "@/lib/prisma";
 import { UserRole } from "@/types";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function createFaculty(formData: FormData) {
     const name = formData.get("name") as string;
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
+    const batchIdsRaw = formData.get("batchIds") as string;
+    const batchIds: number[] = batchIdsRaw ? JSON.parse(batchIdsRaw) : [];
 
     if (!name || !email || !password) {
         return { error: "All fields are required" };
+    }
+
+    const session = await getServerSession(authOptions);
+    if (session?.user.role !== "ADMIN") {
+        return { error: "Unauthorized Access" };
     }
 
     try {
@@ -30,6 +39,9 @@ export async function createFaculty(formData: FormData) {
             await tx.faculty.create({
                 data: {
                     userId: user.id,
+                    batches: {
+                        connect: batchIds.map((id) => ({ id })),
+                    },
                 },
             });
         });
@@ -51,9 +63,15 @@ export async function createStudent(formData: FormData) {
     const password = formData.get("password") as string;
     const rollNumber = formData.get("rollNumber") as string;
     const enrollmentNo = formData.get("enrollmentNo") as string;
+    const batchId = formData.get("batchId") as string;
 
     if (!name || !email || !password || !rollNumber || !enrollmentNo) {
         return { error: "All fields are required" };
+    }
+
+    const session = await getServerSession(authOptions);
+    if (session?.user.role !== "ADMIN") {
+        return { error: "Unauthorized Access" };
     }
 
     try {
@@ -74,6 +92,7 @@ export async function createStudent(formData: FormData) {
                     userId: user.id,
                     rollNumber,
                     enrollmentNo,
+                    batchId: batchId ? parseInt(batchId) : null,
                 },
             });
         });
@@ -91,6 +110,10 @@ export async function createStudent(formData: FormData) {
 
 export async function resetDevice(studentId: number) {
     try {
+        const session = await getServerSession(authOptions);
+        if (session?.user.role !== "ADMIN") {
+            return { error: "Unauthorized Access" };
+        }
         await prisma.student.update({
             where: { id: studentId },
             data: {
@@ -109,6 +132,10 @@ export async function resetDevice(studentId: number) {
 
 export async function deleteUsers(userIds: number[]) {
     try {
+        const session = await getServerSession(authOptions);
+        if (session?.user.role !== "ADMIN") {
+            return { error: "Unauthorized Access" };
+        }
         await prisma.user.deleteMany({
             where: {
                 id: {
@@ -124,4 +151,111 @@ export async function deleteUsers(userIds: number[]) {
         console.error("Error deleting users:", error);
         return { error: "Failed to delete users" };
     }
+}
+
+export async function getGlobalAnalytics() {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    // Fetch all finished sessions in last 30 days
+    const sessions = await prisma.session.findMany({
+        where: {
+            startTime: { gte: thirtyDaysAgo },
+            isActive: false
+        },
+        include: {
+            _count: {
+                select: { attendances: true }
+            },
+            subject: {
+                select: { totalStudents: true }
+            }
+        },
+        orderBy: { startTime: 'asc' }
+    });
+
+    // Group by date and calculate average attendance
+    const dailyStats = new Map<string, { total: number; present: number }>();
+
+    sessions.forEach(session => {
+        const date = session.startTime.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        if (!dailyStats.has(date)) {
+            dailyStats.set(date, { total: 0, present: 0 });
+        }
+        const stat = dailyStats.get(date)!;
+        stat.total += session.subject.totalStudents;
+        stat.present += session._count.attendances;
+    });
+
+    const trend = Array.from(dailyStats.entries()).map(([date, stats]) => ({
+        date,
+        percentage: stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 0
+    }));
+
+    return trend;
+}
+
+export async function getSecurityOverview() {
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
+    // 1. Daily Verified Count
+    const attendances = await prisma.attendance.findMany({
+        where: { timestamp: { gte: fourteenDaysAgo } },
+        select: { timestamp: true }
+    });
+
+    const proxies = await prisma.proxyAttempt.findMany({
+        where: { timestamp: { gte: fourteenDaysAgo } },
+        select: { timestamp: true }
+    });
+
+    const dailyMap = new Map<string, { verified: number; suspicious: number }>();
+
+    // Helper to init map entry
+    const getEntry = (date: string) => {
+        if (!dailyMap.has(date)) dailyMap.set(date, { verified: 0, suspicious: 0 });
+        return dailyMap.get(date)!;
+    };
+
+    attendances.forEach(a => {
+        const date = a.timestamp.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        getEntry(date).verified++;
+    });
+
+    proxies.forEach(p => {
+        const date = p.timestamp.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        getEntry(date).suspicious++;
+    });
+
+    // Fill last 14 days
+    const result = [];
+    for (let i = 13; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        const stats = dailyMap.get(dateStr) || { verified: 0, suspicious: 0 };
+        result.push({ date: dateStr, ...stats });
+    }
+
+    return result;
+}
+
+export async function getActiveSessions() {
+    return await prisma.session.findMany({
+        where: { isActive: true },
+        include: {
+            subject: {
+                include: {
+                    faculty: {
+                        include: { user: true }
+                    }
+                }
+            },
+            _count: {
+                select: { attendances: true, proxyAttempts: true }
+            }
+        },
+        orderBy: { startTime: 'desc' }
+    });
 }

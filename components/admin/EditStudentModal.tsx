@@ -9,15 +9,17 @@ type Props = {
         id: number;
         rollNumber: string;
         enrollmentNo: string;
+        batchId: number | null;
         user: {
             name: string;
             email: string;
         }
     };
+    batches: { id: number; name: string }[];
     iconOnly?: boolean;
 };
 
-export default function EditStudentModal({ student, iconOnly = false }: Props) {
+export default function EditStudentModal({ student, batches, iconOnly = false }: Props) {
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -28,10 +30,11 @@ export default function EditStudentModal({ student, iconOnly = false }: Props) {
         email: student.user.email,
         rollNumber: student.rollNumber,
         enrollmentNo: student.enrollmentNo,
+        batchId: student.batchId ? student.batchId.toString() : "",
         password: ""
     });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
@@ -40,7 +43,12 @@ export default function EditStudentModal({ student, iconOnly = false }: Props) {
         setLoading(true);
         setError("");
 
-        const res = await updateStudentProfile(student.id, formData);
+        const updateData = {
+            ...formData,
+            batchId: formData.batchId ? parseInt(formData.batchId) : undefined
+        };
+
+        const res = await updateStudentProfile(student.id, updateData);
 
         if (res.error) {
             setError(res.error);
@@ -151,6 +159,23 @@ export default function EditStudentModal({ student, iconOnly = false }: Props) {
                                         className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
                                     />
                                 </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-400 mb-1">Batch Assignment</label>
+                                <select
+                                    name="batchId"
+                                    value={formData.batchId}
+                                    onChange={handleChange}
+                                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 appearance-none"
+                                >
+                                    <option value="">No Batch Assigned</option>
+                                    {batches?.map((b) => (
+                                        <option key={b.id} value={b.id}>
+                                            {b.name}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
 
                             <div className="flex justify-end gap-3 mt-6">

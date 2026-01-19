@@ -21,6 +21,12 @@ export async function getFacultyDefaulters(email: string): Promise<Defaulter[]> 
                 include: {
                     sessions: {
                         where: { isActive: false }
+                    },
+                    students: {
+                        include: {
+                            user: true,
+                            attendances: true
+                        }
                     }
                 }
             }
@@ -29,19 +35,17 @@ export async function getFacultyDefaulters(email: string): Promise<Defaulter[]> 
 
     if (!faculty) return [];
 
-    const allStudents = await prisma.student.findMany({
-        include: { user: true, attendances: true }
-    });
-
     const defaulters: Defaulter[] = [];
 
     for (const subject of faculty.subjects) {
         const totalSessions = subject.sessions.length;
         if (totalSessions === 0) continue;
 
-        for (const student of allStudents) {
+        const sessionIds = new Set(subject.sessions.map(s => s.id));
+
+        for (const student of subject.students) {
             const attendedCount = student.attendances.filter(a =>
-                subject.sessions.some(s => s.id === a.sessionId)
+                sessionIds.has(a.sessionId)
             ).length;
 
             const percentage = (attendedCount / totalSessions) * 100;
@@ -60,6 +64,60 @@ export async function getFacultyDefaulters(email: string): Promise<Defaulter[]> 
     }
 
     return defaulters;
+}
+
+export async function getFacultyStats(email: string) {
+    if (!email) return { totalStudents: 0, totalSessions: 0, averageAttendance: 0 };
+
+    const faculty = await prisma.faculty.findFirst({
+        where: { user: { email } },
+        include: {
+            subjects: {
+                include: {
+                    sessions: {
+                        include: {
+                            attendances: true
+                        }
+                    },
+                    students: true
+                }
+            }
+        }
+    });
+
+    if (!faculty) return { totalStudents: 0, totalSessions: 0, averageAttendance: 0 };
+
+    const uniqueStudentIds = new Set<number>();
+    let totalSessions = 0;
+    let totalAttendanceCount = 0;
+    let totalPossibleAttendance = 0;
+
+    faculty.subjects.forEach(subject => {
+        // Count unique students
+        subject.students.forEach(s => uniqueStudentIds.add(s.id));
+
+        // Count sessions
+        totalSessions += subject.sessions.length;
+
+        // Calculate attendance metrics
+        const subjectStudentCount = subject.students.length;
+        if (subjectStudentCount > 0) {
+            subject.sessions.forEach(session => {
+                totalAttendanceCount += session.attendances.length;
+                totalPossibleAttendance += subjectStudentCount;
+            });
+        }
+    });
+
+    const averageAttendance = totalPossibleAttendance > 0
+        ? (totalAttendanceCount / totalPossibleAttendance) * 100
+        : 0;
+
+    return {
+        totalStudents: uniqueStudentIds.size,
+        totalSessions,
+        averageAttendance: parseFloat(averageAttendance.toFixed(1))
+    };
 }
 
 export async function getFacultySubjects(email: string) {
@@ -129,4 +187,90 @@ export async function getFacultyHistory(email: string) {
     ).sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
 
     return history;
+}
+
+export async function getFacultyAnalytics(email: string) {
+    if (!email) return { trend: [], recentActivity: [], proxyStats: { verified: 0, suspicious: 0 } };
+
+    const faculty = await prisma.faculty.findFirst({
+        where: { user: { email } },
+        include: {
+            subjects: {
+                include: {
+                    sessions: {
+                        where: { isActive: false },
+                        orderBy: { startTime: 'desc' },
+                        take: 10,
+                        include: {
+                            _count: {
+                                select: { attendances: true, proxyAttempts: true }
+                            },
+                            attendances: true
+                        }
+                    },
+                    students: true
+                }
+            }
+        }
+    });
+
+    if (!faculty) return { trend: [], recentActivity: [], proxyStats: { verified: 0, suspicious: 0 } };
+
+    const allSessions = faculty.subjects.flatMap(sub =>
+        sub.sessions.map(s => ({
+            ...s,
+            subjectName: sub.name,
+            totalStudents: sub.students.length
+        }))
+    ).sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+
+    const recentActivity = allSessions.slice(0, 5).map(session => ({
+        id: session.id,
+        subjectName: session.subjectName,
+        date: session.startTime,
+        present: session._count.attendances,
+        absent: session.totalStudents - session._count.attendances,
+        proxies: session._count.proxyAttempts,
+        total: session.totalStudents
+    }));
+
+    // 2. Proxy Stats (Aggregate count of Attendance vs ProxyAttempts)
+    const verifiedCount = await prisma.attendance.count({
+        where: {
+            session: {
+                subject: { facultyId: faculty.id }
+            }
+        }
+    });
+
+    const suspiciousCount = await prisma.proxyAttempt.count({
+        where: {
+            session: {
+                subject: { facultyId: faculty.id }
+            }
+        }
+    });
+
+    const proxyStats = {
+        verified: verifiedCount,
+        suspicious: suspiciousCount
+    };
+
+    // 3. Attendance Trend (Last 7 sessions sorted by date)
+    const trend = allSessions.slice(0, 7).map(session => {
+        const percentage = session.totalStudents > 0
+            ? (session.attendances.length / session.totalStudents) * 100
+            : 0;
+        return {
+            date: new Date(session.startTime).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+            percentage: Math.round(percentage),
+            subject: session.subjectName
+        };
+    }).reverse();
+
+    return {
+        recentActivity,
+        proxyStats,
+        trend
+    };
 }

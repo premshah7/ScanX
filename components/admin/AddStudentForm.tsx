@@ -4,7 +4,7 @@ import { useState } from "react";
 import { createStudent } from "@/actions/admin";
 import { Loader2, Plus, Eye, EyeOff } from "lucide-react";
 
-export default function AddStudentForm() {
+export default function AddStudentForm({ batches }: { batches: { id: number; name: string }[] }) {
     const [isOpen, setIsOpen] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -49,12 +49,12 @@ export default function AddStudentForm() {
 
                     <div>
                         <label className="block text-sm font-medium text-gray-400 mb-1">Name</label>
-                        <input name="name" type="text" required className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500" />
+                        <input name="name" type="text" required placeholder="Name" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500" />
                     </div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-400 mb-1">Email</label>
-                        <input name="email" type="email" required className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500" />
+                        <input name="email" type="email" required placeholder="Email" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500" />
                     </div>
 
                     <div>
@@ -63,7 +63,7 @@ export default function AddStudentForm() {
                             <input
                                 name="password"
                                 type={showPassword ? "text" : "password"}
-                                required
+                                required placeholder="Password"
                                 minLength={6}
                                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 pr-10"
                             />
@@ -80,12 +80,27 @@ export default function AddStudentForm() {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-400 mb-1">Roll Number</label>
-                            <input name="rollNumber" type="text" required className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500" />
+                            <input name="rollNumber" type="text" required  placeholder="Roll Number" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500" />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-400 mb-1">Enrollment No</label>
-                            <input name="enrollmentNo" type="text" required className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500" />
+                            <input name="enrollmentNo" type="text" required placeholder="Enrollment No" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500" />
                         </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Batch (Optional)</label>
+                        <select
+                            name="batchId"
+                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 appearance-none"
+                        >
+                            <option value="">No Batch</option>
+                            {batches?.map((b) => (
+                                <option key={b.id} value={b.id}>
+                                    {b.name}
+                                </option>
+                            ))}
+                        </select>
                     </div>
 
                     <div className="flex justify-end gap-3 mt-6">

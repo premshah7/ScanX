@@ -4,15 +4,27 @@ import { useState } from "react";
 import { createFaculty } from "@/actions/admin";
 import { Loader2, Plus, Eye, EyeOff } from "lucide-react";
 
-export default function AddFacultyForm() {
+export default function AddFacultyForm({ batches }: { batches: { id: number, name: string }[] }) {
     const [isOpen, setIsOpen] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [selectedBatches, setSelectedBatches] = useState<number[]>([]);
+
+    const toggleBatch = (id: number) => {
+        if (selectedBatches.includes(id)) {
+            setSelectedBatches(selectedBatches.filter(b => b !== id));
+        } else {
+            setSelectedBatches([...selectedBatches, id]);
+        }
+    };
 
     const handleSubmit = async (formData: FormData) => {
         setLoading(true);
         setError("");
+
+        // Add batchIds to formData
+        formData.append('batchIds', JSON.stringify(selectedBatches));
 
         const result = await createFaculty(formData);
 
@@ -20,6 +32,7 @@ export default function AddFacultyForm() {
             setError(result.error);
         } else {
             setIsOpen(false);
+            setSelectedBatches([]); // Reset selections
         }
         setLoading(false);
     };
@@ -52,7 +65,7 @@ export default function AddFacultyForm() {
                         <input
                             name="name"
                             type="text"
-                            required
+                            required placeholder="Name"
                             className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
                         />
                     </div>
@@ -62,7 +75,7 @@ export default function AddFacultyForm() {
                         <input
                             name="email"
                             type="email"
-                            required
+                            required placeholder="Email"
                             className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
                         />
                     </div>
@@ -73,7 +86,7 @@ export default function AddFacultyForm() {
                             <input
                                 name="password"
                                 type={showPassword ? "text" : "password"}
-                                required
+                                required placeholder="Password"
                                 minLength={6}
                                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 pr-10"
                             />
@@ -84,6 +97,25 @@ export default function AddFacultyForm() {
                             >
                                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-2">Assign Batches</label>
+                        <div className="flex flex-wrap gap-2">
+                            {batches?.map(batch => (
+                                <button
+                                    key={batch.id}
+                                    type="button"
+                                    onClick={() => toggleBatch(batch.id)}
+                                    className={`px-3 py-1 rounded-full text-sm border transition-colors ${selectedBatches.includes(batch.id)
+                                            ? "bg-blue-600 border-blue-600 text-white"
+                                            : "bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600"
+                                        }`}
+                                >
+                                    {batch.name}
+                                </button>
+                            ))}
                         </div>
                     </div>
 
