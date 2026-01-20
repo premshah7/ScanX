@@ -16,6 +16,20 @@ export default withAuth(
         }
 
         const role = token.role;
+        const status = token.status;
+
+        // 0. Pending/Rejected User Logic
+        if (role === "STUDENT") {
+            if (status === "PENDING" && pathname !== "/pending") {
+                return NextResponse.redirect(new URL("/pending", req.url));
+            }
+            if (status === "REJECTED" && pathname !== "/rejected") {
+                return NextResponse.redirect(new URL("/rejected", req.url));
+            }
+            if (status === "APPROVED" && (pathname === "/pending" || pathname === "/rejected")) {
+                return NextResponse.redirect(new URL("/student", req.url));
+            }
+        }
 
         // 1. Admin Route Protection
         if (pathname.startsWith("/admin")) {

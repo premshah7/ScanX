@@ -38,22 +38,39 @@ export const authOptions: NextAuthOptions = {
                     name: user.name,
                     email: user.email,
                     role: user.role,
+                    status: user.status,
                 };
             },
         }),
     ],
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger, session }) {
             if (user) {
                 token.role = user.role;
                 token.id = user.id;
+                token.status = user.status;
             }
+
+            // Refetch status to ensure it's up to date (for polling on pending page)
+            if (token.email) {
+                const freshUser = await prisma.user.findUnique({
+                    where: { email: token.email as string },
+                    select: { status: true, role: true }
+                });
+                if (freshUser) {
+                    token.status = freshUser.status;
+                    token.role = freshUser.role; // Keep role in sync too
+                }
+            }
+
             return token;
         },
         async session({ session, token }) {
             if (session.user) {
                 session.user.role = token.role as string;
                 session.user.id = token.id as string;
+                session.user.id = token.id as string;
+                session.user.status = token.status as string;
             }
             return session;
         },

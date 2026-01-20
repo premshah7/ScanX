@@ -5,6 +5,7 @@ import SecurityAlerts from "@/components/admin/SecurityAlerts";
 import { getGlobalAnalytics, getSecurityOverview, getActiveSessions } from "@/actions/admin";
 import GlobalAnalytics from "@/components/admin/GlobalAnalytics";
 import ActiveSessionsFeed from "@/components/admin/ActiveSessionsFeed";
+import AutoRefresh from "@/components/AutoRefresh";
 
 async function getStats() {
     const [studentCount, facultyCount, proxyCount, activeSessionsCount, recentAlerts, trend, security, activeSessions] = await Promise.all([
@@ -42,6 +43,7 @@ export default async function AdminDashboard() {
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 text-white">
+            <AutoRefresh intervalMs={10000} />
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold mb-1">Admin Command Center</h1>

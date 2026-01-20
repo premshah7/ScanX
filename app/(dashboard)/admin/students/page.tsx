@@ -11,6 +11,7 @@ import { User, Smartphone } from "lucide-react";
 import Search from "@/components/Search";
 
 import PendingRequests from "@/components/admin/PendingRequests";
+import AutoRefresh from "@/components/AutoRefresh";
 
 export default async function StudentManagementPage({
     searchParams,
@@ -32,7 +33,8 @@ export default async function StudentManagementPage({
                     { user: { name: { contains: query, mode: 'insensitive' } } },
                     { rollNumber: { contains: query, mode: 'insensitive' } },
                     { enrollmentNo: { contains: query, mode: 'insensitive' } }
-                ]
+                ],
+                user: { status: "APPROVED" }
             },
             include: {
                 user: true,
@@ -50,7 +52,8 @@ export default async function StudentManagementPage({
                     { user: { name: { contains: query, mode: 'insensitive' } } },
                     { rollNumber: { contains: query, mode: 'insensitive' } },
                     { enrollmentNo: { contains: query, mode: 'insensitive' } }
-                ]
+                ],
+                user: { status: "APPROVED" }
             }
         }),
         prisma.batch.findMany({
@@ -62,6 +65,7 @@ export default async function StudentManagementPage({
 
     return (
         <div>
+            <AutoRefresh intervalMs={5000} />
             <div className="flex justify-between items-center mb-8 gap-4">
                 <h1 className="text-3xl font-bold whitespace-nowrap">Student Management</h1>
                 <div className="flex items-center gap-4 flex-1 justify-end">

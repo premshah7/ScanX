@@ -53,7 +53,8 @@ export async function registerStudent(data: {
                     name: data.name,
                     email: data.email,
                     password: hashedPassword,
-                    role: "STUDENT"
+                    role: "STUDENT",
+                    status: "PENDING"
                 }
             });
 

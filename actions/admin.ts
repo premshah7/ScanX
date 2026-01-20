@@ -33,6 +33,7 @@ export async function createFaculty(formData: FormData) {
                     email,
                     password: hashedPassword,
                     role: UserRole.FACULTY,
+                    status: "APPROVED",
                 },
             });
 
@@ -146,6 +147,7 @@ export async function createStudent(formData: FormData) {
                     email,
                     password: hashedPassword,
                     role: UserRole.STUDENT,
+                    status: "APPROVED",
                 },
             });
 
@@ -319,6 +321,46 @@ export async function getActiveSessions() {
                 select: { attendances: true, proxyAttempts: true }
             }
         },
-        orderBy: { startTime: 'desc' }
     });
+}
+
+export async function approveStudent(userId: number) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (session?.user.role !== "ADMIN") {
+            return { error: "Unauthorized Access" };
+        }
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { status: "APPROVED" }
+        });
+
+        revalidatePath("/admin/students");
+        return { success: true };
+    } catch (error) {
+        console.error("Error approving student:", error);
+        return { error: "Failed to approve student" };
+    }
+}
+
+export async function rejectStudent(userId: number) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (session?.user.role !== "ADMIN") {
+            return { error: "Unauthorized Access" };
+        }
+
+        // Update status to REJECTED
+        await prisma.user.update({
+            where: { id: userId },
+            data: { status: "REJECTED" }
+        });
+
+        revalidatePath("/admin/students");
+        return { success: true };
+    } catch (error) {
+        console.error("Error rejecting student:", error);
+        return { error: "Failed to reject student" };
+    }
 }

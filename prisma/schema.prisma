@@ -13,13 +13,20 @@ enum Role {
   STUDENT
 }
 
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
-  id        Int      @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   name      String
-  email     String   @unique
+  email     String     @unique
   password  String
   role      Role
-  createdAt DateTime @default(now())
+  status    UserStatus @default(PENDING)
+  createdAt DateTime   @default(now())
 
   student Student?
   faculty Faculty?
@@ -95,7 +102,7 @@ model Attendance {
   session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   userAgent String?
   ipAddress String?
-  student   Student @relation(fields: [studentId], references: [id])
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }
 
 model ProxyAttempt {
