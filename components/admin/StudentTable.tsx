@@ -16,6 +16,7 @@ interface Student {
     rollNumber: string;
     enrollmentNo: string;
     batchId: number | null;
+    semester: number;
     deviceHash: string | null;
     isDeviceResetRequested: boolean;
     user: {
@@ -118,6 +119,7 @@ export default function StudentTable({ students, batches }: StudentTableProps) {
                             </th>
                             <th className="p-4">Student</th>
                             <th className="p-4">IDs</th>
+                            <th className="p-4">Sem</th>
                             <th className="p-4">Batch</th>
                             <th className="p-4">Device Status</th>
                             <th className="p-4">Actions</th>
@@ -163,6 +165,11 @@ export default function StudentTable({ students, batches }: StudentTableProps) {
                                         </div>
                                     </td>
                                     <td className="p-4">
+                                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 font-mono text-sm">
+                                            {student.semester}
+                                        </div>
+                                    </td>
+                                    <td className="p-4">
                                         {student.batch ? (
                                             <span className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded border border-gray-700">
                                                 {student.batch.name}
@@ -205,7 +212,7 @@ export default function StudentTable({ students, batches }: StudentTableProps) {
                         })}
                         {students.length === 0 && (
                             <tr>
-                                <td colSpan={6} className="p-8 text-center text-gray-500">
+                                <td colSpan={7} className="p-8 text-center text-gray-500">
                                     No students found.
                                 </td>
                             </tr>

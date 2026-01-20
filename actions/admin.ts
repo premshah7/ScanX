@@ -125,6 +125,7 @@ export async function createStudent(formData: FormData) {
     const rollNumber = formData.get("rollNumber") as string;
     const enrollmentNo = formData.get("enrollmentNo") as string;
     const batchId = formData.get("batchId") as string;
+    const semester = formData.get("semester") as string;
 
     if (!name || !email || !password || !rollNumber || !enrollmentNo) {
         return { error: "All fields are required" };
@@ -154,6 +155,7 @@ export async function createStudent(formData: FormData) {
                     rollNumber,
                     enrollmentNo,
                     batchId: batchId ? parseInt(batchId) : null,
+                    semester: semester ? parseInt(semester) : 1,
                 },
             });
         });

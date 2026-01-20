@@ -1,0 +1,129 @@
+Name                       Email                   Roll No.            Enrollment No.
+Adroja Shyamkumar Niteshbhai        23010101001@darshan.ac.in
+344             23010101001
+Ajagiya Tirth Chetanbhai         23010101005@darshan.ac.in
+345             23010101005
+Barot Avnil Samirbhai         23010101015@darshan.ac.in
+346             23010101015
+Boghani Utsav Ashvinbhai         23010101037@darshan.ac.in
+347             23010101037
+Butani Sneha Dineshbhai         23010101041@darshan.ac.in
+348             23010101041
+Chabhadiya Krish Kailashbhai        23010101042@darshan.ac.in
+349             23010101042
+Chandravadiya Karan Karashanbhai        23010101043@darshan.ac.in
+350             23010101043
+Detroja Zeel Suketbhai         23010101060@darshan.ac.in
+351             23010101060
+Dhandhukiya Keval Vinodbhai        23010101064@darshan.ac.in
+352             23010101064
+Dobariya Happy Bhaveshbhai         23010101068@darshan.ac.in
+353             23010101068
+Gohil Priyanshiba Pradipsinh        23010101090@darshan.ac.in
+354             23010101090
+Gondaliya Jigar Pareshbhai        23010101093@darshan.ac.in
+355             23010101093
+Hirpara Harmi Bhaveshbhai        23010101098@darshan.ac.in
+356             23010101098
+Jadav Sahil Maheshbhai         23010101099@darshan.ac.in
+357             23010101099
+Jadeja Jayrajsinh Sanjaysinh        23010101100@darshan.ac.in
+358             23010101100
+Jadeja Yashrajsinh Majabutsinh        23010101102@darshan.ac.in
+359             23010101102
+Jariya Harsh Rajeshbhai        23010101106@darshan.ac.in
+360             23010101106
+Joshi Jaimish Narendrabhai        23010101113@darshan.ac.in
+361             23010101113
+Joshi Kavyam Vimalkumar         23010101114@darshan.ac.in
+362             23010101114
+Kamani Disha Rajeshbhai         23010101123@darshan.ac.in
+363             23010101123
+Kansagra Monil Sanjaybhai        23010101128@darshan.ac.in
+364             23010101128
+Kavar Rutvi Jagjivanbhai        23010101136@darshan.ac.in
+365             23010101136
+Khachar Nivkumar Girishkumar        23010101139@darshan.ac.in
+366             23010101139
+Khunt Smit Vipulbhai         23010101142@darshan.ac.in
+367             23010101142
+Kumbhani Meet Ashokbhai         23010101148@darshan.ac.in
+368             23010101148
+Kundaliya Nishit Gautambhai        23010101149@darshan.ac.in
+369             23010101149
+Makwana Rajesh Karshanbhai         23010101157@darshan.ac.in
+370             23010101157
+Mendapara Krina Atulbhai         23010101168@darshan.ac.in
+371             23010101168
+Modi Pratham Rajesh          23010101170@darshan.ac.in
+372             23010101170
+Nadiyapara Jatin Shailesh        23010101172@darshan.ac.in
+373             23010101172
+Nenuji Neeldhvaj Mansbhai        23010101175@darshan.ac.in
+374             23010101175
+Parmar Ayush Sanjaybhai         23010101187@darshan.ac.in
+375             23010101187
+Parmar Haril Gautambhai         23010101188@darshan.ac.in
+376             23010101188
+Parmar Kaushik Pravinbhai        23010101190@darshan.ac.in
+377             23010101190
+----------------Page (0) Break----------------
+Parmar Nency Udaybhai         23010101193@darshan.ac.in
+378             23010101193
+Khushiben Patel          23010101202@darshan.ac.in
+379             23010101202
+Pipalava Yash Girishkumar        23010101208@darshan.ac.in
+380             23010101208
+Pipariya Sumit Bhaveshbhai        23010101210@darshan.ac.in
+381             23010101210
+Ramani Harshil Rajeshbhai        23010101219@darshan.ac.in
+382             23010101219
+Rankja Vinit Kumar Ashok         23010101224@darshan.ac.in
+383             23010101224
+Rasamiya Dhruv Amrutbhai         23010101225@darshan.ac.in
+384             23010101225
+----------------Page (1) Break----------------
+Batch
+B4
+B4
+B4
+B4
+B4
+B4
+B4
+B4
+B4
+B4
+B4
+B4
+B4
+B4
+B4
+B4
+B4
+B4
+B4
+B4
+B4
+B5
+B5
+B5
+B5
+B5
+B5
+B5
+B5
+B5
+B5
+B5
+B5
+B5
+----------------Page (2) Break----------------
+B5
+B5
+B5
+B5
+B5
+B5
+B5
+----------------Page (3) Break----------------

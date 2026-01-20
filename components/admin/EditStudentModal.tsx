@@ -10,6 +10,7 @@ type Props = {
         rollNumber: string;
         enrollmentNo: string;
         batchId: number | null;
+        semester: number;
         user: {
             name: string;
             email: string;
@@ -31,6 +32,7 @@ export default function EditStudentModal({ student, batches, iconOnly = false }:
         rollNumber: student.rollNumber,
         enrollmentNo: student.enrollmentNo,
         batchId: student.batchId ? student.batchId.toString() : "",
+        semester: student.semester ? student.semester.toString() : "1",
         password: ""
     });
 
@@ -45,7 +47,8 @@ export default function EditStudentModal({ student, batches, iconOnly = false }:
 
         const updateData = {
             ...formData,
-            batchId: formData.batchId ? parseInt(formData.batchId) : undefined
+            batchId: formData.batchId ? parseInt(formData.batchId) : undefined,
+            semester: formData.semester ? parseInt(formData.semester) : 1
         };
 
         const res = await updateStudentProfile(student.id, updateData);
@@ -161,21 +164,38 @@ export default function EditStudentModal({ student, batches, iconOnly = false }:
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-400 mb-1">Batch Assignment</label>
-                                <select
-                                    name="batchId"
-                                    value={formData.batchId}
-                                    onChange={handleChange}
-                                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 appearance-none"
-                                >
-                                    <option value="">No Batch Assigned</option>
-                                    {batches?.map((b) => (
-                                        <option key={b.id} value={b.id}>
-                                            {b.name}
-                                        </option>
-                                    ))}
-                                </select>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-400 mb-1">Semester</label>
+                                    <select
+                                        name="semester"
+                                        value={formData.semester}
+                                        onChange={handleChange}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 appearance-none"
+                                    >
+                                        {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
+                                            <option key={sem} value={sem}>
+                                                Semester {sem}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-400 mb-1">Batch Assignment</label>
+                                    <select
+                                        name="batchId"
+                                        value={formData.batchId}
+                                        onChange={handleChange}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 appearance-none"
+                                    >
+                                        <option value="">No Batch Assigned</option>
+                                        {batches?.map((b) => (
+                                            <option key={b.id} value={b.id}>
+                                                {b.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
 
                             <div className="flex justify-end gap-3 mt-6">

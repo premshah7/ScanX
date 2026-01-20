@@ -39,8 +39,9 @@ model Student {
   subjects           Subject[]
   ownedProxyAttempts ProxyAttempt[] @relation("DeviceOwner")
 
-  batchId Int?
-  batch   Batch? @relation(fields: [batchId], references: [id])
+  batchId  Int?
+  batch    Batch? @relation(fields: [batchId], references: [id])
+  semester Int    @default(1)
 }
 
 model Faculty {

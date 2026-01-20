@@ -80,7 +80,7 @@ export default function AddStudentForm({ batches }: { batches: { id: number; nam
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-400 mb-1">Roll Number</label>
-                            <input name="rollNumber" type="text" required  placeholder="Roll Number" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500" />
+                            <input name="rollNumber" type="text" required placeholder="Roll Number" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500" />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-400 mb-1">Enrollment No</label>
@@ -88,19 +88,34 @@ export default function AddStudentForm({ batches }: { batches: { id: number; nam
                         </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Batch (Optional)</label>
-                        <select
-                            name="batchId"
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 appearance-none"
-                        >
-                            <option value="">No Batch</option>
-                            {batches?.map((b) => (
-                                <option key={b.id} value={b.id}>
-                                    {b.name}
-                                </option>
-                            ))}
-                        </select>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-400 mb-1">Semester</label>
+                            <select
+                                name="semester"
+                                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 appearance-none"
+                            >
+                                {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
+                                    <option key={sem} value={sem}>
+                                        Semester {sem}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-400 mb-1">Batch (Optional)</label>
+                            <select
+                                name="batchId"
+                                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 appearance-none"
+                            >
+                                <option value="">No Batch</option>
+                                {batches?.map((b) => (
+                                    <option key={b.id} value={b.id}>
+                                        {b.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
                     <div className="flex justify-end gap-3 mt-6">

@@ -13,6 +13,7 @@ type StudentUpdateData = {
     enrollmentNo: string;
     password?: string;
     batchId?: number;
+    semester?: number;
 };
 
 type FacultyUpdateData = {
@@ -81,7 +82,8 @@ export async function updateStudentProfile(studentId: number, data: StudentUpdat
                 data: {
                     rollNumber: data.rollNumber,
                     enrollmentNo: data.enrollmentNo,
-                    batchId: data.batchId ? parseInt(data.batchId.toString()) : null
+                    batchId: data.batchId ? parseInt(data.batchId.toString()) : null,
+                    semester: data.semester ? parseInt(data.semester.toString()) : 1
                 }
             })
         ]);
