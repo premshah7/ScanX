@@ -163,7 +163,7 @@ export default function FacultyTable({ initialFaculty, batches }: FacultyTablePr
                                     <FormattedTime date={faculty.user.createdAt} dateOnly />
                                 </td>
                                 <td className="p-4">
-                                    <EditFacultyModal faculty={faculty} iconOnly />
+                                    <EditFacultyModal faculty={faculty} batches={batches} iconOnly />
                                 </td>
                             </tr>
                         ))}

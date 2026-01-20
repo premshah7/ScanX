@@ -57,6 +57,67 @@ export async function createFaculty(formData: FormData) {
     }
 }
 
+
+export async function updateFaculty(facultyId: number, formData: FormData) {
+    const name = formData.get("name") as string;
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const batchIdsRaw = formData.get("batchIds") as string;
+    const batchIds: number[] = batchIdsRaw ? JSON.parse(batchIdsRaw) : [];
+
+    const session = await getServerSession(authOptions);
+    if (session?.user.role !== "ADMIN") {
+        return { error: "Unauthorized Access" };
+    }
+
+    try {
+        const faculty = await prisma.faculty.findUnique({
+            where: { id: facultyId },
+            include: { user: true }
+        });
+
+        if (!faculty) return { error: "Faculty not found" };
+
+        if (email !== faculty.user.email) {
+            const existingUser = await prisma.user.findUnique({ where: { email } });
+            if (existingUser) return { error: "Email already in use" };
+        }
+
+        const userData: any = {
+            name,
+            email
+        };
+
+        if (password && password.trim() !== "") {
+            const salt = await bcrypt.genSalt(10);
+            userData.password = await bcrypt.hash(password, salt);
+        }
+
+        await prisma.$transaction(async (tx) => {
+            await tx.user.update({
+                where: { id: faculty.userId },
+                data: userData
+            });
+
+            await tx.faculty.update({
+                where: { id: facultyId },
+                data: {
+                    batches: {
+                        set: batchIds.map(id => ({ id }))
+                    }
+                }
+            });
+        });
+
+        revalidatePath("/admin/faculty");
+        return { success: true };
+
+    } catch (error) {
+        console.error("Error updating faculty:", error);
+        return { error: "Failed to update faculty" };
+    }
+}
+
 export async function createStudent(formData: FormData) {
     const name = formData.get("name") as string;
     const email = formData.get("email") as string;

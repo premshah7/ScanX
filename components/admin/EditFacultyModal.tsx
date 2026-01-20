@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { updateFacultyProfile } from "@/actions/profile";
+import { updateFaculty } from "@/actions/admin";
 import { Loader2, Pencil, X, Save, Eye, EyeOff } from "lucide-react";
 
 type Props = {
@@ -10,12 +10,14 @@ type Props = {
         user: {
             name: string;
             email: string;
-        }
+        };
+        batches: { id: number; name: string }[];
     };
+    batches?: { id: number, name: string }[];
     iconOnly?: boolean;
 };
 
-export default function EditFacultyModal({ faculty, iconOnly = false }: Props) {
+export default function EditFacultyModal({ faculty, batches, iconOnly = false }: Props) {
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -27,6 +29,18 @@ export default function EditFacultyModal({ faculty, iconOnly = false }: Props) {
         password: ""
     });
 
+    const [selectedBatches, setSelectedBatches] = useState<number[]>(
+        faculty.batches?.map(b => b.id) || []
+    );
+
+    const toggleBatch = (id: number) => {
+        if (selectedBatches.includes(id)) {
+            setSelectedBatches(selectedBatches.filter(b => b !== id));
+        } else {
+            setSelectedBatches([...selectedBatches, id]);
+        }
+    };
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
@@ -36,7 +50,13 @@ export default function EditFacultyModal({ faculty, iconOnly = false }: Props) {
         setLoading(true);
         setError("");
 
-        const res = await updateFacultyProfile(faculty.id, formData);
+        const data = new FormData();
+        data.append("name", formData.name);
+        data.append("email", formData.email);
+        if (formData.password) data.append("password", formData.password);
+        data.append("batchIds", JSON.stringify(selectedBatches));
+
+        const res = await updateFaculty(faculty.id, data);
 
         if (res.error) {
             setError(res.error);
@@ -123,6 +143,25 @@ export default function EditFacultyModal({ faculty, iconOnly = false }: Props) {
                                     >
                                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                     </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-400 mb-2">Assign Batches</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {batches?.map(batch => (
+                                        <button
+                                            key={batch.id}
+                                            type="button"
+                                            onClick={() => toggleBatch(batch.id)}
+                                            className={`px-3 py-1 rounded-full text-sm border transition-colors ${selectedBatches.includes(batch.id)
+                                                ? "bg-blue-600 border-blue-600 text-white"
+                                                : "bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600"
+                                                }`}
+                                        >
+                                            {batch.name}
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
 
