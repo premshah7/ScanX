@@ -1,9 +1,10 @@
-import { getBatchDetails } from "@/actions/batch";
 import Link from "next/link";
+import BulkAddStudentModal from "@/components/admin/BulkAddStudentModal";
+import { getBatchDetails } from "@/actions/batch";
 import { ArrowLeft, User, GraduationCap, Calendar, Mail } from "lucide-react";
-import FormattedTime from "@/components/FormattedTime";
 
 export default async function BatchDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+    // ... existing initialization ...
     const { id } = await params;
     const { batch, error } = await getBatchDetails(parseInt(id));
 
@@ -40,7 +41,9 @@ export default async function BatchDetailsPage({ params }: { params: Promise<{ i
                         <GraduationCap className="w-5 h-5 text-blue-400" />
                         Enrolled Students
                     </h2>
+                    <BulkAddStudentModal batchId={batch.id} />
                 </div>
+
 
                 {batch.students.length === 0 ? (
                     <div className="p-12 text-center text-gray-500">

@@ -9,23 +9,31 @@ export async function validateIp() {
     }
 
     const headerList = await headers();
-    // Get IP from common forward headers or fallback
-    const ip = headerList.get("x-forwarded-for")?.split(",")[0] ||
+    let ip = headerList.get("x-forwarded-for")?.split(",")[0] ||
         headerList.get("x-real-ip") ||
         "unknown";
 
-    if (ip === "unknown") return false;
+    // Normalize IPv6 Loopback
+    if (ip === "::1") ip = "127.0.0.1";
 
-    // Simple prefix check
-    // In production, use a CIDR library
-    console.log(`[IP Check] Detected IP: ${ip}, Allowed Prefix: ${settings.allowedIpPrefix}`);
+    // Normalize IPv6-mapped IPv4 (::ffff:192.168.x.x)
+    if (ip.startsWith("::ffff:")) ip = ip.substring(7);
 
     if (ip === "unknown") {
         console.warn("[IP Check] IP detection failed (unknown). Request headers may be missing 'x-forwarded-for'.");
         return false;
     }
 
+    console.log(`[IP Check] Detected IP: "${ip}" | Allowed Prefix: "${settings.allowedIpPrefix}"`);
+
     const isValid = ip.startsWith(settings.allowedIpPrefix);
-    console.log(`[IP Check] Result: ${isValid ? "PASS" : "FAIL"}`);
+
+    if (!isValid) {
+        console.warn(`[IP Check] FAIL: "${ip}" does not start with "${settings.allowedIpPrefix}"`);
+    } else {
+        console.log(`[IP Check] PASS`);
+    }
+
     return isValid;
 }
+

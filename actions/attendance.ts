@@ -84,19 +84,19 @@ export async function markAttendance(token: string, deviceHash: string, userAgen
     }
 
     // 5. IP Validation (Prefix Check)
-    const settings = await prisma.systemSettings.findFirst();
-    if (settings?.isIpCheckEnabled) {
-        if (!ip.startsWith(settings.allowedIpPrefix)) {
-            return { error: "You are not connected to the required network (IP Mismatch)." };
-        }
+    // Delegated to shared utility for consistent logging & checking
+    const isIpValid = await validateIp();
+    if (!isIpValid) {
+        return { error: "You are not connected to the required network (IP Mismatch)." };
     }
+
 
     // 6. Device Validation (Anti-Proxy)
     let isProxy = false;
 
     if (!student.deviceHash) {
-        // --- NEW: HEURISTIC CHECK FOR SHARED DEVICES ---
-        // If this is a NEW binding, check if this IP + UA was just used by someone else
+        // --- HEURISTIC REMOVED: Caused false positives for students on same WiFi ---
+        /*
         const recentSharedActivity = await prisma.attendance.findFirst({
             where: {
                 sessionId: sessionId,
@@ -107,10 +107,10 @@ export async function markAttendance(token: string, deviceHash: string, userAgen
         });
 
         if (recentSharedActivity) {
-            // Suspicious: Same IP + Same UA in same session by different user
-            // Likely a shared phone (even if different browser, UA often similar for OS part)
             return { error: "Suspicious activity detected. You cannot use a device that was just used by another student." };
         }
+        */
+
 
         // Bind Device (First time)
         await prisma.student.update({

@@ -75,3 +75,37 @@ export async function getBatchDetails(id: number) {
         return { error: "Failed to fetch batch details" };
     }
 }
+
+export async function getUnassignedStudents() {
+    try {
+        const students = await prisma.student.findMany({
+            where: { batchId: null },
+            include: { user: true },
+            orderBy: { rollNumber: 'asc' }
+        });
+        return { students };
+    } catch (error) {
+        console.error("Error fetching unassigned students:", error);
+        return { error: "Failed to fetch students" };
+    }
+}
+
+export async function addStudentsToBatch(batchId: number, studentIds: number[]) {
+    try {
+        await prisma.student.updateMany({
+            where: {
+                userId: { in: studentIds }
+            },
+            data: {
+                batchId
+            }
+        });
+        revalidatePath(`/admin/batches/${batchId}`);
+        revalidatePath("/admin/batches");
+        revalidatePath("/admin/students");
+        return { success: true };
+    } catch (error) {
+        console.error("Error adding students to batch:", error);
+        return { error: "Failed to add students to batch" };
+    }
+}
