@@ -30,13 +30,13 @@ export default function AnalyticsWidgets({ analytics }: AnalyticsWidgetsProps) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Trend Graph - Recharts AreaChart */}
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 flex flex-col h-[300px]">
+            <div className="bg-card border border-border rounded-xl p-6 flex flex-col h-[300px] shadow-sm">
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-bold text-white flex items-center gap-2">
-                        <TrendingUp className="w-5 h-5 text-blue-500" />
+                    <h3 className="font-bold text-foreground flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5 text-blue-600" />
                         Attendance Trend
                     </h3>
-                    <span className="text-xs text-gray-500">Last 7 Sessions</span>
+                    <span className="text-xs text-muted-foreground">Last 7 Sessions</span>
                 </div>
 
                 <div className="flex-1 w-full min-h-0">
@@ -66,9 +66,9 @@ export default function AnalyticsWidgets({ analytics }: AnalyticsWidgetsProps) {
                                 tickFormatter={(value) => `${value}%`}
                             />
                             <Tooltip
-                                contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', borderRadius: '8px', color: '#fff' }}
-                                itemStyle={{ color: '#fff' }}
-                                labelStyle={{ color: '#9ca3af', marginBottom: '4px' }}
+                                contentStyle={{ backgroundColor: '#fff', borderColor: '#e5e7eb', borderRadius: '8px', color: '#111827', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                itemStyle={{ color: '#111827' }}
+                                labelStyle={{ color: '#6b7280', marginBottom: '4px' }}
                             />
                             <Area
                                 type="monotone"
@@ -84,10 +84,10 @@ export default function AnalyticsWidgets({ analytics }: AnalyticsWidgetsProps) {
             </div>
 
             {/* Proxy Meter - Recharts PieChart */}
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 flex flex-col h-[300px]">
+            <div className="bg-card border border-border rounded-xl p-6 flex flex-col h-[300px] shadow-sm">
                 <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-bold text-white flex items-center gap-2">
-                        <ShieldCheck className="w-5 h-5 text-green-500" />
+                    <h3 className="font-bold text-foreground flex items-center gap-2">
+                        <ShieldCheck className="w-5 h-5 text-green-600" />
                         System Reliability
                     </h3>
                 </div>
@@ -111,16 +111,16 @@ export default function AnalyticsWidgets({ analytics }: AnalyticsWidgetsProps) {
                                 ))}
                             </Pie>
                             <Tooltip
-                                contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', borderRadius: '8px' }}
-                                itemStyle={{ color: '#fff' }}
+                                contentStyle={{ backgroundColor: '#fff', borderColor: '#e5e7eb', borderRadius: '8px', color: '#111827', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                itemStyle={{ color: '#111827' }}
                             />
                         </PieChart>
                     </ResponsiveContainer>
 
                     {/* Center Text */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <div className="text-3xl font-bold text-white">{reliabilityScore}%</div>
-                        <div className="text-xs text-gray-500 uppercase">Secure</div>
+                        <div className="text-3xl font-bold text-foreground">{reliabilityScore}%</div>
+                        <div className="text-xs text-muted-foreground uppercase">Secure</div>
                     </div>
                 </div>
 
@@ -128,15 +128,15 @@ export default function AnalyticsWidgets({ analytics }: AnalyticsWidgetsProps) {
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-green-500"></div>
                         <div className="flex flex-col">
-                            <span className="text-sm font-bold text-white">{proxyStats.verified}</span>
-                            <span className="text-xs text-gray-500">Verified</span>
+                            <span className="text-sm font-bold text-foreground">{proxyStats.verified}</span>
+                            <span className="text-xs text-muted-foreground">Verified</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-red-500"></div>
                         <div className="flex flex-col">
-                            <span className="text-sm font-bold text-white">{proxyStats.suspicious}</span>
-                            <span className="text-xs text-gray-500">Suspicious</span>
+                            <span className="text-sm font-bold text-foreground">{proxyStats.suspicious}</span>
+                            <span className="text-xs text-muted-foreground">Suspicious</span>
                         </div>
                     </div>
                 </div>

@@ -1,8 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
-import { BookOpen, ShieldAlert, History } from "lucide-react";
+import { BookOpen, ShieldAlert, History, GraduationCap } from "lucide-react";
 import LogoutButton from "@/components/LogoutButton";
 import MobileSidebar from "@/components/MobileSidebar";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function FacultyLayout({
     children,
@@ -11,30 +12,39 @@ export default function FacultyLayout({
 }) {
     const SidebarContent = () => (
         <>
-            <div className="flex items-center gap-3 mb-8 px-2">
-                <div className="relative w-8 h-8 rounded-lg overflow-hidden">
-                    <Image
-                        src="/logo.png"
-                        alt="GeoGuard Logo"
-                        fill
-                        className="object-cover"
-                    />
+            <div className="flex items-center justify-between mb-8 px-2">
+                <div className="flex items-center gap-3">
+                    <div className="relative w-8 h-8 rounded-lg overflow-hidden">
+                        <Image
+                            src="/logo.png"
+                            alt="GeoGuard Logo"
+                            fill
+                            className="object-cover"
+                        />
+                    </div>
+                    <span className="text-xl font-bold text-foreground">GeoGuard</span>
                 </div>
-                <span className="text-xl font-bold text-white">GeoGuard</span>
+                <ThemeToggle />
             </div>
 
             <nav className="flex-1 space-y-2">
                 <Link
                     href="/faculty"
-                    className="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg transition-colors hover:text-white"
+                    className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:bg-muted rounded-lg transition-colors hover:text-foreground"
                 >
                     <BookOpen className="w-5 h-5" />
                     My Subjects
                 </Link>
-                {/* Placeholder for future links like History */}
+                <Link
+                    href="/faculty/students"
+                    className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:bg-muted rounded-lg transition-colors hover:text-foreground"
+                >
+                    <GraduationCap className="w-5 h-5" />
+                    My Students
+                </Link>
                 <Link
                     href="/faculty/history"
-                    className="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg transition-colors hover:text-white"
+                    className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:bg-muted rounded-lg transition-colors hover:text-foreground"
                 >
                     <History className="w-5 h-5" />
                     History
@@ -46,14 +56,14 @@ export default function FacultyLayout({
     );
 
     return (
-        <div className="min-h-screen bg-gray-950 flex flex-col md:flex-row">
+        <div className="min-h-screen bg-muted/20 flex flex-col md:flex-row">
             {/* Sidebar */}
-            <aside className="w-64 bg-gray-900 border-r border-gray-800 p-6 hidden md:flex flex-col h-screen sticky top-0">
+            <aside className="w-64 bg-card border-r border-border p-6 hidden md:flex flex-col h-screen sticky top-0">
                 <SidebarContent />
             </aside>
 
             {/* Mobile Header */}
-            <header className="md:hidden bg-gray-900 border-b border-gray-800 p-4 flex items-center justify-between sticky top-0 z-30">
+            <header className="md:hidden bg-card border-b border-border p-4 flex items-center justify-between sticky top-0 z-30">
                 <div className="flex items-center gap-3">
                     <div className="relative w-8 h-8 rounded-lg overflow-hidden">
                         <Image
@@ -63,17 +73,20 @@ export default function FacultyLayout({
                             className="object-cover"
                         />
                     </div>
-                    <span className="text-xl font-bold text-white">GeoGuard</span>
+                    <span className="text-xl font-bold text-foreground">GeoGuard</span>
                 </div>
-                <MobileSidebar>
-                    <div className="pt-6 h-full flex flex-col">
-                        <SidebarContent />
-                    </div>
-                </MobileSidebar>
+                <div className="flex items-center gap-4">
+                    <ThemeToggle />
+                    <MobileSidebar>
+                        <div className="pt-6 h-full flex flex-col">
+                            <SidebarContent />
+                        </div>
+                    </MobileSidebar>
+                </div>
             </header>
 
             {/* Main Content */}
-            <main className="flex-1 p-4 md:p-8 text-white overflow-y-auto w-full">
+            <main className="flex-1 p-4 md:p-8 text-foreground overflow-y-auto w-full relative">
                 {children}
             </main>
         </div>

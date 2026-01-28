@@ -43,25 +43,25 @@ export default function StartSessionButton({ subjectId, batches }: { subjectId: 
 
             {isOpen && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200">
-                        <h3 className="text-xl font-bold text-white mb-4">Start Attendance Session</h3>
+                    <div className="bg-card border border-border rounded-xl p-6 w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200">
+                        <h3 className="text-xl font-bold text-foreground mb-4">Start Attendance Session</h3>
 
                         <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-400 mb-2">Target Batches</label>
+                            <label className="block text-sm font-medium text-gray-500 mb-2">Target Batches</label>
                             <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
                                 {batches.map(b => (
-                                    <label key={b.id} className="flex items-center gap-3 p-3 bg-gray-800 border border-gray-700 rounded-lg cursor-pointer hover:border-gray-600 transition-colors">
+                                    <label key={b.id} className="flex items-center gap-3 p-3 bg-muted/50 border border-border rounded-lg cursor-pointer hover:border-sidebar-accent transition-colors">
                                         <input
                                             type="checkbox"
                                             checked={selectedBatchIds.includes(b.id)}
                                             onChange={() => toggleBatch(b.id)}
-                                            className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500/20 focus:ring-offset-0"
+                                            className="w-4 h-4 rounded border-border bg-card text-primary focus:ring-ring focus:ring-offset-0"
                                         />
-                                        <span className="text-white">{b.name}</span>
+                                        <span className="text-foreground">{b.name}</span>
                                     </label>
                                 ))}
                             </div>
-                            <p className="text-xs text-gray-500 mt-3 bg-blue-500/10 p-3 rounded-lg border border-blue-500/20">
+                            <p className="text-xs text-muted-foreground mt-3 bg-muted p-3 rounded-lg border border-border">
                                 {selectedBatchIds.length > 0
                                     ? `Only students in the selected ${selectedBatchIds.length} batch(es) will be considered for attendance.`
                                     : "All students enrolled in this subject can mark attendance (Global Session)."}
@@ -71,7 +71,7 @@ export default function StartSessionButton({ subjectId, batches }: { subjectId: 
                         <div className="flex gap-3 justify-end">
                             <button
                                 onClick={() => setIsOpen(false)}
-                                className="px-5 py-2.5 text-gray-400 hover:text-white transition-colors font-medium"
+                                className="px-5 py-2.5 text-muted-foreground hover:text-foreground transition-colors font-medium"
                             >
                                 Cancel
                             </button>

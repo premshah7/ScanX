@@ -1,272 +1,184 @@
 "use server";
 
-import { extractTextFromPdf } from "@/lib/pdf";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { parsePdfToTable } from "@/lib/pdf";
 
-type UserType = "STUDENT" | "FACULTY";
+type StudentData = {
+    name: string;
+    email: string;
+    roll?: string;
+    enrollment?: string;
+    batch?: string;
+};
 
-export async function uploadBulkUsers(formData: FormData, userType: UserType) {
+// 1. Preview PDF Data (For Flexible Modal)
+export async function parsePdfPreview(formData: FormData) {
     const session = await getServerSession(authOptions);
-    if (session?.user.role !== "ADMIN") {
-        return { error: "Unauthorized Access" };
+    if (!session || session.user.role !== "ADMIN") {
+        return { error: "Unauthorized" };
     }
 
     const file = formData.get("file") as File;
+    if (!file) return { error: "No file provided" };
 
-    if (!file) {
-        return { error: "No file provided" };
+    try {
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const rows = await parsePdfToTable(buffer);
+
+        if (rows.length === 0) return { error: "Could not extract text from PDF" };
+
+        // Heuristics: Find the header row (row with "Name", "Email" etc)
+        // If not found, default to first row
+        let headerIndex = 0;
+        const potentialHeaderIdx = rows.findIndex(r =>
+            r.some(c => /name/i.test(c) || /email/i.test(c))
+        );
+
+        if (potentialHeaderIdx !== -1) headerIndex = potentialHeaderIdx;
+
+        const headers = rows[headerIndex];
+        const dataRows = rows.slice(headerIndex + 1);
+
+        return { success: true, headers, rows: dataRows };
+
+    } catch (error: any) {
+        console.error("PDF Preview Error:", error);
+        return { error: "Failed to parse PDF: " + error.message };
+    }
+}
+
+// 2. Upload Normalized Data (For Flexible Modal)
+export async function uploadBulkUsers(students: StudentData[], role: "STUDENT" | "FACULTY" = "STUDENT") {
+    const session = await getServerSession(authOptions);
+    if (!session || session.user.role !== "ADMIN") {
+        return { error: "Unauthorized" };
     }
 
-    if (file.type !== "application/pdf") {
-        return { error: "File must be a PDF" };
+    if (!students || students.length === 0) {
+        return { error: "No student data provided" };
     }
 
     try {
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        const text = await extractTextFromPdf(buffer);
-
-        const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
-
-        // --- PARSING LOGIC START ---
-
-        interface ParsedUser {
-            name: string;
-            email: string;
-            rollNumber?: string;
-            enrollmentNo?: string;
-            batchName?: string;
-        }
-
-        let usersToCreate: ParsedUser[] = [];
-        const errors: string[] = [];
-
-        const hasEndEmails = lines.some(l => l.trim().match(/[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+$/));
-
-        if (hasEndEmails && userType === "STUDENT") {
-            const tempStudents: ParsedUser[] = [];
-            let usedLineIndices = new Set<number>();
-            const ignoredHeaders = ["Name", "Email", "Roll No.", "Enrollment No.", "Batch", "Break"];
-
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (ignoredHeaders.some(h => line.includes(h))) continue;
-
-                const emailMatch = line.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)$/);
-                if (emailMatch) {
-                    const email = emailMatch[0];
-                    // Name is everything before email
-                    const name = line.substring(0, line.lastIndexOf(email)).trim();
-
-                    // Look ahead for Roll/Enroll
-                    if (i + 1 < lines.length) {
-                        const nextLine = lines[i + 1].trim();
-                        // Expecting "Roll Enrollment" e.g. "344 2301..."
-                        const parts = nextLine.split(/\s+/);
-                        if (parts.length >= 2 && /^\d+$/.test(parts[0])) {
-                            tempStudents.push({
-                                name,
-                                email,
-                                rollNumber: parts[0],
-                                enrollmentNo: parts.slice(1).join(" ") // Join rest in case of spaces (unlikely for enroll)
-                            });
-                            usedLineIndices.add(i);
-                            usedLineIndices.add(i + 1);
-                            i++; // Skip next line
-                        }
-                    }
-                }
-            }
-
-            // If we found students, look for batches
-            if (tempStudents.length > 0) {
-                const potentialBatches = lines.filter((l, idx) => {
-                    const content = l.trim();
-                    if (usedLineIndices.has(idx)) return false;
-                    if (content.length === 0) return false;
-                    if (ignoredHeaders.some(h => content.includes(h))) return false;
-                    // Heuristic for batch: Short string, often starts with 'B' or is a date range
-                    // Since we consumed all student data lines, hopefully only batches are left.
-                    return true;
-                });
-
-                // Align batches
-                if (potentialBatches.length === tempStudents.length) {
-                    usersToCreate = tempStudents.map((s, i) => ({
-                        ...s,
-                        batchName: potentialBatches[i]
-                    }));
-                } else {
-                    usersToCreate = tempStudents.map((s, i) => ({
-                        ...s,
-                        batchName: potentialBatches[i] || undefined
-                    }));
-
-                    if (potentialBatches.length !== tempStudents.length) {
-                        errors.push(`Warning: Found ${tempStudents.length} students but ${potentialBatches.length} batch entries. Batch assignment may be incorrect.`);
-                    }
-                }
-            }
-        }
-
-        // Strategy 2: Standard/Single-Line Format (Fallback if Strategy 1 found nothing)
-        if (usersToCreate.length === 0) {
-            for (const line of lines) {
-                const emailMatch = line.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
-                if (!emailMatch) continue;
-
-                const email = emailMatch[0];
-                const parts = line.split(/\s+/);
-                const emailIndex = parts.findIndex(p => p.includes("@"));
-
-                // Basic validation
-                if (emailIndex === -1) continue;
-
-                const name = parts.slice(0, emailIndex).join(" ");
-                const afterEmail = parts.slice(emailIndex + 1);
-
-                if (userType === "FACULTY") {
-                    usersToCreate.push({ name, email });
-                } else {
-                    // Student Standard: Email Roll Enroll Batch...
-                    if (afterEmail.length >= 2) {
-                        usersToCreate.push({
-                            name,
-                            email,
-                            rollNumber: afterEmail[0],
-                            enrollmentNo: afterEmail[1],
-                            batchName: afterEmail.slice(2).join(" ").trim()
-                        });
-                    }
-                }
-            }
-        }
-
-        // --- OPTIMIZED DB PROCESSING START ---
-
         const results = {
             success: 0,
             failed: 0,
-            errors: errors
+            errors: [] as string[]
         };
-
-        if (usersToCreate.length === 0) {
-            return { success: true, stats: results };
-        }
 
         const salt = await bcrypt.genSalt(10);
         const defaultHash = await bcrypt.hash("password123", salt);
 
-        // 1. Resolve Batches First (for Students)
+        // A. Resolve Batches
         const batchMap = new Map<string, number>();
-        if (userType === "STUDENT") {
-            const batchNames = [...new Set(usersToCreate.map(u => u.batchName).filter(Boolean))];
+        const batchNames = [...new Set(students.map(u => u.batch).filter(Boolean))];
 
-            // Allow creating new batches implicitly? No, safer to just find existing.
-            // Or maybe bulk create batches if they don't exist?
-            // For rigorous data integ, we only use existing.
+        if (batchNames.length > 0) {
             const existingBatches = await prisma.batch.findMany({
                 where: { name: { in: batchNames as string[] } }
             });
             existingBatches.forEach(b => batchMap.set(b.name, b.id));
         }
 
-        // 2. Filter Existing Users (Bulk)
-        const emails = usersToCreate.map(u => u.email);
-        const existingUsers = await prisma.user.findMany({
-            where: { email: { in: emails } },
-            select: { email: true }
-        });
-        const existingEmailSet = new Set(existingUsers.map(u => u.email));
+        // B. Filter Existing Users (Email, Roll, Enrollment)
+        const emails = students.map(u => u.email).filter(Boolean);
+        const rolls = students.map(u => u.roll).filter(Boolean);
+        const enrollments = students.map(u => u.enrollment).filter(Boolean);
 
-        const newUsers = usersToCreate.filter(u => !existingEmailSet.has(u.email));
-        results.failed += (usersToCreate.length - newUsers.length);
-        existingEmailSet.forEach(e => results.errors.push(`User already exists: ${e}`));
+        const [existingUsers, existingStudents] = await Promise.all([
+            prisma.user.findMany({
+                where: { email: { in: emails } },
+                select: { email: true }
+            }),
+            prisma.student.findMany({
+                where: {
+                    OR: [
+                        { rollNumber: { in: rolls as string[] } },
+                        { enrollmentNo: { in: enrollments as string[] } }
+                    ]
+                },
+                select: { rollNumber: true, enrollmentNo: true }
+            })
+        ]);
+
+        const existingEmailSet = new Set(existingUsers.map(u => u.email));
+        const existingRollSet = new Set(existingStudents.map(s => s.rollNumber));
+        const existingEnrollSet = new Set(existingStudents.map(s => s.enrollmentNo));
+
+        const newUsers = students.filter(u => {
+            if (existingEmailSet.has(u.email)) return false;
+            // Only check roll/enrollment if they are provided
+            if (u.roll && existingRollSet.has(u.roll)) return false;
+            if (u.enrollment && existingEnrollSet.has(u.enrollment)) return false;
+            return true;
+        });
+
+        // Report Errors for Skipped
+        students.forEach(s => {
+            if (existingEmailSet.has(s.email)) results.errors.push(`Skipped existing Email: ${s.email}`);
+            else if (s.roll && existingRollSet.has(s.roll)) results.errors.push(`Skipped existing Roll No: ${s.roll} (${s.email})`);
+            else if (s.enrollment && existingEnrollSet.has(s.enrollment)) results.errors.push(`Skipped existing Enrollment: ${s.enrollment} (${s.email})`);
+        });
+
+        results.failed += (students.length - newUsers.length);
 
         if (newUsers.length === 0) {
             return { success: true, stats: results };
         }
 
-        // 3. Create Users (Bulk)
-        // Note: createMany is fast but doesn't return IDs easily in all DBs.
-        // We will wrap in transaction: createMany -> findMany (to get IDs).
-
+        // C. Transactional Create
         await prisma.$transaction(async (tx) => {
-            // A. Create Users
+            // 1. Create Users
             await tx.user.createMany({
                 data: newUsers.map(u => ({
-                    name: u.name,
+                    name: u.name || "Unknown",
                     email: u.email,
                     password: defaultHash,
-                    role: userType,
-                    status: "APPROVED" // Bulk uploaded users are approved by default
+                    role: role,
+                    status: "APPROVED"
                 })),
-                skipDuplicates: true // Just in case race condition
+                skipDuplicates: true
             });
 
-            // B. Fetch IDs of these new users
+            // 2. Fetch created IDs
             const createdUsers = await tx.user.findMany({
                 where: { email: { in: newUsers.map(u => u.email) } },
                 select: { id: true, email: true }
             });
 
-            // C. Create Profile (Student/Faculty)
-            if (userType === "FACULTY") {
-                await tx.faculty.createMany({
-                    data: createdUsers.map(u => ({
-                        userId: u.id
-                    }))
+            // 3. Create Student Profiles
+            const studentData = createdUsers.map(u => {
+                const original = newUsers.find(nu => nu.email === u.email);
+                if (!original) return null;
+
+                const batchId = original.batch ? (batchMap.get(original.batch) || null) : null;
+
+                return {
+                    userId: u.id,
+                    rollNumber: original.roll || "",
+                    enrollmentNo: original.enrollment || "",
+                    batchId: batchId
+                };
+            }).filter(Boolean);
+
+            if (studentData.length > 0) {
+                await tx.student.createMany({
+                    data: studentData as any,
+                    skipDuplicates: true
                 });
-            } else {
-                const studentData = createdUsers.map(u => {
-                    const originalData = newUsers.find(nu => nu.email === u.email);
-                    if (!originalData) return null; // Should not happen
-
-                    // Resolve Batch ID
-                    let batchId: number | null = null;
-                    if (originalData.batchName) {
-                        batchId = batchMap.get(originalData.batchName) || null;
-                        if (!batchId) {
-                            // Log or just null? Log later.
-                        }
-                    }
-
-                    return {
-                        userId: u.id,
-                        rollNumber: originalData.rollNumber || "", // Safety check
-                        enrollmentNo: originalData.enrollmentNo || "",
-                        batchId: batchId
-                    };
-                }).filter(s => s !== null && s.rollNumber && s.enrollmentNo);
-
-                if (studentData.length > 0) {
-                    await tx.student.createMany({
-                        data: studentData as any
-                    });
-                }
-
-                // Warn about items that couldn't be prepared (e.g. missing rollNo)
-                if (studentData.length < createdUsers.length) {
-                    // Some users created but student profile failed? 
-                    // This is tricky with createMany. 
-                    // Ideally we should have validated before User creation.
-                    // But for now, speed is priority.
-                }
             }
+
+            results.success += createdUsers.length;
         });
 
-        results.success = newUsers.length;
-
-        revalidatePath("/admin/faculty");
         revalidatePath("/admin/students");
         return { success: true, stats: results };
 
     } catch (error: any) {
         console.error("Bulk Upload Error:", error);
-        return { error: "Failed to process file: " + error.message };
+        return { error: error.message || "Upload failed" };
     }
 }

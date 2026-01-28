@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import AddStudentForm from "@/components/admin/AddStudentForm";
 import DeviceResetButton from "@/components/admin/DeviceResetButton";
-import BulkUploadClient from "@/components/admin/BulkUploadClient";
+import FlexibleUploadModal from "@/components/admin/FlexibleUploadModal";
 import EditStudentModal from "@/components/admin/EditStudentModal";
 import DeleteStudentButton from "@/components/admin/DeleteStudentButton";
 import StudentTable from "@/components/admin/StudentTable";
@@ -67,12 +67,12 @@ export default async function StudentManagementPage({
         <div>
             <AutoRefresh intervalMs={5000} />
             <div className="flex justify-between items-center mb-8 gap-4">
-                <h1 className="text-3xl font-bold whitespace-nowrap">Student Management</h1>
+                <h1 className="text-3xl font-bold whitespace-nowrap text-foreground">Student Management</h1>
                 <div className="flex items-center gap-4 flex-1 justify-end">
                     <div className="w-full max-w-md">
                         <Search placeholder="Search students..." />
                     </div>
-                    <BulkUploadClient userType="STUDENT" />
+                    <FlexibleUploadModal />
                     <AddStudentForm batches={batches} />
                 </div>
             </div>

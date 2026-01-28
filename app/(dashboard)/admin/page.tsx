@@ -5,6 +5,9 @@ import SecurityAlerts from "@/components/admin/SecurityAlerts";
 import { getGlobalAnalytics, getSecurityOverview, getActiveSessions } from "@/actions/admin";
 import GlobalAnalytics from "@/components/admin/GlobalAnalytics";
 import ActiveSessionsFeed from "@/components/admin/ActiveSessionsFeed";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import AutoRefresh from "@/components/AutoRefresh";
 
 async function getStats() {
@@ -39,15 +42,25 @@ async function getStats() {
 }
 
 export default async function AdminDashboard() {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+        redirect("/auth/login");
+    }
+
+    if (session.user.role !== "ADMIN") {
+        redirect("/unauthorized");
+    }
+
     const stats = await getStats();
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 text-white">
+        <div className="max-w-7xl mx-auto space-y-8 text-foreground">
             <AutoRefresh intervalMs={10000} />
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold mb-1">Admin Command Center</h1>
-                    <p className="text-gray-400">System Status & Global Overview</p>
+                    <p className="text-muted-foreground">System Status & Global Overview</p>
                 </div>
             </div>
 
@@ -88,7 +101,8 @@ export default async function AdminDashboard() {
             <ActiveSessionsFeed sessions={stats.activeSessions} />
 
             {/* 4. Recent Alerts (Bottom Log) */}
-            <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
+            {/* 4. Recent Alerts (Bottom Log) */}
+            <div className="bg-card rounded-xl p-6 border border-border shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-bold flex items-center gap-2">
                         <ShieldAlert className="w-5 h-5 text-red-500" />
@@ -103,11 +117,11 @@ export default async function AdminDashboard() {
 
 function StatCard({ title, value, icon: Icon, color }: any) {
     const colorClasses = {
-        blue: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-        purple: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-        green: "bg-green-500/10 text-green-400 border-green-500/20",
-        red: "bg-red-500/10 text-red-400 border-red-500/20",
-    }[color as string] || "bg-gray-800 text-white";
+        blue: "bg-blue-500/10 text-blue-600 border-blue-200 dark:border-blue-900",
+        purple: "bg-purple-500/10 text-purple-600 border-purple-200 dark:border-purple-900",
+        green: "bg-green-500/10 text-green-600 border-green-200 dark:border-green-900",
+        red: "bg-red-500/10 text-red-600 border-red-200 dark:border-red-900",
+    }[color as string] || "bg-card text-foreground border-border";
 
     return (
         <div className={`p-6 rounded-xl border ${colorClasses}`}>

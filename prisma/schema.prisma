@@ -66,6 +66,8 @@ model Batch {
   students  Student[]
   sessions  Session[]
   faculties Faculty[]
+  subject   Subject?  @relation(fields: [subjectId], references: [id])
+  subjectId Int?
 }
 
 model Subject {
@@ -77,6 +79,7 @@ model Subject {
   faculty  Faculty   @relation(fields: [facultyId], references: [id], onDelete: Cascade)
   sessions Session[]
   students Student[]
+  batches  Batch[]
 }
 
 model Session {

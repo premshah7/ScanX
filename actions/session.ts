@@ -71,6 +71,9 @@ export async function getSessionStats(sessionId: number) {
             include: {
                 student: {
                     include: { user: true }
+                },
+                deviceOwner: {
+                    include: { user: true }
                 }
             }
         })

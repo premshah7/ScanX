@@ -11,6 +11,15 @@ export default async function SubjectsPage() {
                 },
                 _count: {
                     select: { students: true }
+                },
+                batches: {
+                    select: {
+                        id: true,
+                        name: true,
+                        _count: {
+                            select: { students: true }
+                        }
+                    }
                 }
             },
             orderBy: { id: 'desc' }
@@ -23,7 +32,7 @@ export default async function SubjectsPage() {
     return (
         <div>
             <div className="flex justify-between items-center mb-8">
-                <h1 className="text-3xl font-bold">Subjects</h1>
+                <h1 className="text-3xl font-bold text-foreground">Subject Management</h1>
                 <AddSubjectForm facultyList={facultyList} />
             </div>
 

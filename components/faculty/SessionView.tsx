@@ -11,6 +11,8 @@ import autoTable from "jspdf-autotable";
 import { Download, FileText } from "lucide-react";
 
 export default function SessionView({ sessionId, subjectName, subjectId }: { sessionId: number; subjectName: string; subjectId: number }) {
+
+
     const router = useRouter();
     const [token, setToken] = useState("");
     const [stats, setStats] = useState<{
@@ -22,11 +24,17 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
     const [loading, setLoading] = useState(false);
     const [showEndConfirm, setShowEndConfirm] = useState(false);
 
-    // Rotate QR Token every 5 seconds
+    // Auto-End session on unmount
+    useEffect(() => {
+        return () => {
+            // Use navigator.sendBeacon for reliable execution on page unload/navigation
+            const blob = new Blob([JSON.stringify({ sessionId })], { type: 'application/json' });
+            navigator.sendBeacon(`/api/session/${sessionId}/end`, blob);
+        };
+    }, [sessionId]);
+
     useEffect(() => {
         const updateToken = () => {
-            // Format: sessionID : timestamp
-            // Server will validate timestamp to prevent replay attacks (allow 10-15s window)
             const timestamp = Date.now();
             setToken(`${sessionId}:${timestamp}`);
         };
@@ -36,7 +44,6 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
         return () => clearInterval(interval);
     }, [sessionId]);
 
-    // Poll for stats every 10 seconds
     useEffect(() => {
         const fetchStats = async () => {
             const newStats = await getSessionStats(sessionId);
@@ -48,7 +55,7 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
             if (document.visibilityState === "visible") {
                 fetchStats();
             }
-        }, 10000);
+        }, 1000);
         return () => clearInterval(interval);
     }, [sessionId]);
 
@@ -68,7 +75,6 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
 
             const doc = new jsPDF();
 
-            // Header
             doc.setFontSize(18);
             doc.text(`${subjectName} - Attendance`, 14, 22);
             doc.setFontSize(11);
@@ -177,11 +183,11 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-8rem)]">
             {/* Left: QR Code Section */}
-            <div className="bg-white rounded-2xl p-8 flex flex-col items-center justify-center shadow-2xl relative overflow-hidden">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">{subjectName}</h2>
-                <p className="text-gray-500 mb-8">Scan to mark attendance</p>
+            <div className="bg-card rounded-2xl p-8 flex flex-col items-center justify-center shadow-2xl lg:sticky lg:top-4 lg:self-start lg:h-fit overflow-hidden">
+                <h2 className="text-2xl font-bold text-foreground mb-2">{subjectName}</h2>
+                <p className="text-muted-foreground mb-8">Scan to mark attendance</p>
 
-                <div className="p-4 bg-white border-4 border-gray-900 rounded-xl relative">
+                <div className="p-4 bg-white border-4 border-foreground rounded-xl relative ">
                     <QRCode value={token} size={256} />
                     {/* Corner Markers for visual flair */}
                     <div className="absolute -top-2 -left-2 w-6 h-6 border-t-4 border-l-4 border-blue-600"></div>
@@ -199,19 +205,19 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
             {/* Right: Stats & Controls */}
             <div className="flex flex-col gap-6">
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gray-900 border border-gray-800 p-6 rounded-xl">
-                        <div className="flex items-center gap-3 mb-2 text-green-400">
+                    <div className="bg-card border border-border p-6 rounded-xl shadow-sm">
+                        <div className="flex items-center gap-3 mb-2 text-green-600">
                             <Users className="w-5 h-5" />
                             <span className="font-medium">Present</span>
                         </div>
-                        <div className="text-4xl font-bold text-white">{stats.attendanceCount}</div>
+                        <div className="text-4xl font-bold text-foreground">{stats.attendanceCount}</div>
                     </div>
-                    <div className="bg-gray-900 border border-gray-800 p-6 rounded-xl">
-                        <div className="flex items-center gap-3 mb-2 text-red-400">
+                    <div className="bg-card border border-border p-6 rounded-xl shadow-sm">
+                        <div className="flex items-center gap-3 mb-2 text-red-600">
                             <ShieldAlert className="w-5 h-5" />
                             <span className="font-medium">Proxies</span>
                         </div>
-                        <div className="text-4xl font-bold text-white">{stats.proxyCount}</div>
+                        <div className="text-4xl font-bold text-foreground">{stats.proxyCount}</div>
                     </div>
                 </div>
 
@@ -234,11 +240,11 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
                     </button>
                 </div>
 
-                <div className="flex-1 bg-gray-900 border border-gray-800 rounded-xl p-6 overflow-hidden flex flex-col">
-                    <h3 className="text-lg font-semibold text-white mb-4">Live Activity</h3>
-                    <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                <div className="flex-1 bg-card border border-border rounded-xl p-6 overflow-hidden flex flex-col shadow-sm">
+                    <h3 className="text-lg font-bold text-foreground mb-4">Live Activity</h3>
+                    <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
                         {logs.length === 0 ? (
-                            <div className="h-full flex items-center justify-center text-gray-500 text-sm italic">
+                            <div className="h-full flex items-center justify-center text-muted-foreground text-sm italic">
                                 Waiting for activity...
                             </div>
                         ) : (
@@ -246,24 +252,24 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
                                 <div
                                     key={`${log.type}-${log.id}`}
                                     className={`p-3 rounded-lg border flex items-center justify-between ${log.type === 'proxy'
-                                        ? 'bg-red-500/10 border-red-500/20'
-                                        : 'bg-gray-800/50 border-gray-700'
+                                        ? 'bg-destructive/10 border-destructive/20'
+                                        : 'bg-muted/50 border-border'
                                         }`}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${log.type === 'proxy' ? 'bg-red-500/20' : 'bg-blue-500/20'
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${log.type === 'proxy' ? 'bg-red-100' : 'bg-blue-100'
                                             }`}>
                                             {log.type === 'proxy' ? (
-                                                <ShieldAlert className="w-4 h-4 text-red-400" />
+                                                <ShieldAlert className="w-4 h-4 text-red-600" />
                                             ) : (
-                                                <Users className="w-4 h-4 text-blue-400" />
+                                                <Users className="w-4 h-4 text-blue-600" />
                                             )}
                                         </div>
                                         <div>
-                                            <div className="font-medium text-white text-sm">
+                                            <div className="font-medium text-foreground text-sm">
                                                 {log.student.user.name}
                                             </div>
-                                            <div className="text-xs text-gray-500">
+                                            <div className="text-xs text-muted-foreground">
                                                 {log.student.rollNumber}
                                             </div>
                                         </div>
@@ -272,19 +278,27 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
                                         <div className="text-xs text-gray-400">
                                             {new Date(log.timestamp).toLocaleTimeString()}
                                         </div>
-                                        <div className="text-[10px] font-mono text-gray-500 mt-1 max-w-[100px] truncate" title={log.type === 'proxy' ? log.attemptedHash : log.student.deviceHash}>
+                                        <div className="text-[10px] font-mono text-gray-500 mt-1 max-w-[150px] truncate" title={log.type === 'proxy' ? log.attemptedHash : log.student.deviceHash}>
                                             {log.type === 'proxy' ? (
-                                                <span className="text-red-400/70">
-                                                    Hash: {log.attemptedHash?.substring(0, 8)}...
-                                                </span>
+                                                <div className="flex flex-col items-end">
+                                                    {log.deviceOwner ? (
+                                                        <span className="text-red-500 font-semibold bg-red-100 px-1 rounded">
+                                                            Using {log.deviceOwner.user.name.split(' ')[0]}'s Device
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-red-500/70">
+                                                            Hash: {log.attemptedHash?.substring(0, 8)}...
+                                                        </span>
+                                                    )}
+                                                </div>
                                             ) : (
-                                                <span className="text-blue-400/50">
+                                                <span className="text-gray-400">
                                                     ID: {log.student.deviceHash?.substring(0, 8)}...
                                                 </span>
                                             )}
                                         </div>
                                         {log.type === 'proxy' && (
-                                            <div className="text-[10px] text-red-400 font-bold uppercase tracking-wider mt-1">
+                                            <div className="text-[10px] text-red-500 font-bold uppercase tracking-wider mt-1">
                                                 Proxy Attempt
                                             </div>
                                         )}

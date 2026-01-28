@@ -42,6 +42,16 @@ export default async function FacultyDashboard({
                             where: { isActive: true },
                             orderBy: { startTime: "desc" },
                             take: 1
+                        },
+                        _count: {
+                            select: { students: true }
+                        },
+                        batches: {
+                            include: {
+                                _count: {
+                                    select: { students: true }
+                                }
+                            }
                         }
                     }
                 }
@@ -60,10 +70,10 @@ export default async function FacultyDashboard({
     }
 
     return (
-        <div className="text-white max-w-7xl mx-auto space-y-8">
+        <div className="text-foreground max-w-7xl mx-auto space-y-8">
             <div>
                 <h1 className="text-3xl font-bold mb-2">Faculty Dashboard</h1>
-                <p className="text-gray-400">Welcome back, {session.user.name}</p>
+                <p className="text-muted-foreground">Welcome back, {session.user.name}</p>
             </div>
 
             {/* 1. Key Metrics Cards */}
@@ -81,16 +91,20 @@ export default async function FacultyDashboard({
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {faculty.subjects.map((subject) => {
                         const activeSession = subject.sessions[0];
+                        // Calculate total students: direct enrollments + students in assigned batches
+                        const batchStudents = subject.batches.reduce((acc, batch) => acc + batch._count.students, 0);
+                        const totalStudents = subject._count.students + batchStudents;
+
                         return (
-                            <div key={subject.id} className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-blue-500/30 transition-colors relative overflow-hidden group">
+                            <div key={subject.id} className="bg-card border border-border rounded-xl p-6 hover:border-sidebar-accent transition-colors relative overflow-hidden group shadow-sm">
                                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                     <BookOpen className="w-24 h-24" />
                                 </div>
 
                                 <h2 className="text-xl font-bold mb-2 relative z-10">{subject.name}</h2>
-                                <div className="flex items-center gap-2 text-gray-400 mb-6 relative z-10">
+                                <div className="flex items-center gap-2 text-muted-foreground mb-6 relative z-10">
                                     <Users className="w-4 h-4" />
-                                    <span>{subject.totalStudents} Students</span>
+                                    <span>{totalStudents} Students</span>
                                 </div>
 
                                 <div className="relative z-10">
@@ -110,8 +124,8 @@ export default async function FacultyDashboard({
                         )
                     })}
                     {faculty.subjects.length === 0 && (
-                        <div className="col-span-full text-center py-12 bg-gray-900 rounded-xl border border-gray-800 border-dashed">
-                            <p className="text-gray-500">No subjects assigned yet.</p>
+                        <div className="col-span-full text-center py-12 bg-card rounded-xl border border-border border-dashed">
+                            <p className="text-muted-foreground">No subjects assigned yet.</p>
                         </div>
                     )}
                 </div>

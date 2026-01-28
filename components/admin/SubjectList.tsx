@@ -17,6 +17,13 @@ type Subject = {
     _count: {
         students: number;
     };
+    batches?: {
+        id: number;
+        name: string;
+        _count: {
+            students: number;
+        }
+    }[];
 };
 
 type Faculty = {
@@ -58,20 +65,20 @@ export default function SubjectList({ subjects, facultyList }: { subjects: Subje
                 {subjects.map((subject) => (
                     <div
                         key={subject.id}
-                        className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-gray-700 transition-colors group relative"
+                        className="bg-card border border-border rounded-xl p-6 hover:border-sidebar-accent transition-colors group relative shadow-sm"
                     >
                         {/* Actions (Top Right) */}
                         <div className="absolute top-4 right-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
                                 onClick={() => setEditingSubject(subject)}
-                                className="p-2 bg-gray-800 hover:bg-blue-600/20 hover:text-blue-400 rounded-lg transition-colors"
+                                className="p-2 bg-muted hover:bg-blue-100 hover:text-blue-600 rounded-lg transition-colors border border-border"
                                 title="Edit Subject"
                             >
                                 <Edit className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={() => handleDeleteClick(subject)}
-                                className="p-2 bg-gray-800 hover:bg-red-600/20 hover:text-red-400 rounded-lg transition-colors"
+                                className="p-2 bg-muted hover:bg-red-100 hover:text-red-600 rounded-lg transition-colors border border-border"
                                 title="Delete Subject"
                             >
                                 <Trash2 className="w-4 h-4" />
@@ -79,27 +86,32 @@ export default function SubjectList({ subjects, facultyList }: { subjects: Subje
                         </div>
 
                         <div className="flex items-start justify-between mb-4">
-                            <div className="p-3 bg-blue-500/10 rounded-lg">
-                                <BookOpen className="w-6 h-6 text-blue-400" />
+                            <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                                <BookOpen className="w-6 h-6 text-blue-600" />
                             </div>
                         </div>
 
-                        <h3 className="text-xl font-bold text-white mb-2 pr-12 truncate" title={subject.name}>{subject.name}</h3>
+                        <h3 className="text-xl font-bold text-foreground mb-2 pr-12 truncate" title={subject.name}>{subject.name}</h3>
 
                         <div className="space-y-2 mb-6">
-                            <div className="flex items-center gap-2 text-sm text-gray-400">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <Users className="w-4 h-4" />
-                                <span>Faculty: <span className="text-white">{subject.faculty.user.name}</span></span>
+                                <span>Faculty: <span className="text-foreground font-medium">{subject.faculty.user.name}</span></span>
                             </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-400">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <GraduationCap className="w-4 h-4" />
-                                <span>Students: <span className="text-white">{subject._count.students}</span></span>
+                                <span>
+                                    Students:
+                                    <span className="text-foreground font-medium ml-1">
+                                        {(subject._count.students + (subject.batches?.reduce((acc, b) => acc + b._count.students, 0) || 0))}
+                                    </span>
+                                </span>
                             </div>
                         </div>
 
                         <button
                             onClick={() => setSelectedSubject(subject)}
-                            className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm font-medium transition-colors"
+                            className="w-full py-2 bg-secondary hover:bg-muted text-secondary-foreground rounded-lg text-sm font-medium transition-colors border border-border"
                         >
                             Manage Enrollment
                         </button>
@@ -107,7 +119,7 @@ export default function SubjectList({ subjects, facultyList }: { subjects: Subje
                 ))}
 
                 {subjects.length === 0 && (
-                    <div className="col-span-full py-12 text-center text-gray-500 bg-gray-900/50 border border-gray-800 border-dashed rounded-xl">
+                    <div className="col-span-full py-12 text-center text-muted-foreground bg-muted/20 border border-border border-dashed rounded-xl">
                         No subjects found. Create one to get started.
                     </div>
                 )}

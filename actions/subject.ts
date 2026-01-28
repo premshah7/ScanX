@@ -4,7 +4,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
-export async function createSubject(name: string, facultyId: number) {
+export async function createSubject(name: string, facultyId: number, batchIds: number[] = []) {
     if (!name || !facultyId) {
         return { error: "Name and Faculty are required" };
     }
@@ -25,6 +25,9 @@ export async function createSubject(name: string, facultyId: number) {
             data: {
                 name,
                 facultyId,
+                batches: {
+                    connect: batchIds.map(id => ({ id }))
+                }
             },
         });
 
@@ -123,7 +126,7 @@ export async function getStudentsForEnrollment(query: string = "") {
     }
 }
 
-export async function updateSubject(id: number, name: string, facultyId: number) {
+export async function updateSubject(id: number, name: string, facultyId: number, batchIds: number[] = []) {
     if (!id || !name || !facultyId) {
         return { error: "ID, Name and Faculty are required" };
     }
@@ -134,6 +137,9 @@ export async function updateSubject(id: number, name: string, facultyId: number)
             data: {
                 name,
                 facultyId,
+                batches: {
+                    set: batchIds.map(id => ({ id }))
+                }
             },
         });
 

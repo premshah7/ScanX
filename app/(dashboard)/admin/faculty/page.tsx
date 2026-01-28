@@ -39,9 +39,9 @@ export default async function FacultyManagementPage() {
 
         return (
             <div>
-                <div className="flex justify-between items-center mb-8 gap-4">
-                    <h1 className="text-3xl font-bold">Faculty Management</h1>
-                    <div className="flex gap-3">
+                <div className="flex justify-between items-center mb-8">
+                    <h1 className="text-3xl font-bold whitespace-nowrap text-foreground">Faculty Management</h1>
+                    <div className="flex items-center gap-4 flex-1 justify-end">
                         <BulkUploadClient userType="FACULTY" />
                         <AddFacultyForm batches={batches} />
                     </div>
@@ -53,10 +53,10 @@ export default async function FacultyManagementPage() {
     } catch (error: any) {
         console.error("Error loading faculty page:", error);
         return (
-            <div className="p-8 text-center bg-red-500/10 border border-red-500/20 rounded-xl">
-                <h2 className="text-xl font-bold text-red-500 mb-2">Error Loading Page</h2>
-                <p className="text-red-400 mb-4">{error?.message || "An unexpected error occurred."}</p>
-                <div className="text-left bg-black/50 p-4 rounded text-xs font-mono overflow-auto max-h-48">
+            <div className="p-8 text-center bg-red-50 border border-red-200 rounded-xl">
+                <h2 className="text-xl font-bold text-red-600 mb-2">Error Loading Page</h2>
+                <p className="text-red-500 mb-4">{error?.message || "An unexpected error occurred."}</p>
+                <div className="text-left bg-gray-100 p-4 rounded text-xs font-mono overflow-auto max-h-48 text-gray-800">
                     {JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}
                 </div>
             </div>

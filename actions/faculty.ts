@@ -274,3 +274,71 @@ export async function getFacultyAnalytics(email: string) {
         trend
     };
 }
+
+export async function getFacultyStudents(email: string) {
+    if (!email) return [];
+
+    const faculty = await prisma.faculty.findFirst({
+        where: { user: { email } },
+        include: {
+            batches: {
+                select: { id: true }
+            },
+            subjects: {
+                include: {
+                    sessions: {
+                        select: { id: true }
+                    }
+                }
+            }
+        }
+    });
+
+    if (!faculty || faculty.batches.length === 0) return [];
+
+    const batchIds = faculty.batches.map(b => b.id);
+
+    // Get all valid session IDs for this faculty
+    const facultySessionIds = new Set(
+        faculty.subjects.flatMap(s => s.sessions.map(sess => sess.id))
+    );
+    const totalSessions = facultySessionIds.size;
+
+    const students = await prisma.student.findMany({
+        where: {
+            batchId: { in: batchIds }
+        },
+        include: {
+            user: { select: { name: true, email: true } },
+            batch: { select: { name: true } },
+            attendances: {
+                where: {
+                    sessionId: { in: Array.from(facultySessionIds) }
+                },
+                select: { sessionId: true }
+            }
+        },
+        orderBy: { rollNumber: 'asc' }
+    });
+
+    return students.map(student => {
+        const attendedCount = student.attendances.length;
+        const percentage = totalSessions > 0
+            ? Math.round((attendedCount / totalSessions) * 100)
+            : 0;
+
+        return {
+            id: student.id,
+            name: student.user.name,
+            email: student.user.email,
+            rollNumber: student.rollNumber,
+            enrollmentNo: student.enrollmentNo,
+            batchName: student.batch?.name || "Unassigned",
+            semester: student.semester,
+            deviceRegistered: !!student.deviceHash,
+            attendancePercentage: percentage,
+            attendedClasses: attendedCount,
+            totalClasses: totalSessions
+        };
+    });
+}

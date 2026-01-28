@@ -9,6 +9,7 @@ import RequestResetButton from "@/components/student/RequestResetButton";
 import DeviceStatus from "@/components/student/DeviceStatus";
 import EditStudentModal from "@/components/admin/EditStudentModal";
 import FormattedTime from "@/components/FormattedTime";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default async function StudentDashboard() {
     const session = await getServerSession(authOptions);
@@ -39,7 +40,7 @@ export default async function StudentDashboard() {
     ]);
 
     if (!student) {
-        return <div className="p-8 text-white">Student record not found.</div>;
+        return <div className="p-8 text-foreground">Student record not found.</div>;
     }
 
     // Calc stats
@@ -48,20 +49,21 @@ export default async function StudentDashboard() {
     const attendanceCount = student.attendances.length;
 
     return (
-        <div className="min-h-screen bg-gray-950 p-6 text-white pb-24">
+        <div className="min-h-screen bg-background p-6 text-foreground pb-24">
             {/* Header */}
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-2xl font-bold">Welcome, {student.user.name.split(' ')[0]}</h1>
-                    <p className="text-gray-400 text-sm">Track your attendance</p>
+                    <p className="text-muted-foreground text-sm">Track your attendance</p>
                     <div className="mt-2">
                         <EditStudentModal student={student} batches={batches} />
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
+                    <ThemeToggle />
                     <LogoutButton />
-                    <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                        <span className="font-bold text-blue-400">{student.user.name[0]}</span>
+                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                        <span className="font-bold text-primary">{student.user.name[0]}</span>
                     </div>
                 </div>
             </div>
@@ -84,7 +86,7 @@ export default async function StudentDashboard() {
 
             {/* Device Status */}
             <div className="mb-8">
-                <h3 className="text-gray-400 text-sm font-medium mb-3 uppercase tracking-wider">Device Status</h3>
+                <h3 className="text-muted-foreground text-sm font-medium mb-3 uppercase tracking-wider">Device Status</h3>
                 <DeviceStatus
                     initialDeviceHash={student.deviceHash}
                     initialIsRequested={student.isDeviceResetRequested}
@@ -93,13 +95,13 @@ export default async function StudentDashboard() {
 
             {/* History */}
             <div>
-                <h3 className="text-gray-400 text-sm font-medium mb-3 uppercase tracking-wider">Recent History</h3>
+                <h3 className="text-muted-foreground text-sm font-medium mb-3 uppercase tracking-wider">Recent History</h3>
                 <div className="space-y-3">
                     {student.attendances.map((record) => (
-                        <div key={record.id} className="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center justify-between">
+                        <div key={record.id} className="bg-card border border-border p-4 rounded-xl flex items-center justify-between">
                             <div>
                                 <div className="font-semibold">{record.session.subject.name}</div>
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-muted-foreground">
                                     <FormattedTime date={record.timestamp} includeSeconds />
                                 </div>
                             </div>
@@ -107,7 +109,7 @@ export default async function StudentDashboard() {
                         </div>
                     ))}
                     {attendanceCount === 0 && (
-                        <div className="text-center py-8 text-gray-500">No attendance records yet.</div>
+                        <div className="text-center py-8 text-muted-foreground">No attendance records yet.</div>
                     )}
                 </div>
             </div>

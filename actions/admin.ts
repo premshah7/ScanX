@@ -219,6 +219,9 @@ export async function deleteUsers(userIds: number[]) {
 }
 
 export async function getGlobalAnalytics() {
+    const session = await getServerSession(authOptions);
+    if (session?.user.role !== "ADMIN") return [];
+
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -261,6 +264,9 @@ export async function getGlobalAnalytics() {
 }
 
 export async function getSecurityOverview() {
+    const session = await getServerSession(authOptions);
+    if (session?.user.role !== "ADMIN") return [];
+
     const fourteenDaysAgo = new Date();
     fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
@@ -307,6 +313,9 @@ export async function getSecurityOverview() {
 }
 
 export async function getActiveSessions() {
+    const session = await getServerSession(authOptions);
+    if (session?.user.role !== "ADMIN") return [];
+
     return await prisma.session.findMany({
         where: { isActive: true },
         include: {
@@ -362,5 +371,50 @@ export async function rejectStudent(userId: number) {
     } catch (error) {
         console.error("Error rejecting student:", error);
         return { error: "Failed to reject student" };
+    }
+}
+
+export async function removeStudentFromBatch(studentId: number, batchId: number) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (session?.user.role !== "ADMIN") {
+            return { error: "Unauthorized Access" };
+        }
+
+        await prisma.student.update({
+            where: { id: studentId },
+            data: { batchId: null }
+        });
+
+        revalidatePath(`/admin/batches/${batchId}`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error removing student from batch:", error);
+        return { error: "Failed to remove student from batch" };
+    }
+}
+
+export async function getFacultyBatches(facultyId: number) {
+    const session = await getServerSession(authOptions);
+    if (session?.user.role !== "ADMIN") return { error: "Unauthorized" };
+
+    try {
+        const faculty = await prisma.faculty.findUnique({
+            where: { id: facultyId },
+            include: {
+                batches: {
+                    select: { id: true, name: true }
+                }
+            }
+        });
+
+        if (!faculty) {
+            return { error: "Faculty not found" };
+        }
+
+        return { batches: faculty.batches };
+    } catch (error) {
+        console.error("Error fetching faculty batches:", error);
+        return { error: "Failed to fetch batches" };
     }
 }

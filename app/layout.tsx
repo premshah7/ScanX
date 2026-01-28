@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
 import { FingerprintProvider } from "@/components/FingerprintProvider";
 import NextTopLoader from "nextjs-toploader";
 import NextAuthSessionProvider from "@/components/SessionProvider";
+import { Toaster } from "sonner";
 
 
 const geistSans = Geist({
@@ -45,14 +47,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <NextTopLoader color="#3B82F6" height={0} showSpinner={true} shadow={false} />
         <NextAuthSessionProvider>
           <FingerprintProvider>
-            {children}
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+              <Toaster richColors position="top-center" />
+            </ThemeProvider>
           </FingerprintProvider>
         </NextAuthSessionProvider>
       </body>

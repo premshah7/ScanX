@@ -20,11 +20,11 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
     }
 
     return (
-        <div className="min-h-screen bg-gray-950 p-6 flex flex-col">
+        <div className="min-h-screen bg-background p-6 flex flex-col">
             {/* Header */}
             <div className="flex items-center gap-2 mb-6">
-                <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
-                <span className="text-red-400 font-bold tracking-wider text-sm uppercase">Live Session</span>
+                <div className="w-3 h-3 rounded-full bg-red-600 animate-pulse"></div>
+                <span className="text-red-600 font-bold tracking-wider text-sm uppercase">Live Session</span>
             </div>
 
             <SessionView

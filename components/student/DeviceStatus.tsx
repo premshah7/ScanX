@@ -47,12 +47,12 @@ export default function DeviceStatus({ initialDeviceHash, initialIsRequested }: 
     return (
         <div className={`p-4 rounded-xl border ${deviceHash ? 'bg-green-500/10 border-green-500/20' : 'bg-yellow-500/10 border-yellow-500/20'}`}>
             <div className="flex items-center gap-3">
-                <Smartphone className={`w-5 h-5 ${deviceHash ? 'text-green-400' : 'text-yellow-400'}`} />
+                <Smartphone className={`w-5 h-5 ${deviceHash ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}`} />
                 <div>
-                    <div className={`font-medium ${deviceHash ? 'text-green-400' : 'text-yellow-400'}`}>
+                    <div className={`font-medium ${deviceHash ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}`}>
                         {deviceHash ? 'Device Bound' : 'Device Not Bound'}
                     </div>
-                    <div className="text-xs text-gray-400">
+                    <div className="text-xs text-muted-foreground">
                         {deviceHash ? 'You can mark attendance.' : 'Next scan will bind this device.'}
                     </div>
                     {deviceHash && (
