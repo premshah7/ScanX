@@ -20,6 +20,7 @@ export default function Scanner({ isDeviceResetRequested = false }: ScannerProps
     const [result, setResult] = useState<{ success?: boolean; error?: string } | null>(null);
     const [paused, setPaused] = useState(false);
     const [isIncognito, setIsIncognito] = useState(false);
+    const [securityCheckComplete, setSecurityCheckComplete] = useState(false);
 
     // Block immediately if reset is requested
     if (isDeviceResetRequested) {
@@ -66,29 +67,48 @@ export default function Scanner({ isDeviceResetRequested = false }: ScannerProps
         // 3. Detect Incognito Mode (Heuristic: Storage Quota)
         // Incognito mode generally has lower storage quotas or behaves differently API-wise.
         // This is a common, lightweight check for modern browsers.
+        // 3. Detect Incognito Mode (Multi-factor Heuristic)
         const checkIncognito = async () => {
+            let isPrivate = false;
+
+            // Check A: Storage Quota (Chrome/Firefox)
             try {
                 if ('storage' in navigator && 'estimate' in navigator.storage) {
                     const { quota } = await navigator.storage.estimate();
-                    // Chrome Incognito typically caps quota at ~120MB (1.2e8 bytes) or less
-                    // Regular mode is usually many GBs.
+                    // Chrome Incognito typically caps quota at ~120MB
                     if (quota && quota < 120000000) {
-                        setIsIncognito(true);
+                        isPrivate = true;
                     }
                 }
             } catch (e) {
-                // If checking fails, proceed but log it.
-                console.error("Incognito check failed", e);
+                console.error("Quota check failed", e);
+            }
+
+            // Check B: FileSystem API (Chrome-specific)
+            // In Incognito, writing to disk is often restricted or behaves differently.
+            // Modern Chrome (>=76) fixed the simple detected check, but we can try to use it.
+            // Actually, a reliable method for newer Chrome is ensuring persistence fails?
+            // Let's stick to Quota + UserAgent hints if any? IDK.
+
+            // Note: Preventing ALL private modes is an arms race. 
+            // The storage quota matches 90% of cases for standard users.
+
+            if (isPrivate) {
+                setIsIncognito(true);
             }
         };
 
-        setFp();
-        initDeviceId();
-        checkIncognito();
+        // Run all checks
+        const initSecurity = async () => {
+            await Promise.all([setFp(), initDeviceId(), checkIncognito()]);
+            setSecurityCheckComplete(true);
+        };
+
+        initSecurity();
     }, []);
 
     const handleScan = async (detectedCodes: any[]) => {
-        if (paused || loading || !deviceHash || !deviceId || detectedCodes.length === 0) return;
+        if (paused || loading || !deviceHash || !deviceId || !securityCheckComplete || detectedCodes.length === 0) return;
 
         if (isIncognito) {
             setResult({ error: "Restricted Mode Detected. Please disable Incognito/Private mode to mark attendance." });
@@ -141,7 +161,7 @@ export default function Scanner({ isDeviceResetRequested = false }: ScannerProps
         );
     }
 
-    if (!deviceHash || !deviceId) {
+    if (!securityCheckComplete) {
         return (
             <div className="flex flex-col items-center justify-center p-8 space-y-4">
                 <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />

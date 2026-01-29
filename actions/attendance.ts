@@ -35,7 +35,10 @@ export async function markAttendance(token: string, deviceHash: string, deviceId
     // 3. Get Session & Student
     const [dbSession, student] = await Promise.all([
         prisma.session.findUnique({ where: { id: sessionId } }),
-        prisma.student.findUnique({ where: { userId: studentId } }),
+        prisma.student.findUnique({
+            where: { userId: studentId },
+            include: { user: true }
+        }),
     ]);
 
     if (!dbSession || !dbSession.isActive) {
@@ -59,6 +62,8 @@ export async function markAttendance(token: string, deviceHash: string, deviceId
     }
 
     // --- NEW: GLOBAL DEVICE OWNERSHIP CHECK (Sticky ID + Fingerprint) ---
+    console.log(`[Attendance Debug] User: ${student.user.email} | Hash: ${deviceHash} | ID: ${deviceId}`);
+
     // Check if this device is already registered to another student.
     // We check BOTH the hardware fingerprint AND the persistent browser ID.
     const deviceOwner = await prisma.student.findFirst({
@@ -73,6 +78,7 @@ export async function markAttendance(token: string, deviceHash: string, deviceId
     });
 
     if (deviceOwner) {
+        console.log(`[Attendance Debug] Device Owner Found: ${deviceOwner.user.email} (ID: ${deviceOwner.id})`);
         // Determine what matched for better logging
         const isStickyMatch = deviceOwner.deviceId === deviceId;
         const logHash = isStickyMatch ? `ID:${deviceId}` : `HASH:${deviceHash}`;

@@ -6,7 +6,7 @@ import { FingerprintProvider } from "@/components/FingerprintProvider";
 import NextTopLoader from "nextjs-toploader";
 import NextAuthSessionProvider from "@/components/SessionProvider";
 import { Toaster } from "sonner";
-
+import { Analytics } from '@vercel/analytics/next';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -61,6 +61,7 @@ export default function RootLayout({
               disableTransitionOnChange
             >
               {children}
+              <Analytics />
               <Toaster richColors position="top-center" />
             </ThemeProvider>
           </FingerprintProvider>
