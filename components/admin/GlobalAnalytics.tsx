@@ -7,8 +7,35 @@ import {
 import { Activity, ShieldAlert } from "lucide-react";
 
 type GlobalAnalyticsProps = {
-    trend: { date: string; percentage: number }[];
+    trend: { date: string; percentage: number; present: number; absent: number }[];
     security: { date: string; verified: number; suspicious: number }[];
+};
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-card border border-border p-3 rounded-lg shadow-lg">
+                <p className="font-bold text-foreground mb-1">{label}</p>
+                <div className="text-sm space-y-1">
+                    {payload[0].dataKey === 'percentage' ? (
+                        <>
+                            <p className="text-green-500">Present: {payload[0].payload.present}</p>
+                            <p className="text-red-500">Absent: {payload[0].payload.absent}</p>
+                        </>
+                    ) : (
+                        <>
+                            {payload.map((entry: any, index: number) => (
+                                <p key={index} style={{ color: entry.fill }}>
+                                    {entry.name}: {entry.value}
+                                </p>
+                            ))}
+                        </>
+                    )}
+                </div>
+            </div>
+        );
+    }
+    return null;
 };
 
 export default function GlobalAnalytics({ trend, security }: GlobalAnalyticsProps) {
@@ -50,10 +77,7 @@ export default function GlobalAnalytics({ trend, security }: GlobalAnalyticsProp
                                 domain={[0, 100]}
                                 tickFormatter={(val) => `${val}%`}
                             />
-                            <Tooltip
-                                contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e5e7eb', borderRadius: '8px', color: '#111827', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                itemStyle={{ color: '#111827' }}
-                            />
+                            <Tooltip content={<CustomTooltip />} />
                             <Area
                                 type="monotone"
                                 dataKey="percentage"

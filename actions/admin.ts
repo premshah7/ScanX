@@ -206,6 +206,7 @@ export async function getGlobalAnalytics() {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     // Fetch all finished sessions in last 30 days
+    // Fetch all finished sessions in last 30 days
     const sessions = await prisma.session.findMany({
         where: {
             startTime: { gte: thirtyDaysAgo },
@@ -216,7 +217,15 @@ export async function getGlobalAnalytics() {
                 select: { attendances: true }
             },
             subject: {
-                select: { totalStudents: true }
+                select: {
+                    totalStudents: true,
+                    students: { select: { id: true } },
+                    batches: {
+                        select: {
+                            students: { select: { id: true } }
+                        }
+                    }
+                }
             }
         },
         orderBy: { startTime: 'asc' }
@@ -230,14 +239,23 @@ export async function getGlobalAnalytics() {
         if (!dailyStats.has(date)) {
             dailyStats.set(date, { total: 0, present: 0 });
         }
+
+        // Calculate correctly merging direct & batch students
+        const uniqueStudentIds = new Set<number>();
+        session.subject.students.forEach(s => uniqueStudentIds.add(s.id));
+        session.subject.batches.forEach(b => b.students.forEach(s => uniqueStudentIds.add(s.id)));
+        const totalSessionStudents = uniqueStudentIds.size;
+
         const stat = dailyStats.get(date)!;
-        stat.total += session.subject.totalStudents;
+        stat.total += totalSessionStudents;
         stat.present += session._count.attendances;
     });
 
     const trend = Array.from(dailyStats.entries()).map(([date, stats]) => ({
         date,
-        percentage: stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 0
+        percentage: stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 0,
+        present: stats.present,
+        absent: stats.total - stats.present
     }));
 
     return trend;
@@ -395,6 +413,30 @@ export async function getFacultyBatches(facultyId: number) {
         return { batches: faculty.batches };
     } catch (error) {
         console.error("Error fetching faculty batches:", error);
+
         return { error: "Failed to fetch batches" };
+    }
+}
+
+export async function resetAllDevices() {
+    try {
+        const session = await getServerSession(authOptions);
+        if (session?.user.role !== "ADMIN") {
+            return { error: "Unauthorized Access" };
+        }
+
+        await prisma.student.updateMany({
+            data: {
+                deviceHash: null,
+                deviceId: null,
+                isDeviceResetRequested: false
+            }
+        });
+
+        revalidatePath("/admin/students");
+        return { success: true };
+    } catch (error) {
+        console.error("Error resetting all devices:", error);
+        return { error: "Failed to reset all devices" };
     }
 }

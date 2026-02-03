@@ -49,64 +49,6 @@ export async function markAttendance(token: string, deviceHash: string, deviceId
         return { error: "Student record not found" };
     }
 
-    // 4. Check if already marked
-    const existingAttendance = await prisma.attendance.findFirst({
-        where: {
-            studentId: student.id,
-            sessionId: sessionId,
-        },
-    });
-
-    if (existingAttendance) {
-        return { error: "Attendance already marked", success: true };
-    }
-    // --- NEW: HEURISTIC LOCK (Cross-Browser/Incognito Protection) ---
-    // Prevent the same "Device" (IP + UA) from marking attendance for multiple students in the same session.
-    // This blocks:
-    // 1. Incognito Mode Bypasses (Incognito shares IP + UA with main window).
-    // 2. Different Browsers on same device (Chrome & Brave share IP + nearly identical UA core, though strictly we check full UA here).
-
-    // We check for *any* attendance in this session with same IP + UA but DIFFERENT student ID.
-    /*
-    const heuristicProxy = await prisma.attendance.findFirst({
-        where: {
-            sessionId: sessionId,
-            ipAddress: ip,
-            userAgent: userAgent,
-            studentId: { not: student.id } // Someone else used this "device"
-        },
-        include: { student: { include: { user: true } } }
-    });
-
-    if (heuristicProxy) {
-        console.log(`[Heuristic Block] IP: ${ip} | UA: ${userAgent} | Used by: ${heuristicProxy.student.user.name}`);
-
-        // Log as Proxy Attempt (Upsert)
-        const logHash = `HEURISTIC_BLOCK:${ip}`;
-
-        const existingProxy = await prisma.proxyAttempt.findFirst({
-            where: { studentId: student.id, sessionId: sessionId }
-        });
-
-        if (existingProxy) {
-            await prisma.proxyAttempt.update({
-                where: { id: existingProxy.id },
-                data: { attemptedHash: logHash, timestamp: new Date() }
-            });
-        } else {
-            await prisma.proxyAttempt.create({
-                data: {
-                    studentId: student.id,
-                    sessionId: sessionId,
-                    attemptedHash: logHash,
-                }
-            });
-        }
-
-        return { error: "Suspicious activity detected! Multiple logins from the same device signature are not allowed." };
-    }
-    */
-
     // --- NEW: GLOBAL DEVICE OWNERSHIP CHECK (Sticky ID + Fingerprint) ---
     console.log(`[Attendance Debug] User: ${student.user.email} | Hash: ${deviceHash} | ID: ${deviceId}`);
 
@@ -216,6 +158,18 @@ export async function markAttendance(token: string, deviceHash: string, deviceId
             });
         }
         return { error: "Device Verification Failed! Please use your registered device and browser." };
+    }
+
+    // 7. Check if already marked (Moved AFTER device verification)
+    const existingAttendance = await prisma.attendance.findFirst({
+        where: {
+            studentId: student.id,
+            sessionId: sessionId,
+        },
+    });
+
+    if (existingAttendance) {
+        return { error: "Attendance already marked", success: true };
     }
 
     // 7. Mark Attendance

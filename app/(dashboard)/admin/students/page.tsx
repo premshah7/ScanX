@@ -4,6 +4,7 @@ import DeviceResetButton from "@/components/admin/DeviceResetButton";
 import FlexibleUploadModal from "@/components/admin/FlexibleUploadModal";
 import EditStudentModal from "@/components/admin/EditStudentModal";
 import DeleteStudentButton from "@/components/admin/DeleteStudentButton";
+import ResetAllDevicesButton from "@/components/admin/ResetAllDevicesButton";
 import StudentTable from "@/components/admin/StudentTable";
 import Pagination from "@/components/Pagination";
 import { User, Smartphone } from "lucide-react";
@@ -76,6 +77,7 @@ export default async function StudentManagementPage({
                         <Search placeholder="Search students..." />
                         <SemesterFilter />
                     </div>
+                    <ResetAllDevicesButton />
                     <FlexibleUploadModal userType="STUDENT" />
                     <AddStudentForm batches={batches} />
                 </div>
