@@ -50,6 +50,9 @@ model Student {
   batchId  Int?
   batch    Batch? @relation(fields: [batchId], references: [id])
   semester Int    @default(1)
+
+  @@index([deviceHash])
+  @@index([deviceId])
 }
 
 model Faculty {
@@ -107,6 +110,9 @@ model Attendance {
   userAgent String?
   ipAddress String?
   student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, sessionId])
+  @@index([sessionId])
 }
 
 model ProxyAttempt {

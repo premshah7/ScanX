@@ -67,6 +67,7 @@ export async function markAttendance(token: string, deviceHash: string, deviceId
     // 2. Different Browsers on same device (Chrome & Brave share IP + nearly identical UA core, though strictly we check full UA here).
 
     // We check for *any* attendance in this session with same IP + UA but DIFFERENT student ID.
+    /*
     const heuristicProxy = await prisma.attendance.findFirst({
         where: {
             sessionId: sessionId,
@@ -104,6 +105,7 @@ export async function markAttendance(token: string, deviceHash: string, deviceId
 
         return { error: "Suspicious activity detected! Multiple logins from the same device signature are not allowed." };
     }
+    */
 
     // --- NEW: GLOBAL DEVICE OWNERSHIP CHECK (Sticky ID + Fingerprint) ---
     console.log(`[Attendance Debug] User: ${student.user.email} | Hash: ${deviceHash} | ID: ${deviceId}`);

@@ -20,21 +20,16 @@ export async function getFacultyDefaulters(email: string): Promise<Defaulter[]> 
             subjects: {
                 include: {
                     sessions: {
-                        where: { isActive: false }
+                        where: { isActive: false },
+                        select: { id: true }
                     },
                     students: {
-                        include: {
-                            user: true,
-                            attendances: true
-                        }
+                        include: { user: true }
                     },
                     batches: {
                         include: {
                             students: {
-                                include: {
-                                    user: true,
-                                    attendances: true
-                                }
+                                include: { user: true }
                             }
                         }
                     }
@@ -51,7 +46,7 @@ export async function getFacultyDefaulters(email: string): Promise<Defaulter[]> 
         const totalSessions = subject.sessions.length;
         if (totalSessions === 0) continue;
 
-        const sessionIds = new Set(subject.sessions.map(s => s.id));
+        const sessionIds = subject.sessions.map(s => s.id);
 
         // Merge direct and batch students
         const allStudents = [
@@ -60,13 +55,29 @@ export async function getFacultyDefaulters(email: string): Promise<Defaulter[]> 
         ];
 
         // Deduplicate students by ID
-        const uniqueStudents = Array.from(new Map(allStudents.map(s => [s.id, s])).values());
+        const uniqueStudentsMap = new Map();
+        allStudents.forEach(s => uniqueStudentsMap.set(s.id, s));
+        const uniqueStudents = Array.from(uniqueStudentsMap.values());
+        const studentIds = uniqueStudents.map(s => s.id);
+
+        if (studentIds.length === 0) continue;
+
+        // Optimized: Fetch counts from DB
+        const attendanceCounts = await prisma.attendance.groupBy({
+            by: ['studentId'],
+            where: {
+                sessionId: { in: sessionIds },
+                studentId: { in: studentIds }
+            },
+            _count: { sessionId: true }
+        });
+
+        // Create a lookup map for attendance counts
+        const attendanceMap = new Map();
+        attendanceCounts.forEach(a => attendanceMap.set(a.studentId, a._count.sessionId));
 
         for (const student of uniqueStudents) {
-            const attendedCount = student.attendances.filter(a =>
-                sessionIds.has(a.sessionId)
-            ).length;
-
+            const attendedCount = attendanceMap.get(student.id) || 0;
             const percentage = (attendedCount / totalSessions) * 100;
 
             if (percentage < 75) {
@@ -94,14 +105,15 @@ export async function getFacultyStats(email: string) {
             subjects: {
                 include: {
                     sessions: {
-                        include: {
-                            attendances: true
+                        select: {
+                            id: true,
+                            _count: { select: { attendances: true } }
                         }
                     },
-                    students: true,
+                    students: { select: { id: true } },
                     batches: {
                         include: {
-                            students: true
+                            students: { select: { id: true } }
                         }
                     }
                 }
@@ -125,15 +137,15 @@ export async function getFacultyStats(email: string) {
         totalSessions += subject.sessions.length;
 
         // Calculate attendance metrics
-        const subjectSpecificStudentIds = new Set<number>();
-        subject.students.forEach(s => subjectSpecificStudentIds.add(s.id));
-        subject.batches.forEach(b => b.students.forEach(s => subjectSpecificStudentIds.add(s.id)));
-
-        const subjectStudentCount = subjectSpecificStudentIds.size;
+        // We need the number of students *for this subject*
+        const subjectStudentIds = new Set<number>();
+        subject.students.forEach(s => subjectStudentIds.add(s.id));
+        subject.batches.forEach(b => b.students.forEach(s => subjectStudentIds.add(s.id)));
+        const subjectStudentCount = subjectStudentIds.size;
 
         if (subjectStudentCount > 0) {
             subject.sessions.forEach(session => {
-                totalAttendanceCount += session.attendances.length;
+                totalAttendanceCount += session._count.attendances;
                 totalPossibleAttendance += subjectStudentCount;
             });
         }
@@ -225,101 +237,125 @@ export async function getFacultyAnalytics(email: string) {
     const faculty = await prisma.faculty.findFirst({
         where: { user: { email } },
         include: {
-            subjects: {
-                include: {
-                    sessions: {
-                        where: { isActive: false },
-                        orderBy: { startTime: 'desc' },
-                        take: 10,
-                        include: {
-                            _count: {
-                                select: { attendances: true, proxyAttempts: true }
-                            },
-                            attendances: true
-                        }
-                    },
-                    students: true,
-                    batches: {
-                        include: {
-                            students: true
-                        }
-                    }
-                }
-            }
+            subjects: { select: { id: true } }
         }
     });
 
     if (!faculty) return { trend: [], recentActivity: [], proxyStats: { verified: 0, suspicious: 0 } };
 
-    const allSessions = faculty.subjects.flatMap(sub => {
-        // Calculate total students for this subject (Direct + Batches)
-        const subStudentIds = new Set<number>();
-        sub.students.forEach(s => subStudentIds.add(s.id));
-        sub.batches.forEach(b => b.students.forEach(s => subStudentIds.add(s.id)));
-        const totalSubjectStudents = subStudentIds.size;
+    const subjectIds = faculty.subjects.map(s => s.id);
 
-        return sub.sessions.map(s => ({
-            ...s,
-            subjectName: sub.name,
-            totalStudents: totalSubjectStudents
-        }));
-    }).sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
-
-    const recentActivity = allSessions.slice(0, 5).map(session => ({
-        id: session.id,
-        subjectName: session.subjectName,
-        date: session.startTime,
-        present: session._count.attendances,
-        absent: session.totalStudents - session._count.attendances,
-        proxies: session._count.proxyAttempts,
-        total: session.totalStudents
-    }));
-
-    // 2. Proxy Stats (Aggregate count of Attendance vs ProxyAttempts)
-    const verifiedCount = await prisma.attendance.count({
+    // 1. Recent Activity (Fetch only top 5 directly)
+    const recentSessions = await prisma.session.findMany({
         where: {
-            session: {
-                subject: { facultyId: faculty.id }
+            subjectId: { in: subjectIds },
+            isActive: false
+        },
+        orderBy: { startTime: 'desc' },
+        take: 5,
+        select: {
+            id: true,
+            startTime: true,
+            subject: {
+                select: {
+                    name: true,
+                    _count: { select: { students: true } },
+                    batches: {
+                        select: {
+                            _count: { select: { students: true } }
+                        }
+                    }
+                }
+            },
+            _count: {
+                select: { attendances: true, proxyAttempts: true }
             }
         }
     });
 
-    const suspiciousCount = await prisma.proxyAttempt.count({
-        where: {
-            session: {
-                subject: { facultyId: faculty.id }
-            }
-        }
+    const recentActivity = recentSessions.map(session => {
+        const directStudents = session.subject._count.students;
+        const batchStudents = session.subject.batches.reduce((acc, b) => acc + b._count.students, 0);
+        const totalStudents = directStudents + batchStudents;
+
+        return {
+            id: session.id,
+            subjectName: session.subject.name,
+            date: session.startTime,
+            present: session._count.attendances,
+            absent: totalStudents - session._count.attendances,
+            proxies: session._count.proxyAttempts,
+            total: totalStudents
+        };
     });
+
+    // 2. Proxy Stats
+    const [verifiedCount, suspiciousCount] = await Promise.all([
+        prisma.attendance.count({
+            where: { session: { subjectId: { in: subjectIds } } }
+        }),
+        prisma.proxyAttempt.count({
+            where: { session: { subjectId: { in: subjectIds } } }
+        })
+    ]);
 
     const proxyStats = {
         verified: verifiedCount,
         suspicious: suspiciousCount
     };
 
-    // 3. Attendance Trend (Last 7 unique days, sorted by date)
-    const uniqueDateSessions = [];
-    const seenDates = new Set<string>();
+    // 3. Attendance Trend (Optimized: Fetch last 20 sessions to build 7-day trend)
+    // Instead of fetching EVERYTHING, we just fetch the last 20 sessions which is usually enough to cover 7 days.
+    const trendSessions = await prisma.session.findMany({
+        where: {
+            subjectId: { in: subjectIds },
+            isActive: false
+        },
+        orderBy: { startTime: 'desc' },
+        take: 20,
+        select: {
+            startTime: true,
+            subject: {
+                select: {
+                    name: true,
+                    _count: { select: { students: true } },
+                    batches: { select: { _count: { select: { students: true } } } }
+                }
+            },
+            _count: { select: { attendances: true } }
+        }
+    });
 
-    for (const session of allSessions) {
+    const uniqueDateSessions = [];
+    const seenDates = new Set();
+
+    for (const session of trendSessions) {
         const dateStr = new Date(session.startTime).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
         if (!seenDates.has(dateStr)) {
             seenDates.add(dateStr);
-            uniqueDateSessions.push({ ...session, dateStr });
+            // @ts-ignore
+            session.dateStr = dateStr;
+            uniqueDateSessions.push(session);
         }
         if (uniqueDateSessions.length >= 7) break;
     }
 
     const trend = uniqueDateSessions.map(session => {
-        const percentage = session.totalStudents > 0
-            ? (session.attendances.length / session.totalStudents) * 100
+        const directStudents = session.subject._count.students;
+        const batchStudents = session.subject.batches.reduce((acc, b) => acc + b._count.students, 0);
+        const totalStudents = directStudents + batchStudents;
+
+        const percentage = totalStudents > 0
+            ? (session._count.attendances / totalStudents) * 100
             : 0;
+
         return {
+            // @ts-ignore
             date: session.dateStr,
             percentage: Math.round(percentage),
-            subject: session.subjectName,
-            present: session.attendances.length,
-            absent: session.totalStudents - session.attendances.length
+            subject: session.subject.name,
+            present: session._count.attendances,
+            absent: totalStudents - session._count.attendances
         };
     }).reverse();
 

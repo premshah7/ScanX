@@ -42,23 +42,53 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
         };
 
         updateToken();
-        const interval = setInterval(updateToken, 5000);
+        updateToken();
+        const interval = setInterval(updateToken, 4000); // 4 seconds
         return () => clearInterval(interval);
     }, [sessionId]);
 
     useEffect(() => {
+        let isMounted = true;
+        let timeoutId: NodeJS.Timeout;
+
         const fetchStats = async () => {
-            const newStats = await getSessionStats(sessionId);
-            setSessionStatistics(newStats);
+            if (!isMounted) return;
+
+            try {
+                // Only fetch if visible to save resources
+                if (document.visibilityState === "visible") {
+                    const newStats = await getSessionStats(sessionId);
+                    if (isMounted) {
+                        setSessionStatistics(newStats);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch session stats:", error);
+            } finally {
+                // Schedule next fetch only after current one completes
+                if (isMounted) {
+                    timeoutId = setTimeout(fetchStats, 1000);
+                }
+            }
         };
 
+        // Initial fetch
         fetchStats();
-        const interval = setInterval(() => {
+
+        // Handle visibility changes to restart polling immediately
+        const handleVisibilityChange = () => {
             if (document.visibilityState === "visible") {
+                clearTimeout(timeoutId);
                 fetchStats();
             }
-        }, 1000);
-        return () => clearInterval(interval);
+        };
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            isMounted = false;
+            clearTimeout(timeoutId);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
     }, [sessionId]);
 
     const handleEndSession = async () => {
