@@ -27,6 +27,16 @@ export async function getFacultyDefaulters(email: string): Promise<Defaulter[]> 
                             user: true,
                             attendances: true
                         }
+                    },
+                    batches: {
+                        include: {
+                            students: {
+                                include: {
+                                    user: true,
+                                    attendances: true
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -43,7 +53,16 @@ export async function getFacultyDefaulters(email: string): Promise<Defaulter[]> 
 
         const sessionIds = new Set(subject.sessions.map(s => s.id));
 
-        for (const student of subject.students) {
+        // Merge direct and batch students
+        const allStudents = [
+            ...subject.students,
+            ...subject.batches.flatMap(b => b.students)
+        ];
+
+        // Deduplicate students by ID
+        const uniqueStudents = Array.from(new Map(allStudents.map(s => [s.id, s])).values());
+
+        for (const student of uniqueStudents) {
             const attendedCount = student.attendances.filter(a =>
                 sessionIds.has(a.sessionId)
             ).length;
@@ -79,7 +98,12 @@ export async function getFacultyStats(email: string) {
                             attendances: true
                         }
                     },
-                    students: true
+                    students: true,
+                    batches: {
+                        include: {
+                            students: true
+                        }
+                    }
                 }
             }
         }
@@ -93,14 +117,20 @@ export async function getFacultyStats(email: string) {
     let totalPossibleAttendance = 0;
 
     faculty.subjects.forEach(subject => {
-        // Count unique students
+        // Count unique students (Direct + Batches)
         subject.students.forEach(s => uniqueStudentIds.add(s.id));
+        subject.batches.forEach(b => b.students.forEach(s => uniqueStudentIds.add(s.id)));
 
         // Count sessions
         totalSessions += subject.sessions.length;
 
         // Calculate attendance metrics
-        const subjectStudentCount = subject.students.length;
+        const subjectSpecificStudentIds = new Set<number>();
+        subject.students.forEach(s => subjectSpecificStudentIds.add(s.id));
+        subject.batches.forEach(b => b.students.forEach(s => subjectSpecificStudentIds.add(s.id)));
+
+        const subjectStudentCount = subjectSpecificStudentIds.size;
+
         if (subjectStudentCount > 0) {
             subject.sessions.forEach(session => {
                 totalAttendanceCount += session.attendances.length;
@@ -208,7 +238,12 @@ export async function getFacultyAnalytics(email: string) {
                             attendances: true
                         }
                     },
-                    students: true
+                    students: true,
+                    batches: {
+                        include: {
+                            students: true
+                        }
+                    }
                 }
             }
         }
@@ -216,13 +251,19 @@ export async function getFacultyAnalytics(email: string) {
 
     if (!faculty) return { trend: [], recentActivity: [], proxyStats: { verified: 0, suspicious: 0 } };
 
-    const allSessions = faculty.subjects.flatMap(sub =>
-        sub.sessions.map(s => ({
+    const allSessions = faculty.subjects.flatMap(sub => {
+        // Calculate total students for this subject (Direct + Batches)
+        const subStudentIds = new Set<number>();
+        sub.students.forEach(s => subStudentIds.add(s.id));
+        sub.batches.forEach(b => b.students.forEach(s => subStudentIds.add(s.id)));
+        const totalSubjectStudents = subStudentIds.size;
+
+        return sub.sessions.map(s => ({
             ...s,
             subjectName: sub.name,
-            totalStudents: sub.students.length
-        }))
-    ).sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+            totalStudents: totalSubjectStudents
+        }));
+    }).sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
 
     const recentActivity = allSessions.slice(0, 5).map(session => ({
         id: session.id,
@@ -256,15 +297,29 @@ export async function getFacultyAnalytics(email: string) {
         suspicious: suspiciousCount
     };
 
-    // 3. Attendance Trend (Last 7 sessions sorted by date)
-    const trend = allSessions.slice(0, 7).map(session => {
+    // 3. Attendance Trend (Last 7 unique days, sorted by date)
+    const uniqueDateSessions = [];
+    const seenDates = new Set<string>();
+
+    for (const session of allSessions) {
+        const dateStr = new Date(session.startTime).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        if (!seenDates.has(dateStr)) {
+            seenDates.add(dateStr);
+            uniqueDateSessions.push({ ...session, dateStr });
+        }
+        if (uniqueDateSessions.length >= 7) break;
+    }
+
+    const trend = uniqueDateSessions.map(session => {
         const percentage = session.totalStudents > 0
             ? (session.attendances.length / session.totalStudents) * 100
             : 0;
         return {
-            date: new Date(session.startTime).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+            date: session.dateStr,
             percentage: Math.round(percentage),
-            subject: session.subjectName
+            subject: session.subjectName,
+            present: session.attendances.length,
+            absent: session.totalStudents - session.attendances.length
         };
     }).reverse();
 
@@ -341,4 +396,25 @@ export async function getFacultyStudents(email: string) {
             totalClasses: totalSessions
         };
     });
+}
+
+export async function getFacultyBatches(email: string) {
+    if (!email) return { batches: [] };
+
+    const faculty = await prisma.faculty.findFirst({
+        where: { user: { email } },
+        include: {
+            batches: {
+                orderBy: { name: 'asc' },
+                include: {
+                    _count: {
+                        select: { students: true }
+                    }
+                }
+            }
+        }
+    });
+
+    if (!faculty) return { batches: [] };
+    return { batches: faculty.batches };
 }

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { CheckCircle, AlertTriangle } from "lucide-react";
+import FormattedTime from "@/components/FormattedTime";
 
 export default async function AttendanceLogsPage() {
     const [attendanceLogs, proxyLogs] = await Promise.all([
@@ -17,6 +18,7 @@ export default async function AttendanceLogsPage() {
             include: {
                 student: { include: { user: true } },
                 session: { include: { subject: true } },
+                deviceOwner: { include: { user: true } },
             },
         }),
     ]);
@@ -51,8 +53,19 @@ export default async function AttendanceLogsPage() {
                                         <div className="text-xs text-muted-foreground">{log.student.rollNumber}</div>
                                     </td>
                                     <td className="p-4 text-foreground">{log.session.subject.name}</td>
-                                    <td className="p-4 text-muted-foreground">{log.timestamp.toLocaleString()}</td>
-                                    <td className="p-4 text-sm text-destructive font-medium">Device Hash Mismatch</td>
+                                    <td className="p-4 text-muted-foreground">
+                                        <FormattedTime date={log.timestamp} includeSeconds />
+                                    </td>
+                                    <td className="p-4 text-sm text-destructive font-medium">
+                                        {log.deviceOwner ? (
+                                            <>
+                                                <span>Device match: </span>
+                                                <span className="font-bold underline">{log.deviceOwner.user.name}</span>
+                                            </>
+                                        ) : (
+                                            "Device Hash Mismatch"
+                                        )}
+                                    </td>
                                 </tr>
                             ))}
                             {proxyLogs.length === 0 && (
@@ -91,7 +104,9 @@ export default async function AttendanceLogsPage() {
                                         <div className="text-xs text-muted-foreground">{log.student.rollNumber}</div>
                                     </td>
                                     <td className="p-4 text-foreground">{log.session.subject.name}</td>
-                                    <td className="p-4 text-muted-foreground">{log.timestamp.toLocaleString()}</td>
+                                    <td className="p-4 text-muted-foreground">
+                                        <FormattedTime date={log.timestamp} includeSeconds />
+                                    </td>
                                     <td className="p-4 text-sm text-green-500 font-medium">Verified</td>
                                 </tr>
                             ))}

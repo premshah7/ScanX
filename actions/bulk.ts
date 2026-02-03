@@ -13,6 +13,7 @@ type StudentData = {
     roll?: string;
     enrollment?: string;
     batch?: string;
+    semester?: string | number;
 };
 
 // 1. Preview PDF Data (For Flexible Modal)
@@ -161,7 +162,8 @@ export async function uploadBulkUsers(students: StudentData[], role: "STUDENT" |
                         userId: u.id,
                         rollNumber: original.roll || "",
                         enrollmentNo: original.enrollment || "",
-                        batchId: batchId
+                        batchId: batchId,
+                        semester: original.semester ? parseInt(original.semester.toString()) || 1 : 1
                     };
                 }).filter(Boolean);
 

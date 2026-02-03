@@ -6,8 +6,8 @@ import { redirect } from "next/navigation";
 import { BookOpen, Users, Play } from "lucide-react";
 import StartSessionButton from "@/components/faculty/StartSessionButton";
 import Search from "@/components/Search";
-import { getFacultyStats, getFacultyDefaulters, getFacultyAnalytics } from "@/actions/faculty";
-import { getBatches } from "@/actions/batch";
+import { getFacultyStats, getFacultyDefaulters, getFacultyAnalytics, getFacultyBatches } from "@/actions/faculty";
+// import { getBatches } from "@/actions/batch"; // No longer needed
 import StatsCards from "@/components/faculty/StatsCards";
 import DefaultersList from "@/components/faculty/DefaultersList";
 import AnalyticsWidgets from "@/components/faculty/AnalyticsWidgets";
@@ -60,7 +60,7 @@ export default async function FacultyDashboard({
         getFacultyStats(session.user.email!),
         getFacultyDefaulters(session.user.email!),
         getFacultyAnalytics(session.user.email!),
-        getBatches()
+        getFacultyBatches(session.user.email!)
     ]);
 
     const batches = batchesRes.batches || [];

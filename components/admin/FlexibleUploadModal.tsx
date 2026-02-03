@@ -97,7 +97,8 @@ export default function FlexibleUploadModal({ userType }: FlexibleUploadModalPro
                 email: getVal("email") || "",
                 roll: userType === "STUDENT" ? (getVal("roll") || undefined) : undefined,
                 enrollment: userType === "STUDENT" ? (getVal("enrollment") || undefined) : undefined,
-                batch: userType === "STUDENT" ? (getVal("batch") || undefined) : undefined
+                batch: userType === "STUDENT" ? (getVal("batch") || undefined) : undefined,
+                semester: userType === "STUDENT" ? (getVal("semester") || undefined) : undefined
             };
         }).filter(d => d.name && d.email);
 

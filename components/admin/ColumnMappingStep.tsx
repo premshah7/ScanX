@@ -16,6 +16,7 @@ const ALL_FIELDS = [
     { key: "roll", label: "Roll No", required: false, types: ["STUDENT"] },
     { key: "enrollment", label: "Enrollment No", required: false, types: ["STUDENT"] },
     { key: "batch", label: "Batch", required: false, types: ["STUDENT"] },
+    { key: "semester", label: "Semester", required: false, types: ["STUDENT"] },
 ];
 
 export default function ColumnMappingStep({ data, onMap, userType }: ColumnMappingStepProps) {
@@ -37,6 +38,7 @@ export default function ColumnMappingStep({ data, onMap, userType }: ColumnMappi
             else if ((h.includes("roll") || h === "id") && !initialMapping["roll"]) initialMapping["roll"] = header;
             else if (h.includes("enroll") && !initialMapping["enrollment"]) initialMapping["enrollment"] = header;
             else if (h.includes("batch") && !initialMapping["batch"]) initialMapping["batch"] = header;
+            else if ((h.includes("sem") || h.includes("semester")) && !initialMapping["semester"]) initialMapping["semester"] = header;
         });
 
         setMapping(initialMapping);

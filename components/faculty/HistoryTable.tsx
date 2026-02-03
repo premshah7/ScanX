@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { Calendar, Search, FileText, ChevronRight } from "lucide-react";
+import FormattedTime from "@/components/FormattedTime";
 
 type HistorySession = {
     id: number;
@@ -16,6 +17,7 @@ type HistorySession = {
 export default function HistoryTable({ sessions }: { sessions: HistorySession[] }) {
     const [selectedSubject, setSelectedSubject] = useState("All");
     const [dateFilter, setDateFilter] = useState("");
+    const dateInputRef = useRef<HTMLInputElement>(null);
 
     // Get unique subjects
     const subjects = ["All", ...Array.from(new Set(sessions.map(s => s.subjectName)))];
@@ -44,14 +46,27 @@ export default function HistoryTable({ sessions }: { sessions: HistorySession[] 
                         ))}
                     </select>
                 </div>
-                <div className="relative w-full md:w-auto">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <input
-                        type="date"
-                        value={dateFilter}
-                        onChange={(e) => setDateFilter(e.target.value)}
-                        className="w-full md:w-48 bg-card border border-border text-foreground rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:border-primary"
-                    />
+                <div className="relative w-full md:w-auto min-w-[200px]">
+                    {/* Main Container - acts as the relative parent for height/layout */}
+                    <div
+                        onClick={() => dateInputRef.current?.showPicker()}
+                        className="relative flex items-center w-full border border-border rounded-lg bg-card text-foreground pl-10 pr-4 py-3 cursor-pointer hover:border-primary transition-colors"
+                    >
+                        <Calendar className="absolute left-3 w-4 h-4 text-muted-foreground" />
+
+                        {/* Display Text */}
+                        {dateFilter ? new Date(dateFilter).toLocaleDateString("en-GB") : <span className="text-muted-foreground">DD/MM/YYYY</span>}
+
+                        {/* Hidden Native Date Input (Overlay) */}
+                        <input
+                            ref={dateInputRef}
+                            type="date"
+                            value={dateFilter}
+                            onChange={(e) => setDateFilter(e.target.value)}
+                            className="absolute inset-0 w-full h-full opacity-0 pointer-events-none"
+                            tabIndex={-1}
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -80,11 +95,7 @@ export default function HistoryTable({ sessions }: { sessions: HistorySession[] 
                                 filteredSessions.map((session) => (
                                     <tr key={session.id} className="hover:bg-muted/50 transition-colors group">
                                         <td className="p-4 text-foreground font-medium">
-                                            {new Date(session.startTime).toLocaleDateString(undefined, {
-                                                year: 'numeric',
-                                                month: 'short',
-                                                day: 'numeric'
-                                            })}
+                                            <FormattedTime date={session.startTime} dateOnly />
                                         </td>
                                         <td className="p-4 text-foreground/80">
                                             {session.subjectName}

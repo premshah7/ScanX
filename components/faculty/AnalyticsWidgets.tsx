@@ -8,9 +8,24 @@ import {
 
 type AnalyticsWidgetsProps = {
     analytics: {
-        trend: { date: string; percentage: number; subject: string }[];
+        trend: { date: string; percentage: number; subject: string; present: number; absent: number }[];
         proxyStats: { verified: number; suspicious: number };
     };
+};
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-card border border-border p-3 rounded-lg shadow-lg">
+                <p className="font-bold text-foreground mb-1">{label}</p>
+                <div className="text-sm space-y-1">
+                    <p className="text-green-500">Present: {payload[0].payload.present}</p>
+                    <p className="text-red-500">Absent: {payload[0].payload.absent}</p>
+                </div>
+            </div>
+        );
+    }
+    return null;
 };
 
 export default function AnalyticsWidgets({ analytics }: AnalyticsWidgetsProps) {
@@ -65,11 +80,7 @@ export default function AnalyticsWidgets({ analytics }: AnalyticsWidgetsProps) {
                                 domain={[0, 100]}
                                 tickFormatter={(value) => `${value}%`}
                             />
-                            <Tooltip
-                                contentStyle={{ backgroundColor: '#fff', borderColor: '#e5e7eb', borderRadius: '8px', color: '#111827', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                itemStyle={{ color: '#111827' }}
-                                labelStyle={{ color: '#6b7280', marginBottom: '4px' }}
-                            />
+                            <Tooltip content={<CustomTooltip />} />
                             <Area
                                 type="monotone"
                                 dataKey="percentage"

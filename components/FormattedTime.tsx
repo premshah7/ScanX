@@ -18,15 +18,16 @@ export default function FormattedTime({ date, includeSeconds = false, dateOnly =
         const parsedDate = new Date(date);
 
         if (dateOnly) {
-            setFormatted(parsedDate.toLocaleDateString());
+            setFormatted(parsedDate.toLocaleDateString("en-GB")); // DD/MM/YYYY
         } else {
-            setFormatted(parsedDate.toLocaleString(undefined, {
+            setFormatted(parsedDate.toLocaleString("en-GB", {
                 year: 'numeric',
                 month: 'numeric',
                 day: 'numeric',
                 hour: 'numeric',
                 minute: 'numeric',
                 second: includeSeconds ? 'numeric' : undefined,
+                hour12: true
             }));
         }
     }, [date, includeSeconds, dateOnly]);

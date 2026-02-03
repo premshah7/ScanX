@@ -46,7 +46,7 @@ export default function SessionReport({
             doc.setFontSize(18);
             doc.text(`${subjectName} - Attendance Report`, 14, 22);
             doc.setFontSize(11);
-            doc.text(`Date: ${new Date(startTime).toLocaleDateString()}`, 14, 30);
+            doc.text(`Date: ${new Date(startTime).toLocaleDateString("en-GB")}`, 14, 30);
             doc.text(`Time: ${new Date(startTime).toLocaleTimeString()} - ${endTime ? new Date(endTime).toLocaleTimeString() : 'Ongoing'}`, 14, 36);
 
             doc.text(`Present: ${result.present.length}`, 14, 44);
@@ -115,7 +115,7 @@ export default function SessionReport({
                 return;
             }
 
-            let content = `SUBJECT: ${subjectName}\nDATE: ${new Date(startTime).toLocaleDateString()}\n`;
+            let content = `SUBJECT: ${subjectName}\nDATE: ${new Date(startTime).toLocaleDateString("en-GB")}\n`;
             content += `TIME: ${new Date(startTime).toLocaleTimeString()}\n\n`;
 
             content += `--- PRESENT (${result.present.length}) ---\n`;
@@ -158,7 +158,7 @@ export default function SessionReport({
                     <div>
                         <h1 className="text-2xl font-bold text-white mb-2">{subjectName}</h1>
                         <p className="text-gray-400">
-                            {new Date(startTime).toLocaleDateString()} • {new Date(startTime).toLocaleTimeString()} - {endTime ? new Date(endTime).toLocaleTimeString() : 'Ongoing'}
+                            {new Date(startTime).toLocaleDateString("en-GB")} • {new Date(startTime).toLocaleTimeString()} - {endTime ? new Date(endTime).toLocaleTimeString() : 'Ongoing'}
                         </p>
                     </div>
                     <div className="flex gap-3">

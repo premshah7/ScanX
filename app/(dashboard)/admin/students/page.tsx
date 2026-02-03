@@ -13,29 +13,39 @@ import Search from "@/components/Search";
 import PendingRequests from "@/components/admin/PendingRequests";
 import AutoRefresh from "@/components/AutoRefresh";
 
+import SemesterFilter from "@/components/admin/SemesterFilter";
+
 export default async function StudentManagementPage({
     searchParams,
 }: {
     searchParams?: Promise<{
         query?: string;
         page?: string;
+        semester?: string;
     }>;
 }) {
     const params = await searchParams;
     const query = params?.query || "";
+    const semester = params?.semester ? parseInt(params.semester) : undefined;
     const currentPage = Number(params?.page) || 1;
     const itemsPerPage = 20;
 
+    const whereClause: any = {
+        OR: [
+            { user: { name: { contains: query, mode: 'insensitive' } } },
+            { rollNumber: { contains: query, mode: 'insensitive' } },
+            { enrollmentNo: { contains: query, mode: 'insensitive' } }
+        ],
+        user: { status: "APPROVED" }
+    };
+
+    if (semester) {
+        whereClause.semester = semester;
+    }
+
     const [students, totalCount, batches] = await Promise.all([
         prisma.student.findMany({
-            where: {
-                OR: [
-                    { user: { name: { contains: query, mode: 'insensitive' } } },
-                    { rollNumber: { contains: query, mode: 'insensitive' } },
-                    { enrollmentNo: { contains: query, mode: 'insensitive' } }
-                ],
-                user: { status: "APPROVED" }
-            },
+            where: whereClause,
             include: {
                 user: true,
                 batch: true,
@@ -47,14 +57,7 @@ export default async function StudentManagementPage({
             skip: (currentPage - 1) * itemsPerPage,
         }),
         prisma.student.count({
-            where: {
-                OR: [
-                    { user: { name: { contains: query, mode: 'insensitive' } } },
-                    { rollNumber: { contains: query, mode: 'insensitive' } },
-                    { enrollmentNo: { contains: query, mode: 'insensitive' } }
-                ],
-                user: { status: "APPROVED" }
-            }
+            where: whereClause
         }),
         prisma.batch.findMany({
             orderBy: { name: 'asc' }
@@ -69,8 +72,9 @@ export default async function StudentManagementPage({
             <div className="flex justify-between items-center mb-8 gap-4">
                 <h1 className="text-3xl font-bold whitespace-nowrap text-foreground">Student Management</h1>
                 <div className="flex items-center gap-4 flex-1 justify-end">
-                    <div className="w-full max-w-md">
+                    <div className="w-full max-w-md flex gap-2">
                         <Search placeholder="Search students..." />
+                        <SemesterFilter />
                     </div>
                     <FlexibleUploadModal userType="STUDENT" />
                     <AddStudentForm batches={batches} />

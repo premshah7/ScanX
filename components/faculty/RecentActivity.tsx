@@ -45,7 +45,7 @@ export default function RecentActivity({ activities }: RecentActivityProps) {
                                         {activity.subjectName}
                                     </div>
                                     <div className="text-xs text-muted-foreground">
-                                        {new Date(activity.date).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                                        {new Date(activity.date).toLocaleDateString("en-GB")}
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4 text-xs">

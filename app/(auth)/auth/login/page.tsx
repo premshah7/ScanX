@@ -43,7 +43,7 @@ function LoginForm() {
             }
         } catch (err) {
             if (err instanceof z.ZodError) {
-                setError(err.message);
+                setError("Incorrect email or password");
             } else {
                 setError("An unexpected error occurred");
             }
