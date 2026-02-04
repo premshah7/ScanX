@@ -1,12 +1,30 @@
 "use client";
 
-import { updateSystemSettings } from "@/actions/settings";
-import { Loader2, Save, Globe } from "lucide-react";
+import { updateSystemSettings, getCurrentIp } from "@/actions/settings";
+import { Loader2, Save, Globe, Wand2 } from "lucide-react";
 import { useState } from "react";
 
 export default function SettingsForm({ initialSettings }: { initialSettings: any }) {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
+    const [prefix, setPrefix] = useState(initialSettings.allowedIpPrefix || "");
+
+    const handleAutoConfig = async () => {
+        try {
+            const ip = await getCurrentIp();
+            // Convert "192.168.1.50" -> "192.168.1."
+            const parts = ip.split(".");
+            if (parts.length === 4) {
+                const newPrefix = `${parts[0]}.${parts[1]}.${parts[2]}.`;
+                setPrefix(newPrefix);
+                setMessage("IP Detected & Applied!");
+            } else {
+                setPrefix(ip); // Fallback for IPv6 or weird formats
+            }
+        } catch (error) {
+            console.error("Failed to detect IP", error);
+        }
+    };
 
     const handleSubmit = async (formData: FormData) => {
         setLoading(true);
@@ -38,7 +56,7 @@ export default function SettingsForm({ initialSettings }: { initialSettings: any
                     id="isIpCheckEnabled"
                     name="isIpCheckEnabled"
                     defaultChecked={initialSettings.isIpCheckEnabled}
-                    className="w-5 h-5 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-500"
+                    className="w-5 h-5 rounded border-input bg-background text-blue-600 focus:ring-blue-500"
                 />
                 <label htmlFor="isIpCheckEnabled" className="text-foreground font-medium">
                     Enable IP Check
@@ -49,12 +67,24 @@ export default function SettingsForm({ initialSettings }: { initialSettings: any
                 <label className="block text-sm font-medium text-foreground mb-2">
                     Allowed IP Prefix (e.g., 192.168.1.)
                 </label>
-                <input
-                    name="allowedIpPrefix"
-                    defaultValue={initialSettings.allowedIpPrefix}
-                    placeholder="192.168.1."
-                    className="w-full bg-background border border-input rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-ring focus:ring-1 focus:ring-ring"
-                />
+                <div className="flex gap-2">
+                    <input
+                        name="allowedIpPrefix"
+                        value={prefix}
+                        onChange={(e) => setPrefix(e.target.value)}
+                        placeholder="192.168.1."
+                        className="flex-1 bg-background border border-input rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-ring focus:ring-1 focus:ring-ring"
+                    />
+                    <button
+                        type="button"
+                        onClick={handleAutoConfig}
+                        className="px-4 py-3 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-lg flex items-center gap-2 transition-colors border border-border"
+                        title="Auto-detect current network"
+                    >
+                        <Wand2 className="w-4 h-4" />
+                        <span className="hidden sm:inline">Auto Config</span>
+                    </button>
+                </div>
                 <p className="text-xs text-muted-foreground mt-2">
                     Only students with IPs starting with this prefix will be able to mark attendance.
                 </p>

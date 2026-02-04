@@ -2,6 +2,20 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+
+export async function getCurrentIp() {
+    const headerList = await headers();
+    let ip = headerList.get("x-forwarded-for")?.split(",")[0] ||
+        headerList.get("x-real-ip") ||
+        "127.0.0.1";
+
+    // Normalize IPv6 Loopback
+    if (ip === "::1") ip = "127.0.0.1";
+    if (ip.startsWith("::ffff:")) ip = ip.substring(7);
+
+    return ip;
+}
 
 export async function getSystemSettings() {
     let settings = await prisma.systemSettings.findFirst();

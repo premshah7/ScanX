@@ -93,7 +93,7 @@ export default function StartSessionButton({ subjectId, batches }: { subjectId: 
                             </div>
                             <p className="text-xs text-muted-foreground mt-3 bg-muted p-3 rounded-lg border border-border">
                                 {isGlobalSession
-                                    ? "All students enrolled in this subject can mark attendance (Global Session)."
+                                    ? "All students enrolled in this subject can mark attendance."
                                     : selectedBatchIds.length > 0
                                         ? `Only students in the selected ${selectedBatchIds.length} batch(es) will be considered for attendance.`
                                         : "Please select target students to start the session."}

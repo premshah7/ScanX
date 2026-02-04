@@ -103,11 +103,43 @@ export async function markAttendance(token: string, deviceHash: string, deviceId
         return { error: "Device Verification Failed! This device is linked to another account." };
     }
 
-    // 5. IP Validation
-    const isIpValid = await validateIp();
-    if (!isIpValid) {
-        return { error: "You are not connected to the required network (IP Mismatch)." };
+    // 5. Smart IP Lock & Validation
+    const settings = await prisma.systemSettings.findFirst();
+    const allowedPrefix = settings?.allowedIpPrefix || "";
+    const isIpCheckEnabled = settings?.isIpCheckEnabled || false;
+
+    // A. Strict Campus Check (If enabled)
+    if (isIpCheckEnabled && allowedPrefix && !ip.startsWith(allowedPrefix)) {
+        return { error: "You are not connected to the Office/Campus Network." };
     }
+
+    // B. Heuristic Proxy Lock (For Non-Campus/VPN/Mobile Data)
+    // If we are NOT enforcing strictly (or even if we are, and they are on a sub-network),
+    // we want to prevent 1 IP from marking for 2 people unless it's the known massive-shared range.
+
+    // Logic: If current IP is NOT the main campus range (or if no range defined), 
+    // we treat it as potentially "personal" (Mobile Data/VPN).
+    // On Personal IPs, we STRICTLY forbid sharing.
+
+    const isCampusIp = allowedPrefix && ip.startsWith(allowedPrefix);
+
+    /*
+    if (!isCampusIp) {
+        // This is an external/VPN/Mobile IP. Enforce 1-to-1 binding.
+        const ipUsedByOther = await prisma.attendance.findFirst({
+            where: {
+                sessionId: sessionId,
+                ipAddress: ip,
+                studentId: { not: student.id }
+            },
+            include: { student: { include: { user: true } } }
+        });
+
+        if (ipUsedByOther) {
+            return { error: `Network Conflict: This IP is already associated with another student (${ipUsedByOther.student.user.name}). If you are using a Hotspot or VPN, please disable it.` };
+        }
+    }
+    */
 
     // 6. Device Validation (Anti-Proxy for current student)
     let isProxy = false;
