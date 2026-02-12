@@ -17,7 +17,7 @@ type Subject = {
     faculty: {
         id: number;
         user: { name: string };
-    };
+    } | null;
     batches?: { id: number; name: string }[];
 };
 
@@ -37,13 +37,13 @@ export default function EditSubjectModal({ subject, isOpen, onClose, facultyList
     const [error, setError] = useState("");
 
     // Batch selection state
-    const [selectedFaculty, setSelectedFaculty] = useState<number>(subject.faculty.id);
+    const [selectedFaculty, setSelectedFaculty] = useState<number>(subject.faculty?.id || 0);
     const [availableBatches, setAvailableBatches] = useState<{ id: number, name: string }[]>([]);
     const [selectedBatches, setSelectedBatches] = useState<number[]>(subject.batches?.map(b => b.id) || []);
 
     // Initial load of batches for the current faculty
     useEffect(() => {
-        if (isOpen && subject.faculty.id) {
+        if (isOpen && subject.faculty?.id) {
             fetchBatches(subject.faculty.id);
             setSelectedFaculty(subject.faculty.id);
             setSelectedBatches(subject.batches?.map(b => b.id) || []);
@@ -63,7 +63,7 @@ export default function EditSubjectModal({ subject, isOpen, onClose, facultyList
         // If faculty changes, existing batch selections are invalid if they belong to diff faculty.
         // But here we are just fetching new batches.
         // Ideally we should clear selected batches if faculty changes, UNLESS the new faculty has same batches (unlikely unique ids).
-        if (facultyId !== subject.faculty.id) {
+        if (facultyId !== subject.faculty?.id) {
             setSelectedBatches([]);
         }
 
@@ -144,7 +144,7 @@ export default function EditSubjectModal({ subject, isOpen, onClose, facultyList
                         <select
                             name="facultyId"
                             required
-                            defaultValue={subject.faculty.id}
+                            defaultValue={subject.faculty?.id || ""}
                             onChange={handleFacultyChange}
                             className="w-full bg-input border border-input rounded-lg px-3 py-2 text-foreground focus:outline-none focus:border-ring appearance-none"
                         >

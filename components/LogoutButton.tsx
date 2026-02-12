@@ -10,7 +10,7 @@ interface LogoutButtonProps {
 export default function LogoutButton({ className }: LogoutButtonProps) {
     return (
         <button
-            onClick={() => signOut({ callbackUrl: "/auth/login" })}
+            onClick={() => signOut({ callbackUrl: "/" })}
             className={`flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors w-full ${className || ""}`}
         >
             <LogOut className="w-5 h-5" />

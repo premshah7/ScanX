@@ -17,33 +17,17 @@ export async function registerStudent(data: {
     }
 
     try {
-        // 1. Check if email exists
-        const existingUser = await prisma.user.findUnique({
-            where: { email: data.email }
-        });
-        if (existingUser) {
-            return { error: "Email already registered" };
-        }
+        // Parallelize checks and hashing for speed
+        const [existingUser, existingRoll, existingEnroll, hashedPassword] = await Promise.all([
+            prisma.user.findUnique({ where: { email: data.email } }),
+            prisma.student.findUnique({ where: { rollNumber: data.rollNumber } }),
+            prisma.student.findUnique({ where: { enrollmentNo: data.enrollmentNo } }),
+            bcrypt.hash(data.password, 10)
+        ]);
 
-        // 2. Check if roll number exists
-        const existingRoll = await prisma.student.findUnique({
-            where: { rollNumber: data.rollNumber }
-        });
-        if (existingRoll) {
-            return { error: "Roll Number already registered" };
-        }
-
-        // 3. Check if enrollment number exists
-        const existingEnroll = await prisma.student.findUnique({
-            where: { enrollmentNo: data.enrollmentNo }
-        });
-        if (existingEnroll) {
-            return { error: "Enrollment Number already registered" };
-        }
-
-        // 4. Hash password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(data.password, salt);
+        if (existingUser) return { error: "Email already registered" };
+        if (existingRoll) return { error: "Roll Number already registered" };
+        if (existingEnroll) return { error: "Enrollment Number already registered" };
 
         // 5. Create User and Student
         // Prisma transaction to ensure consistency
@@ -74,5 +58,59 @@ export async function registerStudent(data: {
     } catch (error) {
         console.error("Registration Error:", error);
         return { error: "Failed to register. Please try again." };
+    }
+}
+
+export async function registerGuest(data: {
+    name: string;
+    username: string;
+    password?: string;
+    phone?: string;
+}) {
+    if (!data.name || !data.username) {
+        return { error: "Name and Username are required" };
+    }
+
+    try {
+        const { randomUUID } = await import("crypto");
+        const passwordToHash = data.password || randomUUID();
+
+        // Parallelize checks and hashing
+        const [existingUser, existingPhone, hashedPassword] = await Promise.all([
+            prisma.user.findUnique({ where: { username: data.username } }),
+            data.phone ? prisma.user.findUnique({ where: { phoneNumber: data.phone } }) : Promise.resolve(null),
+            bcrypt.hash(passwordToHash, 10)
+        ]);
+
+        if (existingUser) return { error: "Username already taken" };
+        if (existingPhone) return { error: "Phone number already registered" };
+
+        // Dummy email for uniqueness constraint
+        const email = `guest_${data.username.toLowerCase().replace(/\s+/g, '')}@event.geoguard.local`;
+
+        await prisma.user.create({
+            data: {
+                name: data.name,
+                username: data.username,
+                phoneNumber: data.phone || null,
+                email: email,
+                password: hashedPassword,
+                role: "GUEST",
+                status: "APPROVED",
+                student: {
+                    create: {
+                        rollNumber: `GUEST-${data.username.toUpperCase().slice(0, 10)}`,
+                        enrollmentNo: `EVT-${randomUUID().slice(0, 8).toUpperCase()}`,
+                        batchId: null,
+                    }
+                }
+            }
+        });
+
+        return { success: true };
+
+    } catch (error) {
+        console.error("Guest Registration Error:", error);
+        return { error: "Failed to register guest" };
     }
 }

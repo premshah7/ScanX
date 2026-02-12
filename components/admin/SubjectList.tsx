@@ -13,7 +13,7 @@ type Subject = {
     faculty: {
         id: number;
         user: { name: string };
-    };
+    } | null;
     _count: {
         students: number;
     };
@@ -96,7 +96,7 @@ export default function SubjectList({ subjects, facultyList }: { subjects: Subje
                         <div className="space-y-2 mb-6">
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <Users className="w-4 h-4" />
-                                <span>Faculty: <span className="text-foreground font-medium">{subject.faculty.user.name}</span></span>
+                                <span>Faculty: <span className="text-foreground font-medium">{subject.faculty?.user?.name || "Unassigned"}</span></span>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <GraduationCap className="w-4 h-4" />

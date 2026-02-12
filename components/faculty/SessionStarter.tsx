@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 
-export function StartSessionButton({ subjectId, batches }: { subjectId: number, batches: { id: number, name: string }[] }) {
+export function SessionStarter({ subjectId, batches }: { subjectId: number, batches: { id: number, name: string }[] }) {
     const [loading, setLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [selectedBatchIds, setSelectedBatchIds] = useState<number[]>([]);

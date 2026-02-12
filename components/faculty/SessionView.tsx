@@ -74,7 +74,7 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
             } finally {
                 // Schedule next fetch only after current one completes
                 if (isMounted) {
-                    timeoutId = setTimeout(fetchStats, 1000);
+                    timeoutId = setTimeout(fetchStats, 4000);
                 }
             }
         };
@@ -155,25 +155,50 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
                 finalY = (doc as any).lastAutoTable.finalY + 15;
             }
 
-            // --- ABSENT TABLE ---
+            // --- ABSENT TABLE (Grouped by Batch) ---
             if (result.absent && result.absent.length > 0) {
                 doc.setFontSize(14);
                 doc.setTextColor(220, 38, 38); // Red
                 doc.text("Absent Students", 14, finalY);
+                finalY += 5;
 
-                const absentData = result.absent.map((student: any) => [
-                    student.rollNumber,
-                    student.name,
-                    "ABSENT",
-                    "-"
-                ]);
+                // Group by Batch
+                const absentByBatch: Record<string, any[]> = {};
+                result.absent.forEach((student: any) => {
+                    const batch = student.batchName || "Unassigned";
+                    if (!absentByBatch[batch]) absentByBatch[batch] = [];
+                    absentByBatch[batch].push(student);
+                });
 
-                autoTable(doc, {
-                    startY: finalY + 5,
-                    head: [['Roll No', 'Name', 'Status', 'Device']],
-                    body: absentData,
-                    theme: 'grid',
-                    headStyles: { fillColor: [220, 38, 38] }, // Red header
+                // Iterate over batches
+                Object.entries(absentByBatch).sort().forEach(([batchName, students]) => {
+                    // Check if we need a new page
+                    if (finalY > 270) {
+                        doc.addPage();
+                        finalY = 20;
+                    }
+
+                    doc.setFontSize(12);
+                    doc.setTextColor(100, 100, 100); // Gray
+                    doc.text(`${batchName} (${students.length})`, 14, finalY + 5);
+
+                    const batchData = students.map((student: any) => [
+                        student.rollNumber,
+                        student.name,
+                        "ABSENT",
+                        "-"
+                    ]);
+
+                    autoTable(doc, {
+                        startY: finalY + 7,
+                        head: [['Roll No', 'Name', 'Status', 'Device']],
+                        body: batchData,
+                        theme: 'grid',
+                        headStyles: { fillColor: [220, 38, 38] },
+                        margin: { left: 14 },
+                    });
+
+                    finalY = (doc as any).lastAutoTable.finalY + 5;
                 });
             }
 
@@ -201,9 +226,22 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
 
             if (result.absent && result.absent.length > 0) {
                 content += `\n\n--- ABSENT (${result.absent.length}) ---\n`;
-                content += result.absent
-                    .map((student: any) => student.rollNumber)
-                    .join('\n');
+
+                // Group by Batch
+                const absentByBatch: Record<string, any[]> = {};
+                result.absent.forEach((student: any) => {
+                    const batch = student.batchName || "Unassigned";
+                    if (!absentByBatch[batch]) absentByBatch[batch] = [];
+                    absentByBatch[batch].push(student);
+                });
+
+                Object.entries(absentByBatch).sort().forEach(([batchName, students]) => {
+                    content += `\n[ ${batchName} - ${students.length} ]\n`;
+                    content += students
+                        .map((student: any) => student.rollNumber)
+                        .join('\n');
+                    content += `\n`;
+                });
             }
 
             const blob = new Blob([content], { type: 'text/plain' });
@@ -392,14 +430,14 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
                                 <div
                                     key={`${log.type}-${log.id}`}
                                     className={`p-4 rounded-xl border-2 transition-all duration-200 hover:scale-[1.01] ${log.type === 'proxy'
-                                            ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/40 hover:shadow-lg hover:border-red-300'
-                                            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:shadow-lg hover:border-blue-300'
+                                        ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/40 hover:shadow-lg hover:border-red-300'
+                                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:shadow-lg hover:border-blue-300'
                                         }`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${log.type === 'proxy'
-                                                ? 'bg-red-100 dark:bg-red-900/40'
-                                                : 'bg-blue-100 dark:bg-blue-900/40'
+                                            ? 'bg-red-100 dark:bg-red-900/40'
+                                            : 'bg-blue-100 dark:bg-blue-900/40'
                                             }`}>
                                             {log.type === 'proxy' ? (
                                                 <ShieldAlert className="w-5 h-5 text-red-600 dark:text-red-400" />
@@ -420,8 +458,8 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
                                                 {new Date(log.timestamp).toLocaleTimeString()}
                                             </p>
                                             <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${log.type === 'proxy'
-                                                    ? 'bg-red-600 text-white'
-                                                    : 'bg-emerald-600 text-white'
+                                                ? 'bg-red-600 text-white'
+                                                : 'bg-emerald-600 text-white'
                                                 }`}>
                                                 {log.type === 'proxy' ? 'Proxy' : 'Present'}
                                             </span>

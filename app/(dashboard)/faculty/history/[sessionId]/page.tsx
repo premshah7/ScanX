@@ -44,7 +44,9 @@ export default async function SessionDetailPage({
     }
 
     // Security check: Ensure this session belongs to the logged-in faculty
-    if (dbSession.subject.faculty.user.email !== session.user.email) {
+    const isPrimary = dbSession.subject.faculty?.user.email === session.user.email;
+
+    if (!isPrimary) {
         redirect("/unauthorized");
     }
 

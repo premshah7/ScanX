@@ -10,18 +10,114 @@ export const authOptions: NextAuthOptions = {
             credentials: {
                 email: { label: "Email", type: "email" },
                 password: { label: "Password", type: "password" },
+                otp: { label: "OTP", type: "text" }, // Optional
             },
             async authorize(credentials) {
-                if (!credentials?.email || !credentials?.password) {
-                    throw new Error("Missing email or password");
+                console.log("[AUTH] Authorize called with:", {
+                    email: credentials?.email,
+                    hasPassword: !!credentials?.password,
+                    otp: credentials?.otp
+                });
+
+                if (!credentials?.email) {
+                    console.log("[AUTH] Missing identifier");
+                    throw new Error("Missing identifier");
                 }
 
-                const user = await prisma.user.findUnique({
-                    where: { email: credentials.email },
+                const identifier = credentials.email; // Can be email or phone
+
+                // ---------------------------------------------------------
+                // 1. OTP LOGIN FLOW
+                // ---------------------------------------------------------
+                if (credentials.otp) {
+                    // We need to import verifyOtpCode dynamically or move it to a shared lib that is safe
+                    // Assuming verifyOtpCode is imported from "@/lib/otp"
+                    const { verifyOtpCode } = await import("@/lib/otp");
+
+                    const isValid = await verifyOtpCode(identifier, credentials.otp as string);
+                    if (!isValid) {
+                        throw new Error("Invalid or expired OTP");
+                    }
+
+                    // Find existing user
+                    let user = await prisma.user.findFirst({
+                        where: { phoneNumber: identifier },
+                    });
+
+                    // Auto-Register Guest if not found
+                    if (!user) {
+                        const { randomUUID } = await import("crypto");
+                        const name = "Guest " + identifier.slice(-4);
+                        const email = `guest_${identifier}@event.geoguard.local`;
+                        const password = await bcrypt.hash(randomUUID(), 10);
+
+                        user = await prisma.user.create({
+                            data: {
+                                name,
+                                email,
+                                phoneNumber: identifier,
+                                password,
+                                role: "GUEST",
+                                status: "PENDING",
+                                student: {
+                                    create: {
+                                        rollNumber: `GUEST-${identifier.slice(-6)}`,
+                                        enrollmentNo: `EVT-${identifier.slice(-6)}`,
+                                        // Default values like semester 1 are automatic
+                                    },
+                                },
+                            },
+                        });
+                    }
+
+                    return {
+                        id: user.id.toString(),
+                        name: user.name,
+                        email: user.email,
+                        role: user.role,
+                        status: user.status,
+                    };
+                }
+
+                // ---------------------------------------------------------
+                // 2. STANDARD PASSWORD FLOW
+                // ---------------------------------------------------------
+                // ---------------------------------------------------------
+                // 2. STANDARD PASSWORD FLOW (OR GUEST NO-PASSWORD)
+                // ---------------------------------------------------------
+
+                const user = await prisma.user.findFirst({
+                    where: {
+                        OR: [
+                            { email: identifier },
+                            { phoneNumber: identifier },
+                            { username: identifier },
+                        ],
+                    },
                 });
 
                 if (!user) {
+                    console.log("[AUTH] User NOT found for identifier:", identifier);
                     throw new Error("Invalid credentials");
+                }
+                console.log("[AUTH] User found:", { id: user.id, role: user.role, username: user.username });
+
+                // BYPASS PASSWORD CHECK FOR GUESTS
+                if (user.role === "GUEST") {
+                    // Guests can login with just username/phone
+                    return {
+                        id: user.id.toString(),
+                        name: user.name,
+                        email: user.email,
+                        role: user.role,
+                        status: user.status,
+                    };
+                }
+
+                // STUDENTS/ADMINS MUST HAVE PASSWORD
+                if (!credentials?.password) {
+                    console.log("[AUTH] Missing password for non-guest user");
+                    throw new Error("Missing password");
                 }
 
                 const isValidPassword = await bcrypt.compare(

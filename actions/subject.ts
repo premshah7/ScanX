@@ -4,27 +4,35 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
-export async function createSubject(name: string, facultyId: number, batchIds: number[] = []) {
-    if (!name || !facultyId) {
-        return { error: "Name and Faculty are required" };
+export async function createSubject(name: string, primaryManagerId: number, batchIds: number[] = []) {
+    if (!name || !primaryManagerId) {
+        return { error: "Name and Primary Manager are required" };
     }
 
     try {
         const existingSubject = await prisma.subject.findFirst({
             where: {
                 name: { equals: name, mode: "insensitive" },
-                facultyId: facultyId
+                faculty: {
+                    userId: primaryManagerId
+                }
             }
         });
 
         if (existingSubject) {
-            return { error: "Subject already exists for this faculty" };
+            return { error: `Subject already exists for this faculty` };
         }
+
+
+        // Check if primary manager is Faculty to set facultyId
+        const primaryUser = await prisma.faculty.findUnique({
+            where: { userId: primaryManagerId }
+        });
 
         await prisma.subject.create({
             data: {
                 name,
-                facultyId,
+                facultyId: primaryUser ? primaryUser.id : null,
                 batches: {
                     connect: batchIds.map(id => ({ id }))
                 }

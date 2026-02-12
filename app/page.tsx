@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ShieldCheck, MapPin, Lock, Smartphone } from "lucide-react";
+import { ShieldCheck, MapPin, Lock, Smartphone, ArrowRight, Sparkles } from "lucide-react";
 
 export default async function Home() {
     const session = await getServerSession(authOptions);
@@ -14,8 +14,11 @@ export default async function Home() {
                 redirect("/admin");
             case "FACULTY":
                 redirect("/faculty");
+
             case "STUDENT":
                 redirect("/student");
+            case "GUEST":
+                redirect("/event/check-in");
             default:
                 redirect("/auth/login");
         }
@@ -23,28 +26,35 @@ export default async function Home() {
 
     // If not logged in, show Landing Page
     return (
-        <div className="min-h-screen bg-gray-950 text-white flex flex-col">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 text-slate-900 dark:text-white flex flex-col relative overflow-hidden">
+            {/* Animated Background Elements */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/20 dark:bg-blue-600/10 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-400/20 dark:bg-purple-600/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+                <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-pink-400/10 dark:bg-pink-600/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+            </div>
+
             {/* Navbar */}
-            <nav className="border-b border-gray-800 p-6">
+            <nav className="relative z-10 border-b border-slate-200/50 dark:border-slate-800/50 backdrop-blur-xl bg-white/30 dark:bg-slate-900/30 p-5 sticky top-0">
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <div className="flex items-center gap-3 group">
+                        <div className="w-11 h-11 gradient-primary rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all group-hover:scale-110">
                             <ShieldCheck className="w-6 h-6 text-white" />
                         </div>
-                        <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+                        <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
                             GeoGuard
                         </span>
                     </div>
-                    <div className="flex gap-4">
+                    <div className="flex gap-3">
                         <Link
                             href="/auth/login"
-                            className="px-6 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors font-medium"
+                            className="px-5 py-2.5 rounded-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-300/50 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-800 transition-all font-medium text-sm hover:shadow-md"
                         >
                             Log In
                         </Link>
                         <Link
                             href="/auth/register"
-                            className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors font-medium"
+                            className="px-5 py-2.5 rounded-xl gradient-primary hover:shadow-xl transition-all font-medium text-white text-sm hover:scale-105 shadow-lg"
                         >
                             Get Started
                         </Link>
@@ -53,32 +63,37 @@ export default async function Home() {
             </nav>
 
             {/* Hero Section */}
-            <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-                <div className="max-w-3xl space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-1000">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium">
-                        <Lock className="w-4 h-4" />
+            <main className="relative z-10 flex-1 flex flex-col items-center justify-center p-6 text-center">
+                <div className="max-w-5xl space-y-8 animate-slide-up">
+                    {/* Badge */}
+                    <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full glass-card text-blue-700 dark:text-blue-300 text-sm font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105 cursor-default">
+                        <Sparkles className="w-4 h-4" />
                         Secure & Location-Based Attendance
                     </div>
 
-                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
+                    {/* Main Heading */}
+                    <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-tight">
                         Attendance, <br />
-                        <span className="text-blue-500">Reimagined.</span>
+                        <span className="text-gradient">Reimagined.</span>
                     </h1>
 
-                    <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-                        Say goodbye to proxies. GeoGuard uses advanced GPS geofencing and device fingerprinting to ensure 100% authentic attendance.
+                    {/* Subheading */}
+                    <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
+                        Say goodbye to proxies. GeoGuard uses advanced GPS geofencing and device fingerprinting to ensure <span className="font-semibold text-blue-600 dark:text-blue-400">100% authentic attendance</span>.
                     </p>
 
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
+                    {/* CTA Buttons */}
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                         <Link
                             href="/auth/login"
-                            className="px-8 py-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-lg font-bold transition-all hover:scale-105 shadow-lg shadow-blue-500/25"
+                            className="group px-8 py-4 rounded-2xl gradient-primary text-lg font-bold transition-all hover:shadow-2xl shadow-xl text-white flex items-center justify-center gap-2 hover:scale-105"
                         >
                             Login to Dashboard
+                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </Link>
                         <Link
                             href="/auth/register"
-                            className="px-8 py-4 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-lg font-bold transition-all hover:scale-105"
+                            className="px-8 py-4 rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-800 border-2 border-slate-300/50 dark:border-slate-700/50 text-lg font-bold transition-all hover:shadow-xl shadow-md text-slate-900 dark:text-white hover:scale-105"
                         >
                             Register as Student
                         </Link>
@@ -86,41 +101,53 @@ export default async function Home() {
                 </div>
 
                 {/* Features Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-24">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto mt-24 w-full">
                     <FeatureCard
                         icon={MapPin}
                         title="GPS Geofencing"
                         description="Attendance can only be marked within the designated classroom boundaries."
+                        gradient="from-blue-500 to-cyan-500"
                     />
                     <FeatureCard
                         icon={Smartphone}
                         title="Device Lock"
                         description="One student, one device. Prevents logging in for friends using their phone."
+                        gradient="from-purple-500 to-pink-500"
                     />
                     <FeatureCard
                         icon={ShieldCheck}
                         title="Proxy Detection"
                         description="Advanced algorithms detect and flag suspicious attendance patterns instantly."
+                        gradient="from-emerald-500 to-teal-500"
                     />
                 </div>
             </main>
 
             {/* Footer */}
-            <footer className="border-t border-gray-800 py-8 text-center text-gray-500 text-sm">
-                &copy; {new Date().getFullYear()} GeoGuard System. All rights reserved.
+            <footer className="relative z-10 border-t border-slate-200/50 dark:border-slate-800/50 backdrop-blur-xl bg-white/30 dark:bg-slate-900/30 py-8 text-center text-slate-500 dark:text-slate-400 text-sm">
+                <div className="max-w-7xl mx-auto">
+                    <p>&copy; {new Date().getFullYear()} GeoGuard System. All rights reserved.</p>
+                    <p className="mt-2 text-xs">Built with security and accuracy in mind.</p>
+                </div>
             </footer>
         </div>
     );
 }
 
-function FeatureCard({ icon: Icon, title, description }: any) {
+function FeatureCard({ icon: Icon, title, description, gradient }: any) {
     return (
-        <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 hover:border-blue-500/50 transition-colors text-left">
-            <div className="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center mb-4">
-                <Icon className="w-6 h-6 text-blue-400" />
+        <div className="group p-8 rounded-2xl glass-card hover:shadow-2xl transition-all text-left relative overflow-hidden hover-lift">
+            {/* Gradient Background on Hover */}
+            <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-5 transition-opacity`}></div>
+
+            {/* Icon */}
+            <div className={`relative w-14 h-14 bg-gradient-to-br ${gradient} rounded-2xl flex items-center justify-center mb-5 shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all`}>
+                <Icon className="w-7 h-7 text-white" />
             </div>
-            <h3 className="text-xl font-bold mb-2">{title}</h3>
-            <p className="text-gray-400">{description}</p>
+
+            {/* Content */}
+            <h3 className="relative text-xl font-bold mb-3 text-slate-900 dark:text-white">{title}</h3>
+            <p className="relative text-slate-600 dark:text-slate-400 leading-relaxed">{description}</p>
         </div>
     );
 }

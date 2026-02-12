@@ -14,22 +14,26 @@ export type Defaulter = {
 export async function getFacultyDefaulters(email: string): Promise<Defaulter[]> {
     if (!email) return [];
 
-    const faculty = await prisma.faculty.findFirst({
-        where: { user: { email } },
+    const user = await prisma.user.findUnique({
+        where: { email },
         include: {
-            subjects: {
+            faculty: {
                 include: {
-                    sessions: {
-                        where: { isActive: false },
-                        select: { id: true }
-                    },
-                    students: {
-                        include: { user: true }
-                    },
-                    batches: {
+                    subjects: {
                         include: {
+                            sessions: {
+                                where: { isActive: false },
+                                select: { id: true }
+                            },
                             students: {
                                 include: { user: true }
+                            },
+                            batches: {
+                                include: {
+                                    students: {
+                                        include: { user: true }
+                                    }
+                                }
                             }
                         }
                     }
@@ -38,11 +42,15 @@ export async function getFacultyDefaulters(email: string): Promise<Defaulter[]> 
         }
     });
 
-    if (!faculty) return [];
+    if (!user) return [];
+
+    const subjects = [
+        ...(user.faculty?.subjects || [])
+    ];
 
     const defaulters: Defaulter[] = [];
 
-    for (const subject of faculty.subjects) {
+    for (const subject of subjects) {
         const totalSessions = subject.sessions.length;
         if (totalSessions === 0) continue;
 
@@ -99,21 +107,25 @@ export async function getFacultyDefaulters(email: string): Promise<Defaulter[]> 
 export async function getFacultyStats(email: string) {
     if (!email) return { totalStudents: 0, totalSessions: 0, averageAttendance: 0 };
 
-    const faculty = await prisma.faculty.findFirst({
-        where: { user: { email } },
+    const user = await prisma.user.findUnique({
+        where: { email },
         include: {
-            subjects: {
+            faculty: {
                 include: {
-                    sessions: {
-                        select: {
-                            id: true,
-                            _count: { select: { attendances: true } }
-                        }
-                    },
-                    students: { select: { id: true } },
-                    batches: {
+                    subjects: {
                         include: {
-                            students: { select: { id: true } }
+                            sessions: {
+                                select: {
+                                    id: true,
+                                    _count: { select: { attendances: true } }
+                                }
+                            },
+                            students: { select: { id: true } },
+                            batches: {
+                                include: {
+                                    students: { select: { id: true } }
+                                }
+                            }
                         }
                     }
                 }
@@ -121,14 +133,18 @@ export async function getFacultyStats(email: string) {
         }
     });
 
-    if (!faculty) return { totalStudents: 0, totalSessions: 0, averageAttendance: 0 };
+    if (!user) return { totalStudents: 0, totalSessions: 0, averageAttendance: 0 };
+
+    const subjects = [
+        ...(user.faculty?.subjects || [])
+    ];
 
     const uniqueStudentIds = new Set<number>();
     let totalSessions = 0;
     let totalAttendanceCount = 0;
     let totalPossibleAttendance = 0;
 
-    faculty.subjects.forEach(subject => {
+    subjects.forEach(subject => {
         // Count unique students (Direct + Batches)
         subject.students.forEach(s => uniqueStudentIds.add(s.id));
         subject.batches.forEach(b => b.students.forEach(s => uniqueStudentIds.add(s.id)));
@@ -234,16 +250,24 @@ export async function getFacultyHistory(email: string) {
 export async function getFacultyAnalytics(email: string) {
     if (!email) return { trend: [], recentActivity: [], proxyStats: { verified: 0, suspicious: 0 } };
 
-    const faculty = await prisma.faculty.findFirst({
-        where: { user: { email } },
+    const user = await prisma.user.findUnique({
+        where: { email },
         include: {
-            subjects: { select: { id: true } }
+            faculty: {
+                include: {
+                    subjects: { select: { id: true } }
+                }
+            }
         }
     });
 
-    if (!faculty) return { trend: [], recentActivity: [], proxyStats: { verified: 0, suspicious: 0 } };
+    if (!user) return { trend: [], recentActivity: [], proxyStats: { verified: 0, suspicious: 0 } };
 
-    const subjectIds = faculty.subjects.map(s => s.id);
+    const subjects = [
+        ...(user.faculty?.subjects || [])
+    ];
+
+    const subjectIds = subjects.map(s => s.id);
 
     // 1. Recent Activity (Fetch only top 5 directly)
     const recentSessions = await prisma.session.findMany({
@@ -437,20 +461,24 @@ export async function getFacultyStudents(email: string) {
 export async function getFacultyBatches(email: string) {
     if (!email) return { batches: [] };
 
-    const faculty = await prisma.faculty.findFirst({
-        where: { user: { email } },
+    const user = await prisma.user.findUnique({
+        where: { email },
         include: {
-            batches: {
-                orderBy: { name: 'asc' },
+            faculty: {
                 include: {
-                    _count: {
-                        select: { students: true }
+                    batches: {
+                        orderBy: { name: 'asc' },
+                        include: {
+                            _count: {
+                                select: { students: true }
+                            }
+                        }
                     }
                 }
             }
         }
     });
 
-    if (!faculty) return { batches: [] };
-    return { batches: faculty.batches };
+    if (!user) return { batches: [] };
+    return { batches: user.faculty?.batches || [] };
 }

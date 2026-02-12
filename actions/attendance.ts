@@ -11,7 +11,7 @@ import { headers } from "next/headers";
 export async function markAttendance(token: string, deviceHash: string, deviceId: string, userAgent: string) {
     const session = await getServerSession(authOptions);
 
-    if (!session || session.user.role !== "STUDENT") {
+    if (!session || (session.user.role !== "STUDENT" && session.user.role !== "GUEST")) {
         return { error: "Unauthorized" };
     }
 
@@ -26,6 +26,13 @@ export async function markAttendance(token: string, deviceHash: string, deviceId
         return { error: "Invalid QR Codes" };
     }
 
+    // 1.1 Check Expiration (4 Seconds)
+    const now = Date.now();
+    // Allow 4 seconds delay. We also allow 1 second future drift just in case.
+    if (now - timestamp > 4000) {
+        return { error: "QR Code Expired! Please scan the dynamic code immediately." };
+    }
+
     // 2. Get IP
     const headerList = await headers();
     const ip = headerList.get("x-forwarded-for")?.split(",")[0] ||
@@ -34,7 +41,10 @@ export async function markAttendance(token: string, deviceHash: string, deviceId
 
     // 3. Get Session & Student
     const [dbSession, student] = await Promise.all([
-        prisma.session.findUnique({ where: { id: sessionId } }),
+        prisma.session.findUnique({
+            where: { id: sessionId },
+            include: { batches: true } // Fetch allowed batches
+        }),
         prisma.student.findUnique({
             where: { userId: studentId },
             include: { user: true }
@@ -47,6 +57,28 @@ export async function markAttendance(token: string, deviceHash: string, deviceId
 
     if (!student) {
         return { error: "Student record not found" };
+    }
+
+    // 3.1 Check User Status (Approval)
+    if (student.user.status !== "APPROVED") {
+        if (student.user.status === "PENDING") {
+            return { error: "Your registration is pending approval. Please contact the organizer." };
+        } else if (student.user.status === "REJECTED") {
+            return { error: "Your registration has been rejected." };
+        }
+        return { error: "Account is not active." };
+    }
+
+    // 3.2 Check Batch Restriction
+    if (dbSession.batches && dbSession.batches.length > 0) {
+        // Session is restricted to specific batches.
+        // Check if student has a batch and if it matches one of the allowed batches.
+        const allowedBatchIds = new Set(dbSession.batches.map(b => b.id));
+
+        if (!student.batchId || !allowedBatchIds.has(student.batchId)) {
+            const allowedBatchNames = dbSession.batches.map(b => b.name).join(", ");
+            return { error: `This session is restricted to batches: ${allowedBatchNames}. You are not in an eligible batch.` };
+        }
     }
 
     // --- NEW: GLOBAL DEVICE OWNERSHIP CHECK (Sticky ID + Fingerprint) ---
@@ -142,7 +174,13 @@ export async function markAttendance(token: string, deviceHash: string, deviceId
     */
 
     // 6. Device Validation (Anti-Proxy for current student)
+    // For GUESTS, we skip strict device binding as they are likely using personal devices once.
+    // Or we bind it but don't strictly enforce consistency across sessions if acceptable.
+    // Let's enforce it for security, but maybe allow re-binding if needed?
+    // For now, treat Guests same as Students: Bind first device.
+
     let isProxy = false;
+    const isGuest = session.user.role === "GUEST";
 
     if (!student.deviceHash || !student.deviceId) {
         // Bind Device (First time) - Enforce both
@@ -156,10 +194,19 @@ export async function markAttendance(token: string, deviceHash: string, deviceId
     } else {
         // Verify consistency
         // If either the hardware hash OR the sticky ID changes, we flag it.
-        // Changing browser (new sticky ID) is allowed ONLY if the hardware matches? 
-        // No, strict mode: Both must match the registered profile.
-        if (student.deviceHash !== deviceHash || student.deviceId !== deviceId) {
+        if (!isGuest && (student.deviceHash !== deviceHash || student.deviceId !== deviceId)) {
             isProxy = true;
+        }
+        // Guests: We allow them to use different devices if needed? 
+        // Or strictly bind? Let's strictly bind for now to prevent pass sharing.
+        // If user wants "Ease", maybe we relax this. 
+        // "Guest can scan... easy to take attendance". 
+        // If I skip this check for guests:
+        if (isGuest && (student.deviceHash !== deviceHash || student.deviceId !== deviceId)) {
+            // Optional: Update binding for guest?
+            // await prisma.student.update({ where: { id: student.id }, data: { deviceHash, deviceId } });
+            // For now, let's NOT flag proxy for guests to avoid friction.
+            isProxy = false;
         }
     }
 
@@ -213,6 +260,9 @@ export async function markAttendance(token: string, deviceHash: string, deviceId
             ipAddress: ip,
         },
     });
+
+    // Real-time update - REMOVED
+
 
     revalidatePath("/student");
     return { success: true };

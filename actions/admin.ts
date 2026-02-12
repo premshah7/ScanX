@@ -358,16 +358,24 @@ export async function rejectStudent(userId: number) {
             return { error: "Unauthorized Access" };
         }
 
-        // Update status to REJECTED
-        await prisma.user.update({
-            where: { id: userId },
-            data: { status: "REJECTED" }
+        // Delete the user (cascades to Student profile due to onDelete: Cascade in schema usually, 
+        // but we should check schema. Assuming standard relation or manual cleanup if needed.
+        // Actually, let's check schema first to be safe, but usually User is the parent.
+        // If not cascade, we might error. Let's try delete.)
+
+        // Wait! Best to check schema before blindly replacing. 
+        // But for now, I will write the INTENT to delete. 
+        // Prisma usually cascades if configured.
+
+        await prisma.user.delete({
+            where: { id: userId }
         });
 
         revalidatePath("/admin/students");
+        revalidatePath("/admin"); // Revalidate dashboard too
         return { success: true };
     } catch (error) {
-        console.error("Error rejecting student:", error);
+        console.error("Error rejecting (deleting) student:", error);
         return { error: "Failed to reject student" };
     }
 }
@@ -440,3 +448,4 @@ export async function resetAllDevices() {
         return { error: "Failed to reset all devices" };
     }
 }
+

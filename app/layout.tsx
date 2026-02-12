@@ -3,10 +3,11 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { FingerprintProvider } from "@/components/FingerprintProvider";
-import NextTopLoader from "nextjs-toploader";
 import NextAuthSessionProvider from "@/components/SessionProvider";
 import { Toaster } from "sonner";
 import { Analytics } from '@vercel/analytics/next';
+import { NavigationLoader } from "@/components/NavigationLoader";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -51,8 +52,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <NextTopLoader color="#3B82F6" height={0} showSpinner={true} shadow={false} />
         <NextAuthSessionProvider>
+          <NavigationLoader />
           <FingerprintProvider>
             <ThemeProvider
               attribute="class"

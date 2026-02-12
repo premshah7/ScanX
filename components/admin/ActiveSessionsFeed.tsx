@@ -12,7 +12,7 @@ type ActiveSessionsFeedProps = {
                 user: {
                     name: string;
                 };
-            };
+            } | null;
         };
         _count: {
             attendances: number;
@@ -56,7 +56,7 @@ export default function ActiveSessionsFeed({ sessions }: ActiveSessionsFeedProps
                                         </h4>
                                         <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                                             <Users className="w-3 h-3" />
-                                            {session.subject.faculty.user.name}
+                                            {session.subject.faculty?.user?.name || "Multiple Organizers"}
                                         </div>
                                     </div>
                                     <div className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded font-mono border border-green-200">

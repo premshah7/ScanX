@@ -78,25 +78,50 @@ export default function SessionReport({
                 finalY = (doc as any).lastAutoTable.finalY + 15;
             }
 
-            // --- ABSENT TABLE ---
+            // --- ABSENT TABLE (Grouped by Batch) ---
             if (result.absent && result.absent.length > 0) {
                 doc.setFontSize(14);
                 doc.setTextColor(220, 38, 38); // Red
                 doc.text("Absent Students", 14, finalY);
+                finalY += 5;
 
-                const absentData = result.absent.map((student: any) => [
-                    student.rollNumber,
-                    student.name,
-                    "ABSENT",
-                    "-"
-                ]);
+                // Group by Batch
+                const absentByBatch: Record<string, any[]> = {};
+                result.absent.forEach((student: any) => {
+                    const batch = student.batchName || "Unassigned";
+                    if (!absentByBatch[batch]) absentByBatch[batch] = [];
+                    absentByBatch[batch].push(student);
+                });
 
-                autoTable(doc, {
-                    startY: finalY + 5,
-                    head: [['Roll No', 'Name', 'Status', 'Device']],
-                    body: absentData,
-                    theme: 'grid',
-                    headStyles: { fillColor: [220, 38, 38] },
+                // Iterate over batches
+                Object.entries(absentByBatch).sort().forEach(([batchName, students]) => {
+                    // Check if we need a new page
+                    if (finalY > 270) {
+                        doc.addPage();
+                        finalY = 20;
+                    }
+
+                    doc.setFontSize(12);
+                    doc.setTextColor(100, 100, 100); // Gray
+                    doc.text(`${batchName} (${students.length})`, 14, finalY + 5);
+
+                    const batchData = students.map((student: any) => [
+                        student.rollNumber,
+                        student.name,
+                        "ABSENT",
+                        "-"
+                    ]);
+
+                    autoTable(doc, {
+                        startY: finalY + 7,
+                        head: [['Roll No', 'Name', 'Status', 'Device']],
+                        body: batchData,
+                        theme: 'grid',
+                        headStyles: { fillColor: [220, 38, 38] },
+                        margin: { left: 14 },
+                    });
+
+                    finalY = (doc as any).lastAutoTable.finalY + 5;
                 });
             }
 
@@ -119,15 +144,29 @@ export default function SessionReport({
             content += `TIME: ${new Date(startTime).toLocaleTimeString()}\n\n`;
 
             content += `--- PRESENT (${result.present.length}) ---\n`;
+
             content += result.present
                 .map((record: any) => record.student.rollNumber)
                 .join('\n');
 
             if (result.absent && result.absent.length > 0) {
                 content += `\n\n--- ABSENT (${result.absent.length}) ---\n`;
-                content += result.absent
-                    .map((student: any) => student.rollNumber)
-                    .join('\n');
+
+                // Group by Batch
+                const absentByBatch: Record<string, any[]> = {};
+                result.absent.forEach((student: any) => {
+                    const batch = student.batchName || "Unassigned";
+                    if (!absentByBatch[batch]) absentByBatch[batch] = [];
+                    absentByBatch[batch].push(student);
+                });
+
+                Object.entries(absentByBatch).sort().forEach(([batchName, students]) => {
+                    content += `\n[ ${batchName} - ${students.length} ]\n`;
+                    content += students
+                        .map((student: any) => student.rollNumber)
+                        .join('\n');
+                    content += `\n`;
+                });
             }
 
             const blob = new Blob([content], { type: 'text/plain' });

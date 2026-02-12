@@ -1,4 +1,5 @@
 @import "tailwindcss";
+
 @plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
@@ -102,59 +103,4 @@
   body {
     @apply bg-background text-foreground;
   }
-}
-
-/* Custom Utilities for v4 */
-@utility glass-panel {
-  @apply bg-white/5 backdrop-blur-lg border border-white/10;
-}
-
-/* Custom Navigation Loader (Overriding nprogress) */
-#nprogress .bar {
-  display: none !important;
-}
-
-#nprogress .spinner {
-  display: flex !important;
-  position: fixed !important;
-  z-index: 99999 !important;
-  top: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-  align-items: center;
-  justify-content: center;
-  transform: none !important;
-  /* Override default translation */
-}
-
-#nprogress .spinner-icon {
-  width: 64px !important;
-  height: 64px !important;
-  border-width: 4px !important;
-  border-top-color: hsl(var(--primary)) !important;
-  border-left-color: hsl(var(--primary)) !important;
-  box-sizing: border-box;
-}
-
-/* Custom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: hsl(var(--muted-foreground));
-  border-radius: 20px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: hsl(var(--accent));
 }

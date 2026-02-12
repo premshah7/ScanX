@@ -1,7 +1,7 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
-export default withAuth(
+export const proxy = withAuth(
     function proxy(req) {
         const { pathname } = req.nextUrl;
         const { token } = req.nextauth;
@@ -12,7 +12,9 @@ export default withAuth(
         }
 
         if (!token) {
-            return NextResponse.redirect(new URL("/auth/login", req.url));
+            const signInUrl = new URL("/auth/login", req.url);
+            signInUrl.searchParams.set("callbackUrl", pathname);
+            return NextResponse.redirect(signInUrl);
         }
 
         const role = token.role;
@@ -30,6 +32,7 @@ export default withAuth(
                 return NextResponse.redirect(new URL("/student", req.url));
             }
         }
+
 
         // 1. Admin Route Protection
         if (pathname.startsWith("/admin")) {
@@ -56,7 +59,7 @@ export default withAuth(
     },
     {
         callbacks: {
-            authorized: ({ token }) => !!token,
+            authorized: ({ token }) => true, // Let the middleware function handle all auth logic
         },
     }
 );

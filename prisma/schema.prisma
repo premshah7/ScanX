@@ -7,10 +7,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id          Int        @id @default(autoincrement())
+  name        String
+  email       String     @unique
+  password    String
+  phoneNumber String?    @unique
+  username    String?    @unique // NEW: For Guest Login without Phone
+  role        Role
+  createdAt   DateTime   @default(now())
+  status      UserStatus @default(PENDING)
+  faculty     Faculty?
+  student     Student?
+  // managedEvents Subject[]  @relation("EventManagers")
+}
+
 enum Role {
   ADMIN
   FACULTY
   STUDENT
+  GUEST
 }
 
 enum UserStatus {
@@ -19,85 +35,83 @@ enum UserStatus {
   REJECTED
 }
 
-model User {
-  id        Int        @id @default(autoincrement())
-  name      String
-  email     String     @unique
-  password  String
-  role      Role
-  status    UserStatus @default(PENDING)
-  createdAt DateTime   @default(now())
-
-  student Student?
-  faculty Faculty?
+model Otp {
+  id        Int      @id @default(autoincrement())
+  phone     String   @unique
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  attempts  Int      @default(0)
 }
 
 model Student {
-  id                     Int     @id @default(autoincrement())
-  rollNumber             String  @unique
-  enrollmentNo           String  @unique
-  userId                 Int     @unique
+  id                     Int            @id @default(autoincrement())
+  userId                 Int            @unique
+  rollNumber             String         @unique
+  enrollmentNo           String         @unique
   deviceHash             String?
-  deviceId               String? // Persistent LocalStorage UUID
-  isDeviceResetRequested Boolean @default(false)
-
-  user               User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  attendances        Attendance[]
-  proxyAttempts      ProxyAttempt[]
-  subjects           Subject[]
-  ownedProxyAttempts ProxyAttempt[] @relation("DeviceOwner")
-
-  batchId  Int?
-  batch    Batch? @relation(fields: [batchId], references: [id])
-  semester Int    @default(1)
+  isDeviceResetRequested Boolean        @default(false)
+  batchId                Int?
+  semester               Int            @default(1)
+  deviceId               String?
+  attendances            Attendance[]
+  ownedProxyAttempts     ProxyAttempt[] @relation("DeviceOwner")
+  proxyAttempts          ProxyAttempt[]
+  batch                  Batch?         @relation(fields: [batchId], references: [id])
+  user                   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjects               Subject[]      @relation("StudentToSubject")
+  guestDetails           Json? // Stores dynamic registration data (e.g., Company, Designation)
 
   @@index([deviceHash])
   @@index([deviceId])
 }
 
 model Faculty {
-  id     Int @id @default(autoincrement())
-  userId Int @unique
-
+  id       Int       @id @default(autoincrement())
+  userId   Int       @unique
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   subjects Subject[]
-  batches  Batch[]
+  // events   Subject[] @relation("EventOrganizers")
+  batches  Batch[]   @relation("BatchToFaculty")
 }
 
 model Batch {
   id        Int       @id @default(autoincrement())
   name      String    @unique
-  students  Student[]
-  sessions  Session[]
-  faculties Faculty[]
-  subject   Subject?  @relation(fields: [subjectId], references: [id])
   subjectId Int?
+  subject   Subject?  @relation(fields: [subjectId], references: [id])
+  students  Student[]
+  faculties Faculty[] @relation("BatchToFaculty")
+  sessions  Session[] @relation("BatchToSession")
 }
 
 model Subject {
-  id            Int    @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
   name          String
-  facultyId     Int
-  totalStudents Int    @default(60)
-
-  faculty  Faculty   @relation(fields: [facultyId], references: [id], onDelete: Cascade)
-  sessions Session[]
-  students Student[]
-  batches  Batch[]
+  facultyId     Int?
+  totalStudents Int       @default(60)
+  batches       Batch[]
+  sessions      Session[]
+  faculty       Faculty?  @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  // organizers         Faculty[] @relation("EventOrganizers")
+  // managers           User[]    @relation("EventManagers") // NEW: Users (Faculty or Organizers) who manage the event
+  students      Student[] @relation("StudentToSubject")
+  // type               String    @default("SUBJECT") // "SUBJECT" or "EVENT"
+  // slug               String?   @unique
+  // description        String?
+  // registrationConfig Json?
 }
 
 model Session {
-  id        Int       @id @default(autoincrement())
-  subjectId Int
-  isActive  Boolean   @default(true)
-  startTime DateTime  @default(now())
-  endTime   DateTime?
-
-  batches Batch[]
-
-  subject       Subject        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  id            Int            @id @default(autoincrement())
+  subjectId     Int
+  isActive      Boolean        @default(true)
+  startTime     DateTime       @default(now())
+  endTime       DateTime?
   attendances   Attendance[]
   proxyAttempts ProxyAttempt[]
+  subject       Subject        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  batches       Batch[]        @relation("BatchToSession")
 }
 
 model Attendance {
@@ -105,11 +119,10 @@ model Attendance {
   studentId Int
   sessionId Int
   timestamp DateTime @default(now())
-
-  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   userAgent String?
   ipAddress String?
-  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, sessionId])
   @@index([sessionId])
@@ -122,10 +135,9 @@ model ProxyAttempt {
   attemptedHash String
   timestamp     DateTime @default(now())
   deviceOwnerId Int?
-
-  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  deviceOwner Student? @relation("DeviceOwner", fields: [deviceOwnerId], references: [id])
+  deviceOwner   Student? @relation("DeviceOwner", fields: [deviceOwnerId], references: [id])
+  session       Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }
 
 model SystemSettings {
