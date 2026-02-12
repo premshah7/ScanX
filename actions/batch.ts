@@ -62,7 +62,8 @@ export async function getBatchDetails(id: number) {
                 students: {
                     include: {
                         user: true
-                    }
+                    },
+                    orderBy: { rollNumber: 'asc' }
                 },
                 _count: {
                     select: { students: true }

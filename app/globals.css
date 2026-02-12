@@ -104,3 +104,62 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ─── Custom Utility Classes ─── */
+
+/* Gradient text for headings */
+.text-gradient {
+  background: linear-gradient(135deg, hsl(221, 83%, 53%), hsl(271, 76%, 53%), hsl(330, 80%, 55%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Primary gradient background (blue → indigo) */
+.gradient-primary {
+  background: linear-gradient(135deg, hsl(221, 83%, 53%), hsl(243, 75%, 59%));
+}
+
+/* Success gradient background (emerald → teal) */
+.gradient-success {
+  background: linear-gradient(135deg, hsl(160, 84%, 39%), hsl(172, 66%, 50%));
+  color: white;
+}
+
+/* Slide-up entrance animation */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out both;
+}
+
+/* Hover lift effect */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.15);
+}
+
+/* Slow pulse animation for active states */
+@keyframes pulseSlow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+.pulse-slow {
+  animation: pulseSlow 2.5s ease-in-out infinite;
+}
+
+/* Safe-area bottom padding for bottom nav */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
