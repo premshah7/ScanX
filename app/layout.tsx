@@ -20,17 +20,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GeoGuard Attendance",
-  description: "Secure GPS & Device-Locked Attendance System",
+  title: "ScanX",
+  description: "Fast, Smart, Seamless attendance",
 
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "GeoGuard",
+    title: "ScanX",
   },
   icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
+    icon: "/logo.svg",
+    apple: "/logo.svg",
   },
 };
 

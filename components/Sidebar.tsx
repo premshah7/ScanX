@@ -63,13 +63,13 @@ export function Sidebar({ userRole }: SidebarProps) {
                     <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                         <div className="relative w-8 h-8 rounded-lg overflow-hidden">
                             <Image
-                                src="/logo.png"
-                                alt="GeoGuard Logo"
+                                src="/logo.svg"
+                                alt="ScanX Logo"
                                 fill
                                 className="object-cover"
                             />
                         </div>
-                        <span className="text-xl font-bold text-foreground">GeoGuard</span>
+                        <span className="text-xl font-bold text-foreground">ScanX</span>
                     </Link>
                 )}
                 <Button

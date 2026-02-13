@@ -131,7 +131,7 @@ function LoginForm() {
                         <User className="w-7 h-7 text-white" />
                     </div>
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Welcome Back</h1>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">Sign in to your GeoGuard account</p>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm">Sign in to your ScanX account</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">

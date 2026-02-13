@@ -1,6 +1,6 @@
-# GeoGuard - Project & File Structure Overview
+# ScanX - Project & File Structure Overview
 
-This document provides a detailed breakdown of the **GeoGuard** project, explaining the purpose of each directory and key files. It is designed to help developers and faculty understand the system's architecture.
+This document provides a detailed breakdown of the **ScanX** project, explaining the purpose of each directory and key files. It is designed to help developers and faculty understand the system's architecture.
 
 ## 📂 Project Root
 - **`package.json`**: Defines project dependencies. Key libraries include `next` (v16.1.1), `prisma` (ORM), `@prisma/client`, `next-auth` (authentication), `@fingerprintjs/fingerprintjs` (device identification), and various UI components (`lucide-react`, `sonner`, `recharts`).
@@ -90,7 +90,7 @@ This directory contains server-side logic (Remote Procedure Calls) callable from
 - **`admin.ts`**: Admin-specific operations (fetch dashboard stats, manage users).
 - **`faculty.ts`**: Faculty operations (create sessions, manage subjects).
 - **`student.ts`**: Student-specific data fetching (get profile, schedule).
-- **`attendance.ts`**: Core logic for marking attendance. checks location, device headers, and records entries.
+- **`attendance.ts`**: Core logic for marking attendance. checks device headers, and records entries.
 - **`device.ts`**: Handles device registration and unique ID binding.
 - **`bulk.ts`**: Processes CSV/PDF uploads for bulk student registration.
 - **`batch.ts`**: CRUD operations for student batches.

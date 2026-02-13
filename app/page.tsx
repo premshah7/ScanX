@@ -42,7 +42,7 @@ export default async function Home() {
                             <ShieldCheck className="w-6 h-6 text-white" />
                         </div>
                         <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-                            GeoGuard
+                            ScanX
                         </span>
                     </div>
                     <div className="flex gap-3">
@@ -68,7 +68,7 @@ export default async function Home() {
                     {/* Badge */}
                     <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full glass-card text-blue-700 dark:text-blue-300 text-sm font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105 cursor-default">
                         <Sparkles className="w-4 h-4" />
-                        Secure & Location-Based Attendance
+                        Fast, Smart, Seamless attendance
                     </div>
 
                     {/* Main Heading */}
@@ -78,9 +78,7 @@ export default async function Home() {
                     </h1>
 
                     {/* Subheading */}
-                    <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
-                        Say goodbye to proxies. GeoGuard uses advanced GPS geofencing and device fingerprinting to ensure <span className="font-semibold text-blue-600 dark:text-blue-400">100% authentic attendance</span>.
-                    </p>
+                    Say goodbye to proxies. ScanX uses advanced device fingerprinting to ensure <span className="font-semibold text-blue-600 dark:text-blue-400">100% authentic attendance</span>.
 
                     {/* CTA Buttons */}
                     <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
@@ -103,9 +101,9 @@ export default async function Home() {
                 {/* Features Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto mt-24 w-full">
                     <FeatureCard
-                        icon={MapPin}
-                        title="GPS Geofencing"
-                        description="Attendance can only be marked within the designated classroom boundaries."
+                        icon={Sparkles}
+                        title="Smart Attendance"
+                        description="Experience seamless, secure, and fast attendance marking with our advanced system."
                         gradient="from-blue-500 to-cyan-500"
                     />
                     <FeatureCard
@@ -126,7 +124,7 @@ export default async function Home() {
             {/* Footer */}
             <footer className="relative z-10 border-t border-slate-200/50 dark:border-slate-800/50 backdrop-blur-xl bg-white/30 dark:bg-slate-900/30 py-8 text-center text-slate-500 dark:text-slate-400 text-sm">
                 <div className="max-w-7xl mx-auto">
-                    <p>&copy; {new Date().getFullYear()} GeoGuard System. All rights reserved.</p>
+                    <p>&copy; {new Date().getFullYear()} ScanX System. All rights reserved.</p>
                     <p className="mt-2 text-xs">Built with security and accuracy in mind.</p>
                 </div>
             </footer>

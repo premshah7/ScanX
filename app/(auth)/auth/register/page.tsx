@@ -86,7 +86,7 @@ export default function RegisterPage() {
                         <UserPlus className="w-7 h-7 text-white" />
                     </div>
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Create Account</h1>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">Join GeoGuard</p>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm">Join ScanX</p>
                 </div>
 
                 {/* Mode Toggle */}

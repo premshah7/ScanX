@@ -9,7 +9,7 @@ export default function DefaultersList({ defaulters }: { defaulters: Defaulter[]
                     <AlertTriangle className="w-5 h-5" />
                     <h3 className="font-bold text-lg text-foreground">Defaulters Watchlist</h3>
                 </div>
-                <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded-full">
+                <span className="bg-red-500/10 text-red-500 text-xs font-bold px-2 py-1 rounded-full">
                     {defaulters.length} At Risk
                 </span>
             </div>
@@ -36,14 +36,14 @@ export default function DefaultersList({ defaulters }: { defaulters: Defaulter[]
                                         <div className="font-medium text-foreground">{d.studentName}</div>
                                         <div className="text-xs text-muted-foreground">{d.rollNumber}</div>
                                     </td>
-                                    <td className="p-4 text-gray-400">
+                                    <td className="p-4 text-muted-foreground">
                                         {d.subjectName}
                                     </td>
                                     <td className="p-4 text-right">
                                         <div className={`font-bold ${d.percentage < 50 ? 'text-red-600' : 'text-orange-500'}`}>
                                             {d.percentage}%
                                         </div>
-                                        <div className="text-xs text-gray-600">
+                                        <div className="text-xs text-muted-foreground">
                                             {d.sessionsAttended}/{d.totalSessions}
                                         </div>
                                     </td>

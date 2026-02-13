@@ -21,9 +21,9 @@ export function FacultyNavbar() {
         <nav className="bg-card border-b border-border px-4 md:px-8 py-3 flex items-center justify-between sticky top-0 z-50 shadow-sm">
             <div className="flex items-center gap-2">
                 <div className="bg-primary/10 p-2 rounded-lg">
-                    <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain" />
+                    <img src="/logo.svg" alt="Logo" className="w-6 h-6 object-contain" />
                 </div>
-                <span className="font-bold text-xl hidden md:inline-block">GeoGuard</span>
+                <span className="font-bold text-xl hidden md:inline-block">ScanX</span>
             </div>
 
             <div className="flex items-center gap-1 md:gap-2">
