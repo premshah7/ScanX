@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import QRCode from "react-qr-code";
 import { endSession, getSessionStats, getSessionAttendance } from "@/actions/session";
 import { useRouter } from "next/navigation";
-import { Loader2, StopCircle, RefreshCw, Users, ShieldAlert, Download, FileText, Activity, Clock, CheckCircle, AlertTriangle } from "lucide-react";
+import { Loader2, StopCircle, RefreshCw, Users, ShieldAlert, Download, FileText, Activity, Clock, CheckCircle, AlertTriangle, Timer, Settings2 } from "lucide-react";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -23,6 +23,9 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
     }>({ attendanceCount: 0, proxyCount: 0, recentAttendance: [], recentProxies: [] });
     const [loading, setLoading] = useState(false);
     const [showEndConfirm, setShowEndConfirm] = useState(false);
+    const [refreshInterval, setRefreshInterval] = useState(4);
+    const [showTimerSettings, setShowTimerSettings] = useState(false);
+    const [customInput, setCustomInput] = useState("");
 
     // Auto-End session on unmount - REMOVED to prevent sessions ending on refresh
     // Faculty must explicitly click "End Session"
@@ -49,9 +52,9 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
         };
 
         updateToken();
-        const interval = setInterval(updateToken, 4000);
+        const interval = setInterval(updateToken, refreshInterval * 1000);
         return () => clearInterval(interval);
-    }, [sessionId, mounted]);
+    }, [sessionId, mounted, refreshInterval]);
 
     useEffect(() => {
         // Fetch session stats
@@ -329,10 +332,64 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
                                 </div>
                             </div>
 
-                            {/* Refresh indicator */}
-                            <div className="mt-6 flex items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-5 py-2.5 rounded-full">
-                                <RefreshCw className="w-4 h-4 animate-spin" style={{ animationDuration: '3s' }} />
-                                <span className="font-medium">Refreshes every 4 seconds</span>
+                            {/* Refresh indicator + timer control */}
+                            <div className="mt-6 w-full max-w-sm">
+                                <button
+                                    onClick={() => setShowTimerSettings(!showTimerSettings)}
+                                    className="w-full flex items-center justify-center gap-2 text-sm text-muted-foreground bg-muted hover:bg-muted/80 px-5 py-2.5 rounded-full transition-colors"
+                                >
+                                    <RefreshCw className="w-4 h-4 animate-spin" style={{ animationDuration: `${refreshInterval}s` }} />
+                                    <span className="font-medium">Refreshes every {refreshInterval}s</span>
+                                    <Settings2 className="w-3.5 h-3.5 ml-1" />
+                                </button>
+
+                                {showTimerSettings && (
+                                    <div className="mt-3 p-4 bg-card border border-border rounded-xl space-y-3 animate-slide-up">
+                                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">QR Refresh Interval</p>
+                                        {/* Preset buttons */}
+                                        <div className="flex flex-wrap gap-2">
+                                            {[3, 5, 10, 15, 30].map((sec) => (
+                                                <button
+                                                    key={sec}
+                                                    onClick={() => { setRefreshInterval(sec); setCustomInput(""); }}
+                                                    className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${refreshInterval === sec
+                                                            ? "bg-primary text-primary-foreground shadow-md"
+                                                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                                        }`}
+                                                >
+                                                    {sec}s
+                                                </button>
+                                            ))}
+                                        </div>
+                                        {/* Manual input */}
+                                        <div className="flex gap-2 items-center">
+                                            <input
+                                                type="number"
+                                                min={2}
+                                                max={60}
+                                                placeholder="Custom (2-60)"
+                                                value={customInput}
+                                                onChange={(e) => setCustomInput(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                        const val = parseInt(customInput);
+                                                        if (val >= 2 && val <= 60) setRefreshInterval(val);
+                                                    }
+                                                }}
+                                                className="flex-1 px-3 py-1.5 rounded-lg border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                            />
+                                            <button
+                                                onClick={() => {
+                                                    const val = parseInt(customInput);
+                                                    if (val >= 2 && val <= 60) setRefreshInterval(val);
+                                                }}
+                                                className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+                                            >
+                                                Set
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
