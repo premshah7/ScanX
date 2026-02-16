@@ -36,7 +36,7 @@ export default function AnalyticsWidgets({ analytics }: AnalyticsWidgetsProps) {
         { name: 'Verified', value: proxyStats.verified },
         { name: 'Suspicious', value: proxyStats.suspicious },
     ];
-    const COLORS = ['#22c55e', '#ef4444']; // Green, Red
+    const COLORS = ['#86a7c8', '#eea591']; // Chart 1, Chart 2
     const totalChecks = proxyStats.verified + proxyStats.suspicious;
     const reliabilityScore = totalChecks > 0
         ? Math.round((proxyStats.verified / totalChecks) * 100)
@@ -48,7 +48,7 @@ export default function AnalyticsWidgets({ analytics }: AnalyticsWidgetsProps) {
             <div className="bg-card border border-border rounded-xl p-6 flex flex-col h-[300px] shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-foreground flex items-center gap-2">
-                        <TrendingUp className="w-5 h-5 text-blue-600" />
+                        <TrendingUp className="w-5 h-5" style={{ color: '#86a7c8' }} />
                         Attendance Trend
                     </h3>
                     <span className="text-xs text-muted-foreground">Last 7 Sessions</span>
@@ -59,8 +59,8 @@ export default function AnalyticsWidgets({ analytics }: AnalyticsWidgetsProps) {
                         <AreaChart data={trend}>
                             <defs>
                                 <linearGradient id="colorAttendance" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                    <stop offset="5%" stopColor="#86a7c8" stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor="#86a7c8" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
@@ -84,7 +84,7 @@ export default function AnalyticsWidgets({ analytics }: AnalyticsWidgetsProps) {
                             <Area
                                 type="monotone"
                                 dataKey="percentage"
-                                stroke="#3b82f6"
+                                stroke="#86a7c8"
                                 strokeWidth={2}
                                 fillOpacity={1}
                                 fill="url(#colorAttendance)"
@@ -98,7 +98,7 @@ export default function AnalyticsWidgets({ analytics }: AnalyticsWidgetsProps) {
             <div className="bg-card border border-border rounded-xl p-6 flex flex-col h-[300px] shadow-sm">
                 <div className="flex items-center justify-between mb-2">
                     <h3 className="font-bold text-foreground flex items-center gap-2">
-                        <ShieldCheck className="w-5 h-5 text-green-600" />
+                        <ShieldCheck className="w-5 h-5" style={{ color: '#5a7ca6' }} />
                         System Reliability
                     </h3>
                 </div>
@@ -137,14 +137,14 @@ export default function AnalyticsWidgets({ analytics }: AnalyticsWidgetsProps) {
 
                 <div className="flex justify-center gap-8 mt-2">
                     <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#86a7c8' }}></div>
                         <div className="flex flex-col">
                             <span className="text-sm font-bold text-foreground">{proxyStats.verified}</span>
                             <span className="text-xs text-muted-foreground">Verified</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#eea591' }}></div>
                         <div className="flex flex-col">
                             <span className="text-sm font-bold text-foreground">{proxyStats.suspicious}</span>
                             <span className="text-xs text-muted-foreground">Suspicious</span>

@@ -45,7 +45,7 @@ export default function GlobalAnalytics({ trend, security }: GlobalAnalyticsProp
             <div className="bg-card border border-border rounded-xl p-6 flex flex-col h-[350px] shadow-sm">
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="font-bold text-foreground flex items-center gap-2">
-                        <Activity className="w-5 h-5 text-blue-600" />
+                        <Activity className="w-5 h-5" style={{ color: '#5a7ca6' }} />
                         Campus Attendance Trend
                     </h3>
                     <span className="text-xs text-muted-foreground">Last 30 Days</span>
@@ -56,8 +56,8 @@ export default function GlobalAnalytics({ trend, security }: GlobalAnalyticsProp
                         <AreaChart data={trend}>
                             <defs>
                                 <linearGradient id="colorGlobal" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                    <stop offset="5%" stopColor="#5a7ca6" stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor="#5a7ca6" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
@@ -81,7 +81,7 @@ export default function GlobalAnalytics({ trend, security }: GlobalAnalyticsProp
                             <Area
                                 type="monotone"
                                 dataKey="percentage"
-                                stroke="#3b82f6"
+                                stroke="#5a7ca6"
                                 strokeWidth={2}
                                 fill="url(#colorGlobal)"
                             />
@@ -94,7 +94,7 @@ export default function GlobalAnalytics({ trend, security }: GlobalAnalyticsProp
             <div className="bg-card border border-border rounded-xl p-6 flex flex-col h-[350px] shadow-sm">
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="font-bold text-foreground flex items-center gap-2">
-                        <ShieldAlert className="w-5 h-5 text-orange-600" />
+                        <ShieldAlert className="w-5 h-5" style={{ color: '#eea591' }} />
                         Security Overview
                     </h3>
                     <span className="text-xs text-muted-foreground">Last 14 Days</span>
@@ -116,8 +116,8 @@ export default function GlobalAnalytics({ trend, security }: GlobalAnalyticsProp
                                 cursor={{ fill: '#f3f4f6', opacity: 0.5 }}
                             />
                             <Legend wrapperStyle={{ paddingTop: '10px', color: '#374151' }} />
-                            <Bar dataKey="verified" name="Verified Sessions" stackId="a" fill="#22c55e" radius={[0, 0, 4, 4]} />
-                            <Bar dataKey="suspicious" name="Proxy Attempts" stackId="a" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="verified" name="Verified Sessions" stackId="a" fill="#86a7c8" radius={[0, 0, 4, 4]} />
+                            <Bar dataKey="suspicious" name="Proxy Attempts" stackId="a" fill="#eea591" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>

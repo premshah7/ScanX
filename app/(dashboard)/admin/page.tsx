@@ -80,26 +80,26 @@ export default async function AdminDashboard() {
                     title="Total Students"
                     value={stats.studentCount}
                     icon={GraduationCap}
-                    gradient="from-primary to-primary/80"
+                    color="#466494"
                 />
                 <StatCard
                     title="Total Faculty"
                     value={stats.facultyCount}
                     icon={Users}
-                    gradient="from-purple-500 to-pink-500"
+                    color="#5a7ca6"
                 />
                 <StatCard
                     title="Active Sessions"
                     value={stats.activeSessionsCount}
                     icon={Activity}
-                    gradient="from-emerald-500 to-teal-500"
+                    color="#22c55e"
                     pulse={stats.activeSessionsCount > 0}
                 />
                 <StatCard
                     title="Total Proxies"
                     value={stats.proxyCount}
                     icon={ShieldAlert}
-                    gradient="from-rose-500 to-red-500"
+                    color="#ef4444"
                 />
             </div>
 
@@ -113,7 +113,7 @@ export default async function AdminDashboard() {
             <div className="bg-card rounded-2xl p-6 border-2 border-border shadow-lg hover:shadow-xl transition-all">
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-rose-500 to-red-500 rounded-xl flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#ef4444' }}>
                             <ShieldAlert className="w-5 h-5 text-white" />
                         </div>
                         Recent Security Alerts
@@ -125,15 +125,15 @@ export default async function AdminDashboard() {
     );
 }
 
-function StatCard({ title, value, icon: Icon, gradient, pulse = false }: any) {
+function StatCard({ title, value, icon: Icon, color, pulse = false }: any) {
     return (
         <div className={`group relative p-6 rounded-2xl bg-card border-2 border-border shadow-lg hover:shadow-2xl transition-all overflow-hidden hover-lift ${pulse ? 'pulse-slow' : ''}`}>
-            {/* Gradient Background */}
-            <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-5 group-hover:opacity-10 transition-opacity`}></div>
+            {/* Color Background */}
+            <div className="absolute inset-0 opacity-5 group-hover:opacity-10 transition-opacity" style={{ backgroundColor: color }}></div>
 
             {/* Content */}
             <div className="relative flex items-center justify-between mb-4">
-                <div className={`w-14 h-14 bg-gradient-to-br ${gradient} rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all`}>
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all" style={{ backgroundColor: color }}>
                     <Icon className="w-7 h-7 text-white" />
                 </div>
                 <span className="text-4xl font-extrabold text-primary">{value}</span>
