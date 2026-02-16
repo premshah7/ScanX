@@ -48,7 +48,7 @@ export const authOptions: NextAuthOptions = {
                     if (!user) {
                         const { randomUUID } = await import("crypto");
                         const name = "Guest " + identifier.slice(-4);
-                        const email = `guest_${identifier}@event.geoguard.local`;
+                        const email = `guest_${identifier}@event.scanx.local`;
                         const password = await bcrypt.hash(randomUUID(), 10);
 
                         user = await prisma.user.create({

@@ -4,14 +4,14 @@ import { Role } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
 async function main() {
-    const password = await bcrypt.hash('geoguard123', 10)
+    const password = await bcrypt.hash('scanx123', 10)
 
     // 1. Admin
     const admin = await prisma.user.upsert({
-        where: { email: 'admin@geoguard.com' },
+        where: { email: 'admin@scanx.com' },
         update: {},
         create: {
-            email: 'admin@geoguard.com',
+            email: 'admin@scanx.com',
             name: 'Admin User',
             password,
             role: Role.ADMIN,
@@ -21,10 +21,10 @@ async function main() {
 
     // 2. Faculty
     const facultyUser = await prisma.user.upsert({
-        where: { email: 'faculty@geoguard.com' },
+        where: { email: 'faculty@scanx.com' },
         update: {},
         create: {
-            email: 'faculty@geoguard.com',
+            email: 'faculty@scanx.com',
             name: 'Dr. Smith',
             password,
             role: Role.FACULTY,
@@ -72,10 +72,10 @@ async function main() {
 
     // 5. Student
     const studentUser = await prisma.user.upsert({
-        where: { email: 'student@geoguard.com' },
+        where: { email: 'student@scanx.com' },
         update: {},
         create: {
-            email: 'student@geoguard.com',
+            email: 'student@scanx.com',
             name: 'John Doe',
             password,
             role: Role.STUDENT,

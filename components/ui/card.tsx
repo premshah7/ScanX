@@ -8,12 +8,13 @@ function cn(...inputs: ClassValue[]) {
 
 export const Card = React.forwardRef<
     HTMLDivElement,
-    React.HTMLAttributes<HTMLDivElement> & { variant?: "default" | "glass" | "gradient" }
+    React.HTMLAttributes<HTMLDivElement> & { variant?: "default" | "elevated" | "glass" | "gradient" }
 >(({ className, variant = "default", ...props }, ref) => {
     const variants = {
         default: "rounded-xl border border-border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all",
-        glass: "glass-card rounded-xl text-card-foreground transition-all hover:shadow-lg",
-        gradient: "rounded-xl border-2 border-transparent bg-gradient-to-br from-primary/10 to-secondary/10 text-card-foreground shadow-md hover:shadow-lg transition-all",
+        elevated: "rounded-xl bg-card text-card-foreground shadow-md hover:shadow-lg transition-all",
+        glass: "rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm text-card-foreground transition-all hover:shadow-md",
+        gradient: "rounded-xl border border-border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all",
     }
 
     return (

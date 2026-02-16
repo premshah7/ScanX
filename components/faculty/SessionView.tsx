@@ -302,7 +302,7 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
                 {/* QR Code Section - Prominent at Top */}
                 <div className="mb-6 flex justify-center">
                     <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border-2 border-slate-200 dark:border-slate-800 overflow-hidden max-w-2xl w-full">
-                        <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-6 text-center text-white">
+                        <div className="bg-primary p-6 text-center text-white">
                             <h2 className="text-xl font-bold mb-1">Scan to Mark Attendance</h2>
                             <p className="text-blue-100 text-sm">Students, scan this QR code with your device</p>
                         </div>
@@ -310,7 +310,7 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
                         <div className="p-10 flex flex-col items-center">
                             <div className="relative group">
                                 {/* Glow effect */}
-                                <div className="absolute -inset-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-3xl blur-2xl opacity-30 group-hover:opacity-50 transition-opacity"></div>
+                                <div className="absolute -inset-2 bg-primary/30 rounded-3xl blur-2xl opacity-30 group-hover:opacity-50 transition-opacity"></div>
 
                                 {/* QR Code - Extra Large */}
                                 <div className="relative bg-white dark:bg-slate-100 p-6 rounded-2xl shadow-2xl">
@@ -380,7 +380,7 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
                         <button
                             onClick={handleDownloadPDF}
                             disabled={sessionStatistics.attendanceCount === 0}
-                            className="px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
+                            className="px-5 py-3 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
                         >
                             <FileText className="w-4 h-4" />
                             Download PDF Report

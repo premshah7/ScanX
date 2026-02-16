@@ -13,7 +13,7 @@ export default function Loading() {
                     <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary border-r-primary animate-spin"></div>
 
                     {/* Inner Pulsing Circle */}
-                    <div className="absolute inset-3 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 animate-pulse"></div>
+                    <div className="absolute inset-3 rounded-full bg-primary/10 animate-pulse"></div>
 
                     {/* Center Icon */}
                     <div className="absolute inset-0 flex items-center justify-center">

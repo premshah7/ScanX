@@ -33,7 +33,7 @@ export default async function FacultyProfilePage() {
 
             {/* Profile Avatar & Name */}
             <div className="flex flex-col items-center mb-8">
-                <div className="w-20 h-20 rounded-3xl gradient-primary flex items-center justify-center shadow-xl mb-4">
+                <div className="w-20 h-20 rounded-3xl bg-primary flex items-center justify-center shadow-md mb-4">
                     <span className="font-bold text-white text-3xl">{user.name[0]}</span>
                 </div>
                 <h1 className="text-2xl font-extrabold text-foreground">{user.name}</h1>

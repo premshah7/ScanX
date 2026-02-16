@@ -41,8 +41,8 @@ export default function MobileBottomNav() {
                                     <div className={cn(
                                         "w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-200",
                                         isActive
-                                            ? "gradient-primary shadow-blue-500/30 scale-105"
-                                            : "gradient-primary opacity-90 hover:opacity-100 hover:scale-105"
+                                            ? "bg-primary shadow-md scale-105"
+                                            : "bg-primary opacity-90 hover:opacity-100 hover:scale-105"
                                     )}>
                                         <Icon className="w-6 h-6 text-white" />
                                     </div>
@@ -64,7 +64,7 @@ export default function MobileBottomNav() {
                             >
                                 {/* Active indicator dot */}
                                 {isActive && (
-                                    <div className="absolute -top-0.5 w-5 h-1 rounded-full gradient-primary" />
+                                    <div className="absolute -top-0.5 w-5 h-1 rounded-full bg-primary" />
                                 )}
                                 <Icon className={cn(
                                     "w-5 h-5 transition-all duration-200",

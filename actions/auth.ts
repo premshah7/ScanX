@@ -86,7 +86,7 @@ export async function registerGuest(data: {
         if (existingPhone) return { error: "Phone number already registered" };
 
         // Dummy email for uniqueness constraint
-        const email = `guest_${data.username.toLowerCase().replace(/\s+/g, '')}@event.geoguard.local`;
+        const email = `guest_${data.username.toLowerCase().replace(/\s+/g, '')}@event.scanx.local`;
 
         await prisma.user.create({
             data: {

@@ -41,7 +41,7 @@ export default function FacultyBottomNav() {
                                 )} />
                                 <span className="text-[10px] font-semibold">{tab.label}</span>
                                 {isActive && (
-                                    <div className="absolute bottom-1 w-1 h-1 rounded-full gradient-primary" />
+                                    <div className="absolute bottom-1 w-1 h-1 rounded-full bg-primary" />
                                 )}
                             </Link>
                         );

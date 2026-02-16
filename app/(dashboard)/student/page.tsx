@@ -51,14 +51,14 @@ export default async function StudentDashboard() {
             <div className="mb-6">
                 <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
-                        <h1 className="text-2xl md:text-3xl font-extrabold text-gradient truncate">
+                        <h1 className="text-2xl md:text-3xl font-extrabold text-primary truncate">
                             {student.user.name}
                         </h1>
                         <p className="text-muted-foreground text-sm mt-0.5">
                             {student.rollNumber} · Sem {student.semester}
                         </p>
                     </div>
-                    <div className="w-12 h-12 rounded-2xl gradient-primary flex items-center justify-center shadow-lg flex-shrink-0 ml-4">
+                    <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-sm flex-shrink-0 ml-4">
                         <span className="font-bold text-white text-lg">
                             {student.user.name[0]}
                         </span>
@@ -71,7 +71,7 @@ export default async function StudentDashboard() {
             <div className="grid grid-cols-2 gap-3 mb-6">
                 {/* Total Sessions */}
                 <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-4 hover-lift group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="relative">
                         <div className="flex items-center gap-2 mb-2">
                             <div className="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center">
@@ -99,7 +99,7 @@ export default async function StudentDashboard() {
             </div>
 
             {/* ─── Scan QR Hero Card ─── */}
-            <div className="relative gradient-primary rounded-2xl p-6 md:p-8 mb-6 shadow-2xl overflow-hidden group">
+            <div className="relative bg-primary rounded-2xl p-6 md:p-8 mb-6 shadow-lg overflow-hidden group">
                 {/* Decorative blurs */}
                 <div className="absolute inset-0 opacity-10">
                     <div className="absolute top-0 right-0 w-48 h-48 bg-white rounded-full blur-3xl" />

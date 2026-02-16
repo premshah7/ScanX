@@ -13,7 +13,7 @@ const cards = [
         key: "students",
         label: "Total Students",
         icon: Users,
-        gradient: "from-blue-500 to-indigo-600",
+        gradient: "from-primary to-primary/80",
         getValue: (s: StatsCardsProps["stats"]) => String(s.totalStudents),
     },
     {

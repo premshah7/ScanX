@@ -47,6 +47,24 @@ export default async function Home() {
                     </div>
                     <div className="flex gap-3">
                         <Link
+                            href="/about"
+                            className="px-5 py-2.5 rounded-xl bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 transition-all font-medium text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                        >
+                            About Us
+                        </Link>
+                        <Link
+                            href="/impact"
+                            className="px-5 py-2.5 rounded-xl bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 transition-all font-medium text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                        >
+                            Impact
+                        </Link>
+                        <Link
+                            href="/developer"
+                            className="px-5 py-2.5 rounded-xl bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 transition-all font-medium text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                        >
+                            Developer
+                        </Link>
+                        <Link
                             href="/auth/login"
                             className="px-5 py-2.5 rounded-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-300/50 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-800 transition-all font-medium text-sm hover:shadow-md"
                         >
@@ -73,8 +91,8 @@ export default async function Home() {
 
                     {/* Main Heading */}
                     <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-tight">
-                        Attendance, <br />
-                        <span className="text-gradient">Reimagined.</span>
+                        No Proxies, <br />
+                        <span className="text-gradient">Just Authentic Attendance.</span>
                     </h1>
 
                     {/* Subheading */}

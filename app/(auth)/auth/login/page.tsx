@@ -122,16 +122,16 @@ function LoginForm() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
-            <div className="max-w-md w-full bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl transition-all">
+        <div className="min-h-screen flex items-center justify-center bg-background px-4">
+            <div className="max-w-md w-full bg-card p-8 rounded-2xl border border-border shadow-xl transition-all">
 
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <div className="mx-auto w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center mb-4 shadow-blue-500/20 shadow-lg">
-                        <User className="w-7 h-7 text-white" />
+                    <div className="mx-auto w-14 h-14 bg-primary rounded-xl flex items-center justify-center mb-4 shadow-sm">
+                        <User className="w-7 h-7 text-primary-foreground" />
                     </div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Welcome Back</h1>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">Sign in to your ScanX account</p>
+                    <h1 className="text-2xl font-bold text-foreground mb-1">Welcome Back</h1>
+                    <p className="text-muted-foreground text-sm">Sign in to your ScanX account</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
@@ -149,7 +149,7 @@ function LoginForm() {
 
                     {/* Identifier Input */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
                             Email, Phone or Username
                         </label>
                         <div className="relative">
@@ -157,10 +157,10 @@ function LoginForm() {
                                 type="text"
                                 value={identifier}
                                 onChange={(e) => setIdentifier(e.target.value)}
-                                className="w-full pl-10 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                className="w-full pl-10 bg-card border border-border rounded-lg px-4 py-2.5 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                                 placeholder="Enter email, phone or username"
                             />
-                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                                 <User className="w-5 h-5" />
                             </div>
                         </div>
@@ -170,13 +170,13 @@ function LoginForm() {
                     {authMode === "password" ? (
                         <div className="animate-in fade-in zoom-in-95 duration-200">
                             <div className="flex justify-between items-center mb-2">
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                <label className="block text-sm font-medium text-foreground">
                                     Password
                                 </label>
                                 <button
                                     type="button"
                                     onClick={() => setAuthMode("otp")}
-                                    className="text-xs text-blue-600 hover:underline font-medium"
+                                    className="text-xs text-primary hover:underline font-medium"
                                 >
                                     Log in via OTP?
                                 </button>
@@ -186,13 +186,13 @@ function LoginForm() {
                                     type={showPassword ? "text" : "password"}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12"
+                                    className="w-full bg-card border border-border rounded-lg px-4 py-2.5 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all pr-12"
                                     placeholder="Enter your password"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                                 >
                                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                 </button>
@@ -201,7 +201,7 @@ function LoginForm() {
                     ) : (
                         <div className="animate-in fade-in zoom-in-95 duration-200">
                             <div className="flex justify-between items-center mb-2">
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                <label className="block text-sm font-medium text-foreground">
                                     One-Time Password
                                 </label>
                                 <button
@@ -220,18 +220,18 @@ function LoginForm() {
                                             type="text"
                                             value={otp}
                                             onChange={(e) => setOtp(e.target.value)}
-                                            className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all tracking-widest text-center font-mono text-lg"
+                                            className="w-full bg-card border border-border rounded-lg px-4 py-2.5 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all tracking-widest text-center font-mono text-lg"
                                             placeholder="123456"
                                             maxLength={6}
                                         />
-                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                                             <MessageSquare className="w-5 h-5" />
                                         </div>
                                     </div>
                                     <button
                                         type="button"
                                         onClick={handleSendOtp}
-                                        className="text-xs text-blue-600 hover:underline w-full text-center"
+                                        className="text-xs text-primary hover:underline w-full text-center"
                                     >
                                         Resend Code
                                     </button>
@@ -241,7 +241,7 @@ function LoginForm() {
                                     type="button"
                                     onClick={handleSendOtp}
                                     disabled={loading}
-                                    className="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-medium py-2.5 rounded-lg transition-all border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2"
+                                    className="w-full bg-muted hover:bg-accent text-foreground font-medium py-2.5 rounded-lg transition-all border border-border flex items-center justify-center gap-2"
                                 >
                                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send OTP Code"}
                                 </button>
@@ -254,7 +254,7 @@ function LoginForm() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
+                            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2.5 rounded-lg transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 shadow-md"
                         >
                             {loading ? (
                                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -267,9 +267,9 @@ function LoginForm() {
                     )}
                 </form>
 
-                <p className="mt-8 text-center text-slate-600 dark:text-slate-400 text-sm">
+                <p className="mt-8 text-center text-muted-foreground text-sm">
                     Don't have an account?{" "}
-                    <Link href="/auth/register" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium">
+                    <Link href="/auth/register" className="text-primary hover:text-primary/80 font-medium">
                         Register
                     </Link>
                 </p>
@@ -280,7 +280,7 @@ function LoginForm() {
 
 export default function LoginPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center"><Loader2 className="w-8 h-8 text-blue-600 animate-spin" /></div>}>
+        <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>}>
             <LoginForm />
         </Suspense>
     );

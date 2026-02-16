@@ -7,7 +7,7 @@ import NextAuthSessionProvider from "@/components/SessionProvider";
 import { Toaster } from "sonner";
 import { Analytics } from '@vercel/analytics/next';
 import { NavigationLoader } from "@/components/NavigationLoader";
-
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,7 +39,7 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  userScalable: false, // Prevent zooming for app-like feel
+  userScalable: false, 
 };
 
 export default function RootLayout({
@@ -49,6 +49,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+       <head>
+        <Script
+          async
+          crossOrigin="anonymous"
+          src="https://tweakcn.com/live-preview.min.js"
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
@@ -56,11 +63,16 @@ export default function RootLayout({
           <NavigationLoader />
           <FingerprintProvider>
             <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem={false}
+            >
+            {/* <ThemeProvider
               attribute="class"
               defaultTheme="system"
               enableSystem
               disableTransitionOnChange
-            >
+            > */}
               {children}
               <Analytics />
               <Toaster richColors position="top-center" />

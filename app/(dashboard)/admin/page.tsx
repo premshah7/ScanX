@@ -64,7 +64,7 @@ export default async function AdminDashboard() {
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-4xl font-extrabold mb-2 text-gradient">Admin Command Center</h1>
+                    <h1 className="text-4xl font-extrabold mb-2 text-primary">Admin Command Center</h1>
                     <p className="text-muted-foreground text-lg">System Status & Global Overview</p>
                 </div>
                 {/* <div className="flex gap-2">
@@ -80,7 +80,7 @@ export default async function AdminDashboard() {
                     title="Total Students"
                     value={stats.studentCount}
                     icon={GraduationCap}
-                    gradient="from-blue-500 to-cyan-500"
+                    gradient="from-primary to-primary/80"
                 />
                 <StatCard
                     title="Total Faculty"
@@ -136,7 +136,7 @@ function StatCard({ title, value, icon: Icon, gradient, pulse = false }: any) {
                 <div className={`w-14 h-14 bg-gradient-to-br ${gradient} rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all`}>
                     <Icon className="w-7 h-7 text-white" />
                 </div>
-                <span className="text-4xl font-extrabold text-gradient">{value}</span>
+                <span className="text-4xl font-extrabold text-primary">{value}</span>
             </div>
             <h3 className="relative font-semibold text-muted-foreground text-sm uppercase tracking-wide">{title}</h3>
         </div>
