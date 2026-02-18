@@ -27,17 +27,6 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
     const [showTimerSettings, setShowTimerSettings] = useState(false);
     const [customInput, setCustomInput] = useState("");
 
-    // Auto-End session on unmount - REMOVED to prevent sessions ending on refresh
-    // Faculty must explicitly click "End Session"
-    /*
-    useEffect(() => {
-        return () => {
-            const blob = new Blob([JSON.stringify({ sessionId })], { type: 'application/json' });
-            navigator.sendBeacon(`/api/session/${sessionId}/end`, blob);
-        };
-    }, [sessionId]);
-    */
-
     // Set mounted state to prevent hydration mismatch
     useEffect(() => {
         setMounted(true);

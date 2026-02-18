@@ -36,12 +36,12 @@ enum UserStatus {
 }
 
 model Otp {
-  id        Int      @id @default(autoincrement())
-  phone     String   @unique
-  code      String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  attempts  Int      @default(0)
+  id         Int      @id @default(autoincrement())
+  identifier String   @unique // Renamed from phone to support Email/Phone
+  code       String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  attempts   Int      @default(0)
 }
 
 model Student {

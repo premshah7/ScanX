@@ -27,6 +27,7 @@ export const authOptions: NextAuthOptions = {
                 const identifier = credentials.email; // Can be email or phone
 
                 // ---------------------------------------------------------
+                // ---------------------------------------------------------
                 // 1. OTP LOGIN FLOW
                 // ---------------------------------------------------------
                 if (credentials.otp) {
@@ -34,28 +35,66 @@ export const authOptions: NextAuthOptions = {
                     // Assuming verifyOtpCode is imported from "@/lib/otp"
                     const { verifyOtpCode } = await import("@/lib/otp");
 
-                    const isValid = await verifyOtpCode(identifier, credentials.otp as string);
+                    // RESOLVE IDENTIFIER (Username -> Email/Phone)
+                    // Matches logic in actions/otp.ts
+                    let targetIdentifier = identifier;
+                    const isEmail = identifier.includes("@");
+                    const isPhone = /^\+?[0-9\s-]{10,}$/.test(identifier);
+
+                    if (!isEmail && !isPhone) {
+                        const user = await prisma.user.findUnique({
+                            where: { username: identifier },
+                            select: { email: true, phoneNumber: true }
+                        });
+
+                        if (user) {
+                            if (user.email && !user.email.includes("@event.scanx.local")) {
+                                targetIdentifier = user.email;
+                            } else if (user.phoneNumber) {
+                                targetIdentifier = user.phoneNumber;
+                            }
+                        }
+                    }
+
+                    const isValid = await verifyOtpCode(targetIdentifier, credentials.otp as string);
                     if (!isValid) {
                         throw new Error("Invalid or expired OTP");
                     }
 
-                    // Find existing user
+                    // Find existing user by ANY valid identifier
                     let user = await prisma.user.findFirst({
-                        where: { phoneNumber: identifier },
+                        where: {
+                            OR: [
+                                { email: targetIdentifier },
+                                { phoneNumber: targetIdentifier },
+                                { username: identifier } // Fallback if targetIdentifier didn't match?
+                            ]
+                        },
                     });
 
-                    // Auto-Register Guest if not found
+                    // Auto-Register Guest if not found (Only for Phone-like inputs usually?)
+                    // If we are doing Email OTP, we probably expect the user to exist.
+                    // But keeping existing logic for safety if it was relied upon.
                     if (!user) {
                         const { randomUUID } = await import("crypto");
+                        // Only auto-register if it looks like a phone number? 
+                        // Or if we want to allow new users via OTP (not implemented for Email generally without name)
+                        // For now, allow it but it might fail validation if email is required.
                         const name = "Guest " + identifier.slice(-4);
-                        const email = `guest_${identifier}@event.scanx.local`;
+                        const email = isEmail ? identifier : `guest_${identifier}@event.scanx.local`;
+
+                        // Only create if we have a phone number or it is an email
+                        if (!isEmail && !isPhone) {
+                            throw new Error("User not found and cannot auto-register with username only");
+                        }
+
                         const password = await bcrypt.hash(randomUUID(), 10);
 
                         user = await prisma.user.create({
                             data: {
                                 name,
                                 email,
-                                phoneNumber: identifier,
+                                phoneNumber: isPhone ? identifier : null,
                                 password,
                                 role: "GUEST",
                                 status: "PENDING",
@@ -63,7 +102,6 @@ export const authOptions: NextAuthOptions = {
                                     create: {
                                         rollNumber: `GUEST-${identifier.slice(-6)}`,
                                         enrollmentNo: `EVT-${identifier.slice(-6)}`,
-                                        // Default values like semester 1 are automatic
                                     },
                                 },
                             },

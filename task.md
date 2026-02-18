@@ -31,9 +31,10 @@
     - [x] **UI Updates**: Ensure Organizer dashboard works (backend updated, UI compatible) <!-- id: 34 -->
 
 - [ ] **Phase 5: Verification** <!-- id: 10 -->
-    - [ ] Test with existing phone (Login) <!-- id: 11 -->
-    - [ ] Test with new phone + taken username (Error) <!-- id: 12 -->
-    - [ ] Test with new phone + unique username (Success) <!-- id: 13 -->
+    - [x] Test with existing phone (Login) <!-- id: 11 -->
+    - [x] Test with new phone + taken username (Error) <!-- id: 12 -->
+    - [x] Test with new phone + unique username (Success) <!-- id: 13 -->
+    - [x] **New**: Test with Email/Username OTP <!-- id: 14 -->
 - [x] **Phase 6: UI Overhaul - Sidebar** <!-- id: 40 -->
     - [x] **Layout Refactor**: Update `app/(dashboard)/layout.tsx` to implement `Sidebar` for all roles <!-- id: 41 -->
     - [x] **Cleanup**: Remove `AdminNavbar`, `FacultyNavbar` from sub-layouts <!-- id: 42 -->

@@ -1,23 +1,23 @@
 "use client";
 
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Loader2, Lock, Eye, EyeOff, Mail, Phone, ArrowRight, MessageSquare, User } from "lucide-react";
 import { sendOtp, verifyOtp } from "@/actions/otp"; // Server actions
 import { z } from "zod";
 
 // Local schemas for validation
-const EmailSchema = z.string().email("Invalid email address");
-const PhoneSchema = z.string().min(10, "Phone number must be at least 10 digits").regex(/^\+?[0-9\s-]{10,}$/, "Invalid phone format");
-const LoginIdentifierSchema = z.string().min(3, "Identifier must be at least 3 characters"); // Allow Username or Phone
+const LoginIdentifierSchema = z.string().min(3, "Identifier must be at least 3 characters"); // Allow Username, Email or Phone
 
 type AuthMode = "password" | "otp";
 
 function LoginForm() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
@@ -27,20 +27,52 @@ function LoginForm() {
     const [authMode, setAuthMode] = useState<AuthMode>("password");
 
     // Form Data
-    const [identifier, setIdentifier] = useState(""); // Email or Phone
+    const [identifier, setIdentifier] = useState(""); // Email, Phone, or Username
     const [password, setPassword] = useState("");
     const [otp, setOtp] = useState("");
 
     // OTP State
     const [otpSent, setOtpSent] = useState(false);
-    const [otpTimer, setOtpTimer] = useState(0);
+
+    // Helper to detect type for UX (optional icons)
+    const isEmail = identifier.includes("@");
+    const isPhone = /^\+?[0-9\s-]{10,}$/.test(identifier);
+
+    // Magic Link Handler
+    useEffect(() => {
+        const magic = searchParams.get("magic");
+        const urlOtp = searchParams.get("otp");
+        const urlIdentifier = searchParams.get("identifier");
+
+        if (magic === "true" && urlOtp && urlIdentifier) {
+            console.log("[MAGIC LINK] Detected. Auto-logging in...");
+            setAuthMode("otp");
+            setIdentifier(urlIdentifier);
+            setOtp(urlOtp);
+            setLoading(true);
+
+            signIn("credentials", {
+                redirect: false,
+                email: urlIdentifier,
+                otp: urlOtp,
+            }).then((result) => {
+                if (result?.error) {
+                    setError("Magic Link invalid or expired.");
+                    setLoading(false);
+                } else {
+                    router.refresh();
+                    router.push("/");
+                }
+            });
+        }
+    }, [searchParams, router]);
 
     const handleSendOtp = async () => {
         setError("");
         setSuccessMessage("");
         try {
-            // Validate Phone STRICTLY for OTP
-            PhoneSchema.parse(identifier);
+            // Validate Identifier
+            LoginIdentifierSchema.parse(identifier);
 
             setLoading(true);
             const res = await sendOtp(identifier);
@@ -48,17 +80,73 @@ function LoginForm() {
 
             if (res.success) {
                 setOtpSent(true);
-                setSuccessMessage("OTP sent! Check your console (Dev Mode)");
+                setSuccessMessage(res.message || "OTP sent! Check your email/phone.");
             } else {
                 setError(res.message || "Failed to send OTP");
             }
         } catch (err) {
             setLoading(false);
             if (err instanceof z.ZodError) {
-                setError("Please enter a valid phone number for OTP");
+                setError("Please enter a valid email, phone, or username");
             } else {
-                setError("Please enter a valid phone number");
+                setError("An unexpected error occurred");
             }
+        }
+    };
+
+    const handleVerifyOtp = async () => {
+        setError("");
+        setLoading(true);
+        try {
+            if (!identifier || !otp) {
+                setError("Please enter the identifier and OTP");
+                setLoading(false);
+                return;
+            }
+
+            // Verify OTP Logic (Server Side)
+            // We verify first to get the resolved email/identifier if needed
+            // But actually, we might just want to ask NextAuth to "signIn" with OTP
+            // IF we built a custom credential provider that verifies OTP.
+
+            // Current plan: Verify manually here, then sign in with "otp-verified" flag or password?
+            // Or better: The credentials provider in [...nextauth] route likely expects (email + otp) logic?
+            // Since we didn't touch [...nextauth] yet (it was not in the plan), we might need to rely on
+            // existing "password" flow OR manual verification + custom token?
+
+            // Wait, if we verify OTP here, how do we log them into NextAuth session?
+            // Standard way: `signIn('credentials', { email, otp })`
+            // Then in `authorize`: if (credentials.otp) -> verifyOtp(email, otp).
+
+            // So we should NOT manually verify here unless we want to "pre-check".
+            // Let's assume the backend `authorize` function handles OTP verification if `otp` is present.
+            // If not, we need to update `auth.ts` (NextAuth config).
+
+            // Let's try signing in directly with OTP
+            console.log("[LOGIN] Attempting signIn via OTP...");
+            const result = await signIn("credentials", {
+                redirect: false,
+                email: identifier, // Use 'email' field for generic identifier in NextAuth
+                otp: otp,
+            });
+
+            if (result?.error) {
+                // If it fails, maybe manual verification is needed if NextAuth isn't set up for OTP?
+                // Let's fallback to manual verify if needed, but usually signIn is best.
+                // If NextAuth provider doesn't support OTP, this will fail.
+                // Assuming `authorize` function in `auth.ts` handles it.
+                // If not, we might need to add that task.
+                setError("Invalid OTP or login failed");
+                setLoading(false);
+            } else {
+                router.refresh();
+                router.push("/");
+            }
+
+        } catch (err) {
+            console.error(err);
+            setError("An error occurred during verification");
+            setLoading(false);
         }
     };
 
@@ -69,43 +157,23 @@ function LoginForm() {
 
         try {
             // 1. Validate Identifier
-            // 1. Validate Identifier
-            LoginIdentifierSchema.parse(identifier); // Allow Email, Phone, or Username (min 3 chars)
+            LoginIdentifierSchema.parse(identifier);
 
-            // 2. Prepare Credentials
-            const credentials: Record<string, string> = {
-                email: identifier, // Mapping identifier to 'email' field for NextAuth
-            };
-
-            if (authMode === "password") {
-                // Relaxed Frontend Check: Even if empty, let backend decide if password is required (for Guests)
-                // But for better UX, maybe warn if empty and NOT a known guest? 
-                // We don't know if they are guest yet. 
-                // So we MUST allow empty password to pass to backend.
-                credentials.password = password;
-            } else {
-                // OTP Mode - Strictly requires Phone
-                PhoneSchema.parse(identifier); // Re-validate phone for OTP mode logic safety
-                if (!otp) {
-                    setError("Please enter the OTP");
-                    setLoading(false);
-                    return;
-                }
-                credentials.otp = otp;
+            if (authMode === "otp") {
+                // Trigger Verification Logic
+                await handleVerifyOtp();
+                return;
             }
-            // Hack: We need to pass a password to satisfy strict Types/Schema if necessary?
-            // No, authorize checks for otp first.
 
-            // 3. SignIn
-            console.log("[LOGIN] Calling signIn with credentials:", { ...credentials, password: credentials.password ? "***" : "(empty)" });
+            // Password Mode
             const result = await signIn("credentials", {
                 redirect: false,
-                ...credentials,
+                email: identifier,
+                password,
             });
-            console.log("[LOGIN] Result:", result);
 
             if (result?.error) {
-                setError(result.error === "CredentialsSignin" ? "Invalid credentials" : result.error);
+                setError("Invalid credentials");
                 setLoading(false);
             } else {
                 router.refresh();
@@ -161,7 +229,7 @@ function LoginForm() {
                                 placeholder="Enter email, phone or username"
                             />
                             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                                <User className="w-5 h-5" />
+                                {isEmail ? <Mail className="w-5 h-5" /> : isPhone ? <Phone className="w-5 h-5" /> : <User className="w-5 h-5" />}
                             </div>
                         </div>
                     </div>

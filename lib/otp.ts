@@ -4,14 +4,14 @@ import { prisma } from "@/lib/prisma";
  * Generates a 6-digit OTP and stores it in the database.
  * Expires in 5 minutes.
  */
-export async function generateOtp(phone: string) {
+export async function generateOtp(identifier: string) {
     // Generate 6-digit random code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
 
     // Upsert: Update existing OTP or create new one
     await prisma.otp.upsert({
-        where: { phone },
+        where: { identifier }, // Updated from phone
         update: {
             code,
             expiresAt,
@@ -19,7 +19,7 @@ export async function generateOtp(phone: string) {
             createdAt: new Date(),
         },
         create: {
-            phone,
+            identifier, // Updated from phone
             code,
             expiresAt,
         },
@@ -33,9 +33,9 @@ export async function generateOtp(phone: string) {
  * Returns true if valid, false otherwise.
  * Deletes the OTP upon successful verification.
  */
-export async function verifyOtpCode(phone: string, code: string) {
+export async function verifyOtpCode(identifier: string, code: string) {
     const record = await prisma.otp.findUnique({
-        where: { phone },
+        where: { identifier }, // Updated from phone
     });
 
     if (!record) return false;
@@ -49,7 +49,7 @@ export async function verifyOtpCode(phone: string, code: string) {
     if (record.code !== code) {
         // Increment attempts (optional logic)
         await prisma.otp.update({
-            where: { phone },
+            where: { identifier },
             data: { attempts: { increment: 1 } },
         });
         return false;
@@ -57,7 +57,7 @@ export async function verifyOtpCode(phone: string, code: string) {
 
     // Success: Delete the used OTP to prevent reuse
     await prisma.otp.delete({
-        where: { phone },
+        where: { identifier },
     });
 
     return true;
