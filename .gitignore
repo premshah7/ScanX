@@ -42,7 +42,8 @@ next-env.d.ts
 *.seed.ts
 
 /lib/generated/prisma
-
+/scripts
+/.next
 # load testing
 loadtest.js
 find_data_output.txt

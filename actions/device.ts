@@ -1,44 +1,27 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { cookies } from "next/headers";
+import { v4 as uuidv4 } from "uuid";
 
-export async function registerDevice(fingerprint: string, deviceId: string) {
-    const session = await getServerSession(authOptions);
+export async function getOrSetDeviceId() {
+    const cookieStore = await cookies();
+    const existingDeviceId = cookieStore.get("device_id");
 
-    if (!session || session.user.role !== "STUDENT") {
-        return { error: "Unauthorized" };
+    if (existingDeviceId) {
+        return existingDeviceId.value;
     }
 
-    try {
-        const student = await prisma.student.findUnique({
-            where: { userId: parseInt(session.user.id) },
-        });
+    // Generate new ID if not present
+    const newDeviceId = uuidv4();
 
-        if (!student) {
-            return { error: "Student profile not found" };
-        }
+    // Set HttpOnly Cookie
+    cookieStore.set("device_id", newDeviceId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 365 * 10, // 10 years
+    });
 
-        if (student.deviceHash || student.deviceId) {
-            if (student.deviceHash === fingerprint && student.deviceId === deviceId) {
-                return { success: true, message: "Device already registered" };
-            }
-            return { error: "Device mismatch. You can only use one registered device." };
-        }
-
-        // Register the device (Bind both Hash and ID)
-        await prisma.student.update({
-            where: { id: student.id },
-            data: {
-                deviceHash: fingerprint,
-                deviceId: deviceId
-            },
-        });
-
-        return { success: true, message: "Device registered successfully" };
-    } catch (error) {
-        console.error("Device Registration Error:", error);
-        return { error: "Failed to register device" };
-    }
+    return newDeviceId;
 }

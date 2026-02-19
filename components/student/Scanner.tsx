@@ -54,14 +54,17 @@ export default function Scanner({ isDeviceResetRequested = false }: ScannerProps
             setDeviceHash(visitorId);
         };
 
-        // 2. Initialize Sticky Device ID (LocalStorage UUID)
-        const initDeviceId = () => {
-            let id = localStorage.getItem("device_id");
-            if (!id) {
-                id = uuidv4();
-                localStorage.setItem("device_id", id);
+        // 2. Initialize Sticky Device ID (HttpOnly Cookie)
+        const initDeviceId = async () => {
+            try {
+                // Import dynamically to avoid server-side issues in useEffect if needed, 
+                // but Server Actions are safe to call.
+                const { getOrSetDeviceId } = await import("@/actions/device");
+                const id = await getOrSetDeviceId();
+                setDeviceId(id);
+            } catch (e) {
+                console.error("Failed to init device ID", e);
             }
-            setDeviceId(id);
         };
 
         // 3. Detect Incognito Mode (Heuristic: Storage Quota)
@@ -123,8 +126,8 @@ export default function Scanner({ isDeviceResetRequested = false }: ScannerProps
         setLoading(true);
 
         try {
-            // Send BOTH the Fingerprint (Hardware hash) and the Sticky ID (Browser Profile ID)
-            const res = await markAttendance(token, deviceHash, deviceId, navigator.userAgent);
+            // Send ONLY the Fingerprint (Hardware hash). DeviceID is read from Cookie server-side.
+            const res = await markAttendance(token, deviceHash, navigator.userAgent);
 
             if (res.success) {
                 setResult({ success: true });

@@ -33,11 +33,18 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
     }, []);
 
     useEffect(() => {
-        if (!mounted) return; // Only update token after client-side mount
+        if (!mounted) return;
 
-        const updateToken = () => {
-            const timestamp = Date.now();
-            setToken(`${sessionId}:${timestamp}`);
+        const updateToken = async () => {
+            try {
+                const res = await fetch(`/api/session/token?sessionId=${sessionId}`);
+                const data = await res.json();
+                if (data.token) {
+                    setToken(data.token);
+                }
+            } catch (e) {
+                console.error("Failed to update QR token", e);
+            }
         };
 
         updateToken();
@@ -342,8 +349,8 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
                                                     key={sec}
                                                     onClick={() => { setRefreshInterval(sec); setCustomInput(""); }}
                                                     className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${refreshInterval === sec
-                                                            ? "bg-primary text-primary-foreground shadow-md"
-                                                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                                        ? "bg-primary text-primary-foreground shadow-md"
+                                                        : "bg-muted text-muted-foreground hover:bg-muted/80"
                                                         }`}
                                                 >
                                                     {sec}s
@@ -495,9 +502,16 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
                                             <p className="font-bold text-sm text-slate-900 dark:text-white truncate">
                                                 {log.student.user.name}
                                             </p>
-                                            <p className="text-xs text-slate-600 dark:text-slate-400 font-mono">
-                                                {log.student.rollNumber}
-                                            </p>
+                                            <div className="flex flex-col">
+                                                <p className="text-xs text-slate-600 dark:text-slate-400 font-mono">
+                                                    {log.student.rollNumber}
+                                                </p>
+                                                {log.type === 'proxy' && log.deviceOwner?.user?.name && (
+                                                    <p className="text-xs text-red-600 dark:text-red-400 font-semibold mt-0.5">
+                                                        Using {log.deviceOwner.user.name}'s Device
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
                                         <div className="text-right shrink-0">
                                             <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mb-1.5">

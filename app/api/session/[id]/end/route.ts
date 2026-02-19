@@ -13,6 +13,15 @@ export async function POST(
             return NextResponse.json({ error: "Invalid session ID" }, { status: 400 });
         }
 
+        // Security: Auth Check
+        const { getServerSession } = await import("next-auth");
+        const { authOptions } = await import("@/lib/auth");
+        const session = await getServerSession(authOptions);
+
+        if (!session || (session.user.role !== "ADMIN" && session.user.role !== "FACULTY")) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
         // Add 10 minutes buffer to endTime if needed, or just set isActive: false
         await prisma.session.update({
             where: { id: sessionId },

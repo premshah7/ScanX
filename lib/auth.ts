@@ -203,7 +203,7 @@ export const authOptions: NextAuthOptions = {
             if (session.user) {
                 session.user.role = token.role as string;
                 session.user.id = token.id as string;
-                session.user.id = token.id as string;
+                session.user.email = token.email as string;
                 session.user.status = token.status as string;
             }
             return session;

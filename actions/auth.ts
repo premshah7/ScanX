@@ -25,9 +25,10 @@ export async function registerStudent(data: {
             bcrypt.hash(data.password, 10)
         ]);
 
-        if (existingUser) return { error: "Email already registered" };
-        if (existingRoll) return { error: "Roll Number already registered" };
-        if (existingEnroll) return { error: "Enrollment Number already registered" };
+        if (existingUser || existingRoll || existingEnroll) {
+            // Security: Generic error message to prevent enumeration
+            return { error: "Registration failed. Please check your details or contact admin." };
+        }
 
         // 5. Create User and Student
         // Prisma transaction to ensure consistency
@@ -57,7 +58,7 @@ export async function registerStudent(data: {
 
     } catch (error) {
         console.error("Registration Error:", error);
-        return { error: "Failed to register. Please try again." };
+        return { error: "Registration failed. Please try again." };
     }
 }
 

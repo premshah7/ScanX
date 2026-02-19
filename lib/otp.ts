@@ -4,9 +4,27 @@ import { prisma } from "@/lib/prisma";
  * Generates a 6-digit OTP and stores it in the database.
  * Expires in 5 minutes.
  */
+import { randomInt } from "crypto";
+
+/**
+ * Generates a 6-digit OTP and stores it in the database.
+ * Expires in 5 minutes.
+ */
 export async function generateOtp(identifier: string) {
-    // Generate 6-digit random code
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    // Security: Rate Limit Check
+    const recentOtp = await prisma.otp.findFirst({
+        where: {
+            identifier,
+            createdAt: { gt: new Date(Date.now() - 60 * 1000) } // 1 minute cooldown
+        }
+    });
+
+    if (recentOtp) {
+        throw new Error("Please wait 1 minute before requesting another OTP.");
+    }
+
+    // Generate 6-digit random code securely
+    const code = randomInt(100000, 999999).toString();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
 
     // Upsert: Update existing OTP or create new one

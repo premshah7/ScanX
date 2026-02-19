@@ -8,6 +8,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
 export async function createFaculty(formData: FormData) {
+    // Single-Tenant App: Admin has global access to all resources.
+    // No organizationId check required.
     const name = formData.get("name") as string;
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
@@ -401,6 +403,7 @@ export async function removeStudentFromBatch(studentId: number, batchId: number)
 }
 
 export async function getFacultyBatches(facultyId: number) {
+    // Single-Tenant App: Admin has global access.
     const session = await getServerSession(authOptions);
     if (session?.user.role !== "ADMIN") return { error: "Unauthorized" };
 

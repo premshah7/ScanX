@@ -52,7 +52,7 @@ export async function sendOtp(identifier: string) {
 
         // 2. Enforce Domain Restriction
         const allowedDomain = process.env.ALLOWED_EMAIL_DOMAIN;
-        if (isEmail && allowedDomain && !targetIdentifier.endsWith(`@${allowedDomain}`)) {
+        if (isEmail && allowedDomain && !targetIdentifier.toLowerCase().endsWith(`@${allowedDomain.toLowerCase()}`)) {
             return { success: false, message: `Email must be from @${allowedDomain}` };
         }
 
@@ -74,7 +74,12 @@ export async function sendOtp(identifier: string) {
         }
 
         // 4. Generate OTP
-        const code = await generateOtp(targetIdentifier);
+        let code;
+        try {
+            code = await generateOtp(targetIdentifier);
+        } catch (e: any) {
+            return { success: false, message: e.message || "Rate limit exceeded" };
+        }
 
         // ... inside sendOtp ...
 

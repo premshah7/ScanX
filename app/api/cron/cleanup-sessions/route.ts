@@ -4,6 +4,12 @@ import { prisma } from "@/lib/prisma";
 // This route serves as a cron job target to clean up stale sessions
 export async function GET(req: NextRequest) {
     try {
+        // Security: Cron Secret Check
+        const authHeader = req.headers.get("authorization");
+        if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
         // Define stale threshold (e.g., 4 hours ago)
         const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000);
 

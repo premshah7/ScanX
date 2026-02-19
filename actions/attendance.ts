@@ -6,9 +6,15 @@ import { authOptions } from "@/lib/auth";
 import { validateIp } from "@/lib/ipCheck";
 import { revalidatePath } from "next/cache";
 
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 
-export async function markAttendance(token: string, deviceHash: string, deviceId: string, userAgent: string) {
+export async function markAttendance(token: string, deviceHash: string, userAgent: string) {
+    const cookieStore = await cookies();
+    const deviceId = cookieStore.get("device_id")?.value;
+
+    if (!deviceId) {
+        return { error: "Device Identity Missing. Please refresh the page." };
+    }
     const session = await getServerSession(authOptions);
 
     if (!session || (session.user.role !== "STUDENT" && session.user.role !== "GUEST")) {
@@ -17,10 +23,36 @@ export async function markAttendance(token: string, deviceHash: string, deviceId
 
     const studentId = parseInt(session.user.id);
 
-    // 1. Parse Token
-    const [sessionIdStr, timestampStr] = token.split(":");
-    const sessionId = parseInt(sessionIdStr);
-    const timestamp = parseInt(timestampStr);
+    // 1. Parse Token (JWT Support)
+    let sessionId: number;
+    let timestamp: number;
+
+    const QR_SECRET = process.env.NEXT_PUBLIC_QR_SECRET || "fallback_secret";
+
+    // Check if it's a legacy token (sessionId:timestamp) or a JWT
+    if (token.includes(":") && !token.includes(".")) {
+        // Legacy Path
+        const parts = token.split(":");
+        sessionId = parseInt(parts[0]);
+        timestamp = parseInt(parts[1]);
+    } else {
+        // JWT Path
+        try {
+            // Lazy load jwt to avoid edge runtime issues if possible, although this is a server action.
+            const jwt = require("jsonwebtoken");
+            const decoded = jwt.verify(token, QR_SECRET) as any;
+            sessionId = decoded.sessionId;
+            timestamp = decoded.timestamp;
+
+            // Validate payload structure
+            if (!sessionId || !timestamp) {
+                return { error: "Invalid QR Token Payload" };
+            }
+        } catch (e) {
+            console.error("JWT Verification Failed:", e);
+            return { error: "Invalid QR Codes" };
+        }
+    }
 
     if (isNaN(sessionId) || isNaN(timestamp)) {
         return { error: "Invalid QR Codes" };
@@ -182,32 +214,36 @@ export async function markAttendance(token: string, deviceHash: string, deviceId
     let isProxy = false;
     const isGuest = session.user.role === "GUEST";
 
-    if (!student.deviceHash || !student.deviceId) {
-        // Bind Device (First time) - Enforce both
-        await prisma.student.update({
-            where: { id: student.id },
-            data: {
-                deviceHash: deviceHash,
-                deviceId: deviceId
+    // Atomic Device Binding to prevent Race Conditions
+    let storedHash = student.deviceHash;
+    let storedId = student.deviceId;
+
+    if (!storedHash || !storedId) {
+        // Try to bind atomically
+        const result = await prisma.student.updateMany({
+            where: {
+                id: student.id,
+                OR: [{ deviceHash: null }, { deviceId: null }]
             },
+            data: { deviceHash, deviceId }
         });
-    } else {
-        // Verify consistency
-        // If either the hardware hash OR the sticky ID changes, we flag it.
-        if (!isGuest && (student.deviceHash !== deviceHash || student.deviceId !== deviceId)) {
-            isProxy = true;
+
+        if (result.count === 1) {
+            // We successfully bound it
+            storedHash = deviceHash;
+            storedId = deviceId;
+        } else {
+            // Already bound by parallel request. Re-fetch current state.
+            const refreshed = await prisma.student.findUnique({ where: { id: student.id } });
+            if (refreshed) {
+                storedHash = refreshed.deviceHash;
+                storedId = refreshed.deviceId;
+            }
         }
-        // Guests: We allow them to use different devices if needed? 
-        // Or strictly bind? Let's strictly bind for now to prevent pass sharing.
-        // If user wants "Ease", maybe we relax this. 
-        // "Guest can scan... easy to take attendance". 
-        // If I skip this check for guests:
-        if (isGuest && (student.deviceHash !== deviceHash || student.deviceId !== deviceId)) {
-            // Optional: Update binding for guest?
-            // await prisma.student.update({ where: { id: student.id }, data: { deviceHash, deviceId } });
-            // For now, let's NOT flag proxy for guests to avoid friction.
-            isProxy = false;
-        }
+    }
+
+    if (!isGuest && (storedHash !== deviceHash || storedId !== deviceId)) {
+        isProxy = true;
     }
 
     if (isProxy) {
