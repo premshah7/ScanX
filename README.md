@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ScanX
 
-## Getting Started
+ScanX is a comprehensive attendance management system that uses a combination of a web dashboard and a mobile application to streamline attendance tracking and prevent proxy attendance. 
 
-First, run the development server:
+The system leverages QR code scanning and device fingerprinting to ensure that students are physically present and using their own devices.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🚀 Tech Stack
+
+### Web & Backend (Next.js)
+- **Framework**: [Next.js](https://nextjs.org/) (App Router)
+- **Database ORM**: [Prisma](https://www.prisma.io/)
+- **Database**: PostgreSQL
+- **Styling**: Tailwind CSS
+- **Authentication**: NextAuth.js / JWT
+- **Features**: QR Code Generation, FingerprintJS for device uniqueness
+
+### Mobile App (Flutter)
+- **Framework**: [Flutter](https://flutter.dev/)
+- **Platform**: Android / iOS
+- **Features**: Mobile Scanner (QR code scanning), Secure Storage for JWT tokens, Device Info for proxy prevention
+
+## ✨ Features
+
+- **Role-based Access**: Supports multiple user roles including Admin, Faculty, Student, and Guest.
+- **Session Management**: Faculty can create Subjects, Batches, and specific Sessions.
+- **QR Code Attendance**: Dynamic QR codes are generated for sessions.
+- **Anti-Proxy System**: 
+  - Ties student accounts to specific physical devices using hardware identifiers.
+  - Logs `ProxyAttempts` if attendance is attempted from an unauthorized device.
+- **Real-time API**: The mobile app communicates securely with the Next.js REST API.
+
+## 📁 Project Structure
+
+```text
+ScanX-mobile/
+├── app/                  # Next.js App Router (Web Dashboard & API Routes)
+├── components/           # Reusable React components for the web app
+├── prisma/               # Prisma schema and migrations (PostgreSQL)
+├── mobile/               # Flutter mobile application codebase
+│   ├── lib/
+│   │   ├── main.dart
+│   │   ├── core/         # Core utilities and API constants
+│   │   ├── presentation/ # Flutter UI screens
+│   │   └── providers/    # State management (Provider)
+└── public/               # Static assets for the web app
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Getting Started
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Prerequisites
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- [Flutter SDK](https://docs.flutter.dev/get-started/install)
+- [PostgreSQL](https://www.postgresql.org/) database
 
-## Learn More
+### 1. Web / Backend Setup
 
-To learn more about Next.js, take a look at the following resources:
+1. Copy the environment variables example and configure your database:
+   ```bash
+   cp .env.example .env
+   # Update DATABASE_URL in the .env file
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. Run database migrations and generate Prisma client:
+   ```bash
+   npx prisma migrate dev
+   npx prisma generate
+   ```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+4. Start the Next.js development server:
+   ```bash
+   npm run dev
+   ```
+   The backend API and web dashboard will be available at `http://localhost:3000`.
+## 📄 License
+This project is proprietary and confidential.
