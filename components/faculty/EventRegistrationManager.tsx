@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Search, FileSpreadsheet, Check, X, ShieldAlert, Clock, CheckCircle } from "lucide-react";
-import { approveRegistration, rejectRegistration, exportRegistrations } from "@/actions/event-registration";
+import { useState, useMemo, useTransition } from "react";
+import { Search, FileSpreadsheet, Check, X, ShieldAlert, Clock, CheckCircle, Trash2 } from "lucide-react";
+import { approveRegistration, rejectRegistration, deleteRegistration, exportRegistrations } from "@/actions/event-registration";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -21,6 +22,8 @@ export default function EventRegistrationManager({
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState<"ALL" | "PENDING" | "APPROVED" | "REJECTED">("ALL");
     const [isExporting, setIsExporting] = useState(false);
+    const [deleteId, setDeleteId] = useState<number | null>(null);
+    const [isPending, startTransition] = useTransition();
 
     const filteredRegs = useMemo(() => {
         return initialRegistrations.filter(r => {
@@ -32,26 +35,54 @@ export default function EventRegistrationManager({
     }, [initialRegistrations, search, statusFilter]);
 
     async function handleApprove(id: number) {
-        toast.promise(approveRegistration(id), {
-            loading: "Approving...",
-            success: (res) => {
-                if (res.error) throw new Error(res.error);
-                router.refresh();
-                return "Registration approved.";
-            },
-            error: (err) => err.message
+        startTransition(async () => {
+            const promise = approveRegistration(id);
+            toast.promise(promise, {
+                loading: "Approving...",
+                success: (res) => {
+                    if (res.error) throw new Error(res.error);
+                    router.refresh();
+                    return "Registration approved.";
+                },
+                error: (err) => err.message
+            });
         });
     }
 
     async function handleReject(id: number) {
-        toast.promise(rejectRegistration(id), {
-            loading: "Rejecting...",
-            success: (res) => {
-                if (res.error) throw new Error(res.error);
-                router.refresh();
-                return "Registration rejected.";
-            },
-            error: (err) => err.message
+        startTransition(async () => {
+            const promise = rejectRegistration(id);
+            toast.promise(promise, {
+                loading: "Rejecting...",
+                success: (res) => {
+                    if (res.error) throw new Error(res.error);
+                    router.refresh();
+                    return "Registration rejected.";
+                },
+                error: (err) => err.message
+            });
+        });
+    }
+
+    async function handleDelete(id: number) {
+        setDeleteId(id);
+    }
+
+    async function confirmDelete() {
+        if (!deleteId) return;
+        startTransition(async () => {
+            try {
+                const res = await deleteRegistration(deleteId);
+                if (res.error) {
+                    toast.error(res.error);
+                } else {
+                    toast.success("Guest removed successfully.");
+                    router.refresh();
+                    setDeleteId(null);
+                }
+            } catch (error) {
+                toast.error("Failed to remove guest.");
+            }
         });
     }
 
@@ -129,7 +160,7 @@ export default function EventRegistrationManager({
                                 <th className="px-5 py-3 whitespace-nowrap">Status</th>
                                 <th className="px-5 py-3 whitespace-nowrap">Registered On</th>
                                 {customFields.map((f, i) => <th key={i} className="px-5 py-3 whitespace-nowrap">{f.label}</th>)}
-                                {requiresApproval && <th className="px-5 py-3 text-right">Actions</th>}
+                                <th className="px-5 py-3 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
@@ -154,10 +185,10 @@ export default function EventRegistrationManager({
                                             {String((reg.formData as any)?.[f.name] || "-")}
                                         </td>
                                     ))}
-                                    {requiresApproval && (
-                                        <td className="px-5 py-3 text-right">
+                                    <td className="px-5 py-3 text-right">
+                                        <div className="flex items-center justify-end gap-2">
                                             {reg.status === "PENDING" && (
-                                                <div className="flex items-center justify-end gap-2">
+                                                <>
                                                     <button 
                                                         onClick={() => handleApprove(reg.id)}
                                                         title="Approve"
@@ -168,14 +199,21 @@ export default function EventRegistrationManager({
                                                     <button 
                                                         onClick={() => handleReject(reg.id)}
                                                         title="Reject"
-                                                        className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900 border border-red-200 dark:border-red-800 transition-colors"
+                                                        className="p-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 dark:bg-amber-900/30 dark:hover:bg-amber-900 border border-amber-200 dark:border-amber-800 transition-colors"
                                                     >
                                                         <X className="w-4 h-4" />
                                                     </button>
-                                                </div>
+                                                </>
                                             )}
-                                        </td>
-                                    )}
+                                            <button 
+                                                onClick={() => handleDelete(reg.id)}
+                                                title="Delete Guest"
+                                                className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900 border border-red-200 dark:border-red-800 transition-colors"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                             ))}
                             {filteredRegs.length === 0 && (
@@ -189,6 +227,17 @@ export default function EventRegistrationManager({
                     </table>
                 </div>
             </div>
+
+            <ConfirmDialog
+                isOpen={deleteId !== null}
+                onClose={() => setDeleteId(null)}
+                onConfirm={confirmDelete}
+                loading={isPending}
+                title="Remove Guest"
+                description="Are you sure you want to remove this registration? The user will no longer be listed as a guest and their attendance records for this event may be affected."
+                confirmText="Remove Guest"
+                variant="danger"
+            />
         </div>
     );
 }

@@ -2,6 +2,9 @@ import { getPublicEvents } from "@/actions/event";
 import PublicEventCard from "@/components/events/PublicEventCard";
 import Navbar from "@/components/landing/Navbar";
 import { Calendar, Search, Sparkles } from "lucide-react";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export const metadata = {
     title: 'Events | ScanX',
@@ -11,6 +14,14 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function EventsDirectoryPage() {
+    const session = await getServerSession(authOptions);
+
+    // Redirect logged-in students to their dashboard version of this page 
+    // to avoid the public landing navbar
+    if (session?.user.role === "STUDENT") {
+        redirect("/student/events/discover");
+    }
+
     const { events, error } = await getPublicEvents();
 
     return (

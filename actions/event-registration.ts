@@ -336,6 +336,30 @@ export async function rejectRegistration(registrationId: number) {
     }
 }
 
+export async function deleteRegistration(registrationId: number) {
+    try {
+        const registration = await prisma.eventRegistration.findUnique({
+            where: { id: registrationId },
+        });
+        if (!registration) return { error: "Registration not found" };
+
+        const session = await requireOrganizerAuth(registration.eventId);
+        if (!session) return { error: "Unauthorized Access" };
+
+        await prisma.eventRegistration.delete({
+            where: { id: registrationId }
+        });
+
+        revalidatePath(`/admin/events/${registration.eventId}`);
+        revalidatePath(`/faculty/events/${registration.eventId}`);
+
+        return { success: true };
+    } catch (error) {
+        console.error("Error deleting registration:", error);
+        return { error: "Failed to delete registration" };
+    }
+}
+
 export async function bulkApproveRegistrations(eventId: number, registrationIds: number[]) {
     try {
         const session = await requireOrganizerAuth(eventId);

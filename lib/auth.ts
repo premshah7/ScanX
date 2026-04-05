@@ -130,6 +130,7 @@ export const authOptions: NextAuthOptions = {
                             { email: identifier },
                             { phoneNumber: identifier },
                             { username: identifier },
+                            { student: { enrollmentNo: identifier } },
                         ],
                     },
                 });

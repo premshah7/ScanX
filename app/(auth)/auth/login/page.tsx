@@ -144,7 +144,7 @@ function LoginForm() {
                         {/* Identifier Input */}
                         <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                             <label className="block text-sm font-semibold text-foreground mb-1.5 px-0.5">
-                                {loginType === "student" ? "Enrollment, Email, or Mobile Number" : "Guest Username"}
+                                {loginType === "student" ? "Enrollment, Email, or Mobile" : "Guest Username"}
                             </label>
                             <div className="relative group">
                                 <input
@@ -152,7 +152,7 @@ function LoginForm() {
                                     value={identifier}
                                     onChange={(e) => setIdentifier(e.target.value)}
                                     className="w-full pl-10 bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                                    placeholder={loginType === "student" ? "enroll, email, or phone" : "Enter your guest username"}
+                                    placeholder={loginType === "student" ? "enrollment, email, or phone" : "Enter your guest username"}
                                 />
                                 <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors">
                                     {isEmail ? <Mail className="w-4 h-4" /> : isPhone ? <Phone className="w-4 h-4" /> : <User className="w-4 h-4" />}
