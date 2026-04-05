@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { BookOpen, History, LayoutDashboard, Calendar, LogOut, Moon, Sun } from "lucide-react";
+import { BookOpen, History, LayoutDashboard, Calendar, LogOut, Moon, Sun, Ticket } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ export function FacultyNavbar() {
 
     const links = [
         { href: "/faculty", label: "Dashboard", icon: LayoutDashboard },
+        { href: "/faculty/events", label: "Events", icon: Ticket },
         { href: "/faculty/history", label: "History", icon: History },
     ];
 

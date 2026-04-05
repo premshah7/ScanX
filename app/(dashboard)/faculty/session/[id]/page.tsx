@@ -10,7 +10,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
 
     const session = await prisma.session.findUnique({
         where: { id: sessionId },
-        include: { subject: true },
+        include: { subject: true, event: true },
     });
 
     if (!session) notFound();
@@ -29,7 +29,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
 
             <SessionView
                 sessionId={session.id}
-                subjectName={session.subject.name}
+                subjectName={session.subject?.name || session.event?.name || "Event Session"}
                 subjectId={session.subjectId}
             />
         </div>

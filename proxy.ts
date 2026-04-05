@@ -7,7 +7,7 @@ export const proxy = withAuth(
         const { token } = req.nextauth;
 
         // Public routes are handled by `matcher` exclusion, but we double-check here
-        if (pathname === "/" || pathname.startsWith("/auth") || pathname.startsWith("/api")) {
+        if (pathname === "/" || pathname.startsWith("/auth") || pathname.startsWith("/api") || pathname.startsWith("/events")) {
             return NextResponse.next();
         }
 
@@ -75,6 +75,6 @@ export const config = {
          * - favicon.ico (favicon file)
          * - public files (images, etc)
          */
-        "/((?!auth|api|_next/static|_next/image|favicon.ico|manifest.webmanifest|manifest.json|about|impact|developer|logo.svg|.*\\.svg$).*)",
+        "/((?!auth|api|events|_next/static|_next/image|favicon.ico|manifest.webmanifest|manifest.json|about|impact|developer|logo.svg|.*\\.svg$).*)",
     ],
 };

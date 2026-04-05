@@ -10,14 +10,15 @@ import { v4 as uuidv4 } from "uuid";
 
 interface ScannerProps {
     isDeviceResetRequested?: boolean;
+    successRedirect?: string;
 }
 
-export default function Scanner({ isDeviceResetRequested = false }: ScannerProps) {
+export default function Scanner({ isDeviceResetRequested = false, successRedirect = "/student" }: ScannerProps) {
     const router = useRouter();
     const [deviceHash, setDeviceHash] = useState<string | null>(null);
     const [deviceId, setDeviceId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    const [result, setResult] = useState<{ success?: boolean; error?: string } | null>(null);
+    const [result, setResult] = useState<{ success?: boolean; error?: string; name?: string } | null>(null);
     const [paused, setPaused] = useState(false);
     const [isIncognito, setIsIncognito] = useState(false);
     const [securityCheckComplete, setSecurityCheckComplete] = useState(false);
@@ -130,8 +131,8 @@ export default function Scanner({ isDeviceResetRequested = false }: ScannerProps
             const res = await markAttendance(token, deviceHash, navigator.userAgent);
 
             if (res.success) {
-                setResult({ success: true });
-                setTimeout(() => router.push("/student"), 2000);
+                setResult({ success: true, name: res.name });
+                setTimeout(() => router.push(successRedirect), 3500);
             } else {
                 setResult({ error: res.error });
             }
@@ -210,6 +211,9 @@ export default function Scanner({ isDeviceResetRequested = false }: ScannerProps
                                 <CheckCircle className="w-10 h-10 text-emerald-500" />
                             </div>
                             <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Attendance Marked</h2>
+                            <div className="bg-emerald-950/20 px-3 py-2 rounded-lg border border-emerald-900/40 mb-3">
+                                <p className="text-emerald-400 font-bold text-lg">{result.name}</p>
+                            </div>
                             <p className="text-emerald-400/80 text-sm font-medium">Session Validated • Redirecting...</p>
                         </>
                     ) : (

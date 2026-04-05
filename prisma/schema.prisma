@@ -8,32 +8,23 @@ datasource db {
 }
 
 model User {
-  id          Int        @id @default(autoincrement())
-  name        String
-  email       String     @unique
-  password    String
-  phoneNumber String?    @unique
-  username    String?    @unique // NEW: For Guest Login without Phone
-  role        Role
-  createdAt   DateTime   @default(now())
-  status      UserStatus @default(PENDING)
-  faculty     Faculty?
-  student     Student?
-  // managedEvents Subject[]  @relation("EventManagers")
+  id                    Int                 @id @default(autoincrement())
+  name                  String
+  email                 String              @unique
+  password              String
+  phoneNumber           String?             @unique
+  username              String?             @unique // NEW: For Guest Login without Phone
+  role                  Role
+  createdAt             DateTime            @default(now())
+  status                UserStatus          @default(PENDING)
+  faculty               Faculty?
+  student               Student?
+  createdEvents         Event[]             @relation("EventCreator")
+  organizedEvents       EventOrganizer[]
+  eventRegistrations    EventRegistration[]
+  reviewedRegistrations EventRegistration[] @relation("RegistrationReviewer")
 }
 
-enum Role {
-  ADMIN
-  FACULTY
-  STUDENT
-  GUEST
-}
-
-enum UserStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
 
 model Otp {
   id         Int      @id @default(autoincrement())
@@ -104,13 +95,15 @@ model Subject {
 
 model Session {
   id            Int            @id @default(autoincrement())
-  subjectId     Int
+  subjectId     Int?
+  eventId       Int?
   isActive      Boolean        @default(true)
   startTime     DateTime       @default(now())
   endTime       DateTime?
   attendances   Attendance[]
   proxyAttempts ProxyAttempt[]
-  subject       Subject        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  subject       Subject?       @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  event         Event?         @relation(fields: [eventId], references: [id], onDelete: Cascade)
   batches       Batch[]        @relation("BatchToSession")
 }
 
@@ -144,4 +137,82 @@ model SystemSettings {
   id               Int     @id @default(autoincrement())
   allowedIpPrefix  String  @default("")
   isIpCheckEnabled Boolean @default(false)
+}
+
+// ─── Events System ───────────────────────────────────────────────────
+
+model Event {
+  id                 Int       @id @default(autoincrement())
+  name               String
+  slug               String    @unique // URL-friendly identifier
+  description        String? // Markdown description
+  eventDate          DateTime // Start date/time
+  eventEndDate       DateTime? // End date (multi-day events)
+  venue              String?
+  maxCapacity        Int? // null = unlimited
+  requiresApproval   Boolean   @default(false)
+  isPublic           Boolean   @default(true)
+  registrationFields Json      @default("[]") // Dynamic form field config
+  isActive           Boolean   @default(true)
+  createdById        Int // User who created
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  createdBy     User                @relation("EventCreator", fields: [createdById], references: [id])
+  organizers    EventOrganizer[]
+  registrations EventRegistration[]
+  sessions      Session[]
+
+  @@index([slug])
+  @@index([eventDate])
+}
+
+model EventOrganizer {
+  id      Int    @id @default(autoincrement())
+  eventId Int
+  userId  Int
+  role    String @default("ORGANIZER") // "CREATOR" or "ORGANIZER"
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+}
+
+model EventRegistration {
+  id           Int       @id @default(autoincrement())
+  eventId      Int
+  userId       Int
+  status       String    @default("PENDING") // "PENDING", "APPROVED", "REJECTED"
+  formData     Json      @default("{}") // Filled dynamic field values
+  registeredAt DateTime  @default(now())
+  reviewedAt   DateTime?
+  reviewedById Int? // Organizer who approved/rejected
+
+  event      Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user       User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewedBy User? @relation("RegistrationReviewer", fields: [reviewedById], references: [id])
+
+  @@unique([eventId, userId])
+  @@index([eventId, status])
+}
+
+enum Role {
+  ADMIN
+  FACULTY
+  STUDENT
+  GUEST
+  ORGANIZER
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AIValidationStatus {
+  VALID
+  WARNING
+  PROXY_SUSPECTED
 }

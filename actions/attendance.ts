@@ -75,7 +75,11 @@ export async function markAttendance(token: string, deviceHash: string, userAgen
     const [dbSession, student] = await Promise.all([
         prisma.session.findUnique({
             where: { id: sessionId },
-            include: { batches: true } // Fetch allowed batches
+            include: { 
+                batches: true,
+                subject: { select: { name: true } },
+                event: { select: { name: true } }
+            }
         }),
         prisma.student.findUnique({
             where: { userId: studentId },
@@ -89,6 +93,16 @@ export async function markAttendance(token: string, deviceHash: string, userAgen
 
     if (!student) {
         return { error: "Student record not found" };
+    }
+
+    // Check event registration approval (for event sessions)
+    if (dbSession.eventId) {
+        const registration = await prisma.eventRegistration.findFirst({
+            where: { eventId: dbSession.eventId, userId: studentId },
+        });
+        if (!registration || registration.status !== "APPROVED") {
+            return { error: "You are not approved for this event. Contact the organizer." };
+        }
     }
 
     // 3.1 Check User Status (Approval)
@@ -113,6 +127,7 @@ export async function markAttendance(token: string, deviceHash: string, userAgen
         }
     }
 
+    /* 
     // --- NEW: GLOBAL DEVICE OWNERSHIP CHECK (Sticky ID + Fingerprint) ---
     console.log(`[Attendance Debug] User: ${student.user.email} | Hash: ${deviceHash} | ID: ${deviceId}`);
 
@@ -166,6 +181,7 @@ export async function markAttendance(token: string, deviceHash: string, userAgen
 
         return { error: "Device Verification Failed! This device is linked to another account." };
     }
+    */
 
     // 5. Smart IP Lock & Validation
     const settings = await prisma.systemSettings.findFirst();
@@ -205,15 +221,11 @@ export async function markAttendance(token: string, deviceHash: string, userAgen
     }
     */
 
-    // 6. Device Validation (Anti-Proxy for current student)
-    // For GUESTS, we skip strict device binding as they are likely using personal devices once.
-    // Or we bind it but don't strictly enforce consistency across sessions if acceptable.
-    // Let's enforce it for security, but maybe allow re-binding if needed?
-    // For now, treat Guests same as Students: Bind first device.
-
-    let isProxy = false;
     const isGuest = session.user.role === "GUEST";
-
+    
+    // --- TEMPORARILY DISABLED DEVICE VERIFICATION ---
+    /*
+    let isProxy = false;
     // Atomic Device Binding to prevent Race Conditions
     let storedHash = student.deviceHash;
     let storedId = student.deviceId;
@@ -274,6 +286,7 @@ export async function markAttendance(token: string, deviceHash: string, userAgen
         }
         return { error: "Device Verification Failed! Please use your registered device and browser." };
     }
+    */
 
     // 7. Check if already marked (Moved AFTER device verification)
     const existingAttendance = await prisma.attendance.findFirst({
@@ -301,5 +314,33 @@ export async function markAttendance(token: string, deviceHash: string, userAgen
 
 
     revalidatePath("/student");
-    return { success: true };
+    const name = dbSession.subject?.name || dbSession.event?.name || "Unknown Session";
+    return { success: true, name };
+}
+
+export async function getSessionAttendance(sessionId: number) {
+    const session = await getServerSession(authOptions);
+    if (!session || (session.user.role !== "ADMIN" && session.user.role !== "FACULTY")) {
+        return { error: "Unauthorized" };
+    }
+
+    const attendances = await prisma.attendance.findMany({
+        where: { sessionId },
+        include: {
+            student: {
+                include: {
+                    user: {
+                        select: {
+                            name: true,
+                            email: true,
+                            username: true
+                        }
+                    }
+                }
+            }
+        },
+        orderBy: { timestamp: "desc" }
+    });
+
+    return { success: true, attendances };
 }

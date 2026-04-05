@@ -26,6 +26,14 @@ export default async function SessionDetailPage({
                     }
                 }
             },
+            event: {
+                include: {
+                    createdBy: true,
+                    organizers: {
+                        include: { user: true }
+                    }
+                }
+            },
             attendances: {
                 include: {
                     student: { include: { user: true } }
@@ -44,16 +52,18 @@ export default async function SessionDetailPage({
     }
 
     // Security check: Ensure this session belongs to the logged-in faculty
-    const isPrimary = dbSession.subject.faculty?.user.email === session.user.email;
+    const isPrimary = dbSession.subject?.faculty?.user.email === session.user.email;
+    const isCreator = dbSession.event?.createdBy?.email === session.user.email;
+    const isOrganizer = dbSession.event?.organizers?.some(o => o.user.email === session.user.email);
 
-    if (!isPrimary) {
+    if (!isPrimary && !isCreator && !isOrganizer) {
         redirect("/unauthorized");
     }
 
     return (
         <SessionReport
             sessionId={dbSession.id}
-            subjectName={dbSession.subject.name}
+            subjectName={dbSession.subject?.name || dbSession.event?.name || "Event Session"}
             startTime={dbSession.startTime}
             endTime={dbSession.endTime}
             attendees={dbSession.attendances}

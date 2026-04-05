@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, QrCode, User, LucideIcon } from "lucide-react";
+import { LayoutDashboard, QrCode, User, LucideIcon, Ticket } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ type Tab = {
 
 const tabs: Tab[] = [
     { href: "/student", label: "Home", icon: LayoutDashboard },
+    { href: "/student/events", label: "Events", icon: Ticket },
     { href: "/student/scan", label: "Scan QR", icon: QrCode, isCenter: true },
     { href: "/student/profile", label: "Profile", icon: User },
 ];

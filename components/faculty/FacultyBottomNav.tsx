@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, History, User } from "lucide-react";
+import { LayoutDashboard, History, User, Ticket } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Tab = {
@@ -13,6 +13,7 @@ type Tab = {
 
 const tabs: Tab[] = [
     { href: "/faculty", label: "Home", icon: LayoutDashboard },
+    { href: "/faculty/events", label: "Events", icon: Ticket },
     { href: "/faculty/history", label: "History", icon: History },
     { href: "/faculty/profile", label: "Profile", icon: User },
 ];

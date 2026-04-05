@@ -5,7 +5,7 @@ type ActiveSessionsFeedProps = {
     sessions: {
         id: number;
         startTime: Date;
-        subject: {
+        subject?: {
             name: string;
             totalStudents: number;
             faculty: {
@@ -13,7 +13,12 @@ type ActiveSessionsFeedProps = {
                     name: string;
                 };
             } | null;
-        };
+        } | null;
+        event?: {
+            name: string;
+            maxCapacity: number | null;
+            createdBy: { name: string; } | null;
+        } | null;
         _count: {
             attendances: number;
             proxyAttempts: number;
@@ -43,52 +48,63 @@ export default function ActiveSessionsFeed({ sessions }: ActiveSessionsFeedProps
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                        {sessions.map((session) => (
-                            <Link
-                                key={session.id}
-                                href={`/admin/logs?sessionId=${session.id}`} // Or a specific session monitor page if we had one
-                                className="bg-muted/50 border border-border hover:border-blue-500/50 rounded-lg p-5 transition-all group hover:bg-card hover:shadow-md"
-                            >
-                                <div className="flex justify-between items-start mb-4">
-                                    <div>
-                                        <h4 className="font-bold text-foreground group-hover:text-blue-600 transition-colors">
-                                            {session.subject.name}
-                                        </h4>
-                                        <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                                            <Users className="w-3 h-3" />
-                                            {session.subject.faculty?.user?.name || "Multiple Organizers"}
+                        {sessions.map((session) => {
+                            const name = session.subject?.name || session.event?.name || "Live Session";
+                            const organizerName = session.subject?.faculty?.user?.name || session.event?.createdBy?.name || "Multiple Organizers";
+                            const total = session.subject?.totalStudents || session.event?.maxCapacity || 100; // Fallback for aesthetic progress bar
+                            const showTotal = session.subject?.totalStudents || session.event?.maxCapacity;
+                            
+                            return (
+                                <Link
+                                    key={session.id}
+                                    href={`/admin/logs?sessionId=${session.id}`} // Or a specific session monitor page if we had one
+                                    className="bg-muted/50 border border-border hover:border-blue-500/50 rounded-lg p-5 transition-all group hover:bg-card hover:shadow-md"
+                                >
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h4 className="font-bold text-foreground group-hover:text-blue-600 transition-colors">
+                                                {name}
+                                            </h4>
+                                            <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                                                <Users className="w-3 h-3" />
+                                                {organizerName}
+                                            </div>
+                                        </div>
+                                        <div className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded font-mono border border-green-200">
+                                            LIVE
                                         </div>
                                     </div>
-                                    <div className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded font-mono border border-green-200">
-                                        LIVE
-                                    </div>
-                                </div>
 
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="text-muted-foreground flex items-center gap-1.5">
-                                            <Clock className="w-3.5 h-3.5" />
-                                            Started
-                                        </span>
-                                        <span className="text-foreground font-mono">
-                                            {session.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        </span>
-                                    </div>
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span className="text-muted-foreground flex items-center gap-1.5">
+                                                <Clock className="w-3.5 h-3.5" />
+                                                Started
+                                            </span>
+                                            <span className="text-foreground font-mono">
+                                                {session.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                        </div>
 
-                                    <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
-                                        <div
-                                            className="bg-blue-600 h-full rounded-full transition-all duration-500"
-                                            style={{ width: `${(session._count.attendances / session.subject.totalStudents) * 100}%` }}
-                                        ></div>
-                                    </div>
+                                        <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
+                                            <div
+                                                className="bg-blue-600 h-full rounded-full transition-all duration-500"
+                                                style={{ width: `${Math.min((session._count.attendances / total) * 100, 100)}%` }}
+                                            ></div>
+                                        </div>
 
-                                    <div className="flex justify-between items-center text-xs">
-                                        <span className="text-foreground font-bold">{session._count.attendances} <span className="text-muted-foreground font-normal">Present</span></span>
-                                        <span className="text-foreground font-bold">{session.subject.totalStudents} <span className="text-muted-foreground font-normal">Total</span></span>
+                                        <div className="flex justify-between items-center text-xs">
+                                            <span className="text-foreground font-bold">{session._count.attendances} <span className="text-muted-foreground font-normal">Present</span></span>
+                                            {showTotal ? (
+                                                <span className="text-foreground font-bold">{total} <span className="text-muted-foreground font-normal">Total</span></span>
+                                            ) : (
+                                                <span className="text-muted-foreground">Unlimited Capacity</span>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            </Link>
-                        ))}
+                                </Link>
+                            );
+                        })}
                     </div>
                 )}
             </div>

@@ -4,7 +4,7 @@ async function main() {
     console.log('Checking for ANY active sessions...');
     const activeSessions = await prisma.session.findMany({
         where: { isActive: true },
-        include: { subject: true }
+        include: { subject: true, event: true }
     });
 
     if (activeSessions.length === 0) {
@@ -12,7 +12,7 @@ async function main() {
     } else {
         console.log(`Found ${activeSessions.length} active sessions:`);
         activeSessions.forEach(s => {
-            console.log(`- Session ID: ${s.id} | Subject: ${s.subject.name} | Started: ${s.startTime}`);
+            console.log(`- Session ID: ${s.id} | Subject: ${s.subject?.name || s.event?.name || "Event Session"} | Started: ${s.startTime}`);
         });
     }
 }

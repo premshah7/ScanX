@@ -9,7 +9,7 @@ import ConfirmDialog from "@/components/ui/confirm-dialog";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-export default function SessionView({ sessionId, subjectName, subjectId }: { sessionId: number; subjectName: string; subjectId: number }) {
+export default function SessionView({ sessionId, subjectName, subjectId }: { sessionId: number; subjectName: string; subjectId: number | null }) {
 
 
     const router = useRouter();

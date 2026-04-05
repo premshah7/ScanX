@@ -5,15 +5,31 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
-export async function createSession(subjectId: number, batchIds?: number[]) {
+export async function createSession(subjectId?: number, eventId?: number, batchIds?: number[]) {
     try {
         const userSession = await getServerSession(authOptions);
-        if (userSession?.user.role !== "FACULTY") {
+        if (userSession?.user.role !== "FACULTY" && userSession?.user.role !== "ADMIN") {
             return { error: "Unauthorized Access" };
         }
+
+        // Validate: exactly one of subjectId or eventId must be set
+        if (!subjectId && !eventId) return { error: "Subject or Event is required" };
+        if (subjectId && eventId) return { error: "Session cannot belong to both a Subject and an Event" };
+
+        // If event session, verify user is organizer
+        if (eventId) {
+            const isOrganizer = await prisma.eventOrganizer.findFirst({
+                where: { eventId, userId: parseInt(userSession.user.id) },
+            });
+            if (!isOrganizer && userSession.user.role !== "ADMIN") {
+                return { error: "Only event organizers can start sessions" };
+            }
+        }
+
         const session = await prisma.session.create({
             data: {
-                subjectId,
+                subjectId: subjectId || null,
+                eventId: eventId || null,
                 isActive: true,
                 batches: batchIds && batchIds.length > 0 ? {
                     connect: batchIds.map(id => ({ id }))
@@ -21,6 +37,10 @@ export async function createSession(subjectId: number, batchIds?: number[]) {
             },
         });
         revalidatePath("/faculty");
+        if (eventId) {
+            revalidatePath(`/faculty/events/${eventId}`);
+            revalidatePath(`/admin/events/${eventId}`);
+        }
         return { success: true, sessionId: session.id };
     } catch (error) {
         console.error("Error creating session:", error);
@@ -129,7 +149,8 @@ export async function getSessionAttendance(sessionId: number) {
                         }
                     }
                 },
-                batches: true
+                batches: true,
+                event: { select: { name: true } }
             }
         });
 
@@ -147,6 +168,17 @@ export async function getSessionAttendance(sessionId: number) {
                 }
             }
         });
+
+        // If this is an event session (no subject), return attendance without absent calculation
+        if (!session.subject) {
+            return {
+                success: true,
+                present: attendance,
+                absent: [],
+                subjectName: session.event?.name || "Event Session",
+                date: session.startTime
+            };
+        }
 
         // 3. Calculate Absent Students
         const presentStudentIds = new Set(attendance.map(a => a.studentId));

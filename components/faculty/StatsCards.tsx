@@ -1,10 +1,11 @@
-import { Users, Calendar, TrendingUp } from "lucide-react";
+import { Users, Calendar, TrendingUp, Ticket } from "lucide-react";
 
 type StatsCardsProps = {
     stats: {
         totalStudents: number;
         totalSessions: number;
         averageAttendance: number;
+        pendingGuests?: number;
     };
 };
 
@@ -30,11 +31,18 @@ const cards = [
         gradient: "from-emerald-500 to-teal-600",
         getValue: (s: StatsCardsProps["stats"]) => `${s.averageAttendance}%`,
     },
+    {
+        key: "guests",
+        label: "Pending Guests",
+        icon: Ticket,
+        gradient: "from-orange-500 to-amber-600",
+        getValue: (s: StatsCardsProps["stats"]) => String(s.pendingGuests || 0),
+    },
 ];
 
 export default function StatsCards({ stats }: StatsCardsProps) {
     return (
-        <div className="grid grid-cols-3 gap-3 md:gap-6 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6">
             {cards.map((card) => (
                 <div key={card.key} className="bg-card border border-border rounded-xl p-4 md:p-6 shadow-sm hover-lift transition-all">
                     <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center shadow-md mb-3`}>

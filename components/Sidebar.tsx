@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, LogOut, LucideIcon, LayoutDashboard, Users, GraduationCap, Settings, Calendar, History, User, Scan, ShieldAlert, BookOpen, Layers } from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut, LucideIcon, LayoutDashboard, Users, GraduationCap, Settings, Calendar, History, User, Scan, ShieldAlert, BookOpen, Layers, Ticket } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -34,14 +34,17 @@ export function Sidebar({ userRole }: SidebarProps) {
                 return [
                     { href: "/faculty", label: "Dashboard", icon: LayoutDashboard }, // Added
                     { href: "/faculty/history", label: "History", icon: History }, // Added
+                    { href: "/faculty/events", label: "Events", icon: Ticket }, // Added
                 ];
 
             case "STUDENT":
                 return [
                     { href: "/student", label: "Dashboard", icon: LayoutDashboard },
-                    // { href: "/student/scan", label: "Scan QR", icon: Scan }, // Assuming this exists or will exist
-                    // { href: "/student/history", label: "History", icon: History },
-                    // { href: "/profile", label: "Profile", icon: User },
+                    { href: "/student/events", label: "My Events", icon: Ticket },
+                ];
+            case "GUEST":
+                return [
+                    { href: "/guest/events", label: "My Events", icon: Ticket },
                 ];
             default:
                 return [];

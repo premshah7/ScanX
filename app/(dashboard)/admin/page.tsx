@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { Users, GraduationCap, ShieldAlert, Activity } from "lucide-react";
+import { Users, GraduationCap, ShieldAlert, Activity, Calendar, Tickets } from "lucide-react";
 import PendingRequests from "@/components/admin/PendingRequests";
 import SecurityAlerts from "@/components/admin/SecurityAlerts";
 import { getGlobalAnalytics, getSecurityOverview, getActiveSessions } from "@/actions/admin";
@@ -14,11 +14,24 @@ import { redirect } from "next/navigation";
 import AutoRefresh from "@/components/AutoRefresh";
 
 async function getStats() {
-    const [studentCount, facultyCount, proxyCount, activeSessionsCount, recentAlerts, trend, security, activeSessions] = await Promise.all([
+    const [
+        studentCount, 
+        facultyCount, 
+        proxyCount, 
+        activeSessionsCount,
+        activeEventsCount,
+        eventRegCount,
+        recentAlerts, 
+        trend, 
+        security, 
+        activeSessions
+    ] = await Promise.all([
         prisma.student.count(),
         prisma.faculty.count(),
         prisma.proxyAttempt.count(),
         prisma.session.count({ where: { isActive: true } }),
+        prisma.event.count({ where: { isActive: true } }),
+        prisma.eventRegistration.count(),
         prisma.proxyAttempt.findMany({
             take: 5,
             orderBy: { timestamp: 'desc' },
@@ -37,6 +50,8 @@ async function getStats() {
         facultyCount,
         proxyCount,
         activeSessionsCount,
+        activeEventsCount,
+        eventRegCount,
         recentAlerts,
         trend,
         security,
@@ -75,7 +90,7 @@ export default async function AdminDashboard() {
             <PendingRequests />
 
             {/* Key Metrics Grid - Enhanced with Gradients */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
                 <StatCard
                     title="Total Students"
                     value={stats.studentCount}
@@ -94,6 +109,19 @@ export default async function AdminDashboard() {
                     icon={Activity}
                     color="#22c55e"
                     pulse={stats.activeSessionsCount > 0}
+                />
+                <StatCard
+                    title="Active Events"
+                    value={stats.activeEventsCount}
+                    icon={Calendar}
+                    color="#ea580c"
+                    pulse={stats.activeEventsCount > 0}
+                />
+                <StatCard
+                    title="Event Guests"
+                    value={stats.eventRegCount}
+                    icon={Tickets}
+                    color="#eab308"
                 />
                 <StatCard
                     title="Total Proxies"

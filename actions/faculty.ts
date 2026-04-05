@@ -171,10 +171,24 @@ export async function getFacultyStats(email: string) {
         ? (totalAttendanceCount / totalPossibleAttendance) * 100
         : 0;
 
+    const pendingGuests = await prisma.eventRegistration.count({
+        where: {
+            status: "PENDING",
+            event: {
+                organizers: {
+                    some: {
+                        userId: user.id
+                    }
+                }
+            }
+        }
+    });
+
     return {
         totalStudents: uniqueStudentIds.size,
         totalSessions,
-        averageAttendance: parseFloat(averageAttendance.toFixed(1))
+        averageAttendance: parseFloat(averageAttendance.toFixed(1)),
+        pendingGuests
     };
 }
 
@@ -272,7 +286,7 @@ export async function getFacultyAnalytics(email: string) {
     // 1. Recent Activity (Fetch only top 5 directly)
     const recentSessions = await prisma.session.findMany({
         where: {
-            subjectId: { in: subjectIds },
+            subjectId: { in: subjectIds, not: null },
             isActive: false
         },
         orderBy: { startTime: 'desc' },
@@ -298,13 +312,13 @@ export async function getFacultyAnalytics(email: string) {
     });
 
     const recentActivity = recentSessions.map(session => {
-        const directStudents = session.subject._count.students;
-        const batchStudents = session.subject.batches.reduce((acc, b) => acc + b._count.students, 0);
+        const directStudents = session.subject!._count.students;
+        const batchStudents = session.subject!.batches.reduce((acc, b) => acc + b._count.students, 0);
         const totalStudents = directStudents + batchStudents;
 
         return {
             id: session.id,
-            subjectName: session.subject.name,
+            subjectName: session.subject!.name,
             date: session.startTime,
             present: session._count.attendances,
             absent: totalStudents - session._count.attendances,
@@ -332,7 +346,7 @@ export async function getFacultyAnalytics(email: string) {
     // Instead of fetching EVERYTHING, we just fetch the last 20 sessions which is usually enough to cover 7 days.
     const trendSessions = await prisma.session.findMany({
         where: {
-            subjectId: { in: subjectIds },
+            subjectId: { in: subjectIds, not: null },
             isActive: false
         },
         orderBy: { startTime: 'desc' },
@@ -365,8 +379,8 @@ export async function getFacultyAnalytics(email: string) {
     }
 
     const trend = uniqueDateSessions.map(session => {
-        const directStudents = session.subject._count.students;
-        const batchStudents = session.subject.batches.reduce((acc, b) => acc + b._count.students, 0);
+        const directStudents = session.subject!._count.students;
+        const batchStudents = session.subject!.batches.reduce((acc, b) => acc + b._count.students, 0);
         const totalStudents = directStudents + batchStudents;
 
         const percentage = totalStudents > 0
@@ -377,7 +391,7 @@ export async function getFacultyAnalytics(email: string) {
             // @ts-ignore
             date: session.dateStr,
             percentage: Math.round(percentage),
-            subject: session.subject.name,
+            subject: session.subject!.name,
             present: session._count.attendances,
             absent: totalStudents - session._count.attendances
         };

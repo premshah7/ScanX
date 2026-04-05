@@ -19,7 +19,7 @@ export default async function Home() {
             case "STUDENT":
                 redirect("/student");
             case "GUEST":
-                redirect("/event/check-in");
+                redirect("/guest/events");
             default:
                 redirect("/auth/login");
         }

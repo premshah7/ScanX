@@ -211,6 +211,7 @@ export async function getGlobalAnalytics() {
     // Fetch all finished sessions in last 30 days
     const sessions = await prisma.session.findMany({
         where: {
+            subjectId: { not: null },
             startTime: { gte: thirtyDaysAgo },
             isActive: false
         },
@@ -244,8 +245,8 @@ export async function getGlobalAnalytics() {
 
         // Calculate correctly merging direct & batch students
         const uniqueStudentIds = new Set<number>();
-        session.subject.students.forEach(s => uniqueStudentIds.add(s.id));
-        session.subject.batches.forEach(b => b.students.forEach(s => uniqueStudentIds.add(s.id)));
+        session.subject!.students.forEach(s => uniqueStudentIds.add(s.id));
+        session.subject!.batches.forEach(b => b.students.forEach(s => uniqueStudentIds.add(s.id)));
         const totalSessionStudents = uniqueStudentIds.size;
 
         const stat = dailyStats.get(date)!;
@@ -324,6 +325,11 @@ export async function getActiveSessions() {
                     faculty: {
                         include: { user: true }
                     }
+                }
+            },
+            event: {
+                include: {
+                    createdBy: { select: { name: true } }
                 }
             },
             _count: {

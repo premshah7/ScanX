@@ -16,7 +16,7 @@ async function main() {
         return;
     }
 
-    console.log(`Found Session: ${session.id} (${session.subject.name})`);
+    console.log(`Found Session: ${session.id} (${session.subject?.name || "Event Session"})`);
 
     console.log("Fetching students...");
     const students = await prisma.student.findMany({

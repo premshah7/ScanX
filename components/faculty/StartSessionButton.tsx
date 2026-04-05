@@ -37,7 +37,7 @@ export function StartSessionButton({ subjectId, batches }: { subjectId: number, 
         setLoading(true);
         // If isGlobalSession is true, selectedBatchIds is empty [], which backend treats as "All Students".
         // If isGlobalSession is false, selectedBatchIds contains specific IDs.
-        const result = await createSession(subjectId, selectedBatchIds);
+        const result = await createSession(subjectId, undefined, selectedBatchIds);
         if (result.success) {
             router.push(`/faculty/session/${result.sessionId}`);
         } else {

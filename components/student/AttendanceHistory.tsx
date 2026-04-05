@@ -8,9 +8,8 @@ type AttendanceRecord = {
     id: number;
     timestamp: Date;
     session: {
-        subject: {
-            name: string;
-        };
+        subject?: { name: string } | null;
+        event?: { name: string } | null;
     };
 };
 
@@ -41,7 +40,7 @@ export default function AttendanceHistory({ records }: { records: AttendanceReco
                 >
                     <div className="min-w-0 flex-1">
                         <div className="font-semibold text-foreground text-sm group-hover:text-primary transition-colors truncate">
-                            {record.session.subject.name}
+                            {record.session.subject?.name || record.session.event?.name || "Event Session"}
                         </div>
                         <div className="text-xs text-muted-foreground mt-0.5">
                             <FormattedTime date={record.timestamp} includeSeconds />

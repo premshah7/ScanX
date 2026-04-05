@@ -9,7 +9,7 @@ export default async function AttendanceLogsPage() {
             orderBy: { timestamp: "desc" },
             include: {
                 student: { include: { user: true } },
-                session: { include: { subject: true } },
+                session: { include: { subject: true, event: true } },
             },
         }),
         prisma.proxyAttempt.findMany({
@@ -17,7 +17,7 @@ export default async function AttendanceLogsPage() {
             orderBy: { timestamp: "desc" },
             include: {
                 student: { include: { user: true } },
-                session: { include: { subject: true } },
+                session: { include: { subject: true, event: true } },
                 deviceOwner: { include: { user: true } },
             },
         }),
@@ -52,7 +52,7 @@ export default async function AttendanceLogsPage() {
                                         <div className="font-medium text-foreground">{log.student.user.name}</div>
                                         <div className="text-xs text-muted-foreground">{log.student.rollNumber}</div>
                                     </td>
-                                    <td className="p-4 text-foreground">{log.session.subject.name}</td>
+                                    <td className="p-4 text-foreground">{log.session.subject?.name || log.session.event?.name || "Event Session"}</td>
                                     <td className="p-4 text-muted-foreground">
                                         <FormattedTime date={log.timestamp} includeSeconds />
                                     </td>
@@ -103,7 +103,7 @@ export default async function AttendanceLogsPage() {
                                         <div className="font-medium text-foreground">{log.student.user.name}</div>
                                         <div className="text-xs text-muted-foreground">{log.student.rollNumber}</div>
                                     </td>
-                                    <td className="p-4 text-foreground">{log.session.subject.name}</td>
+                                    <td className="p-4 text-foreground">{log.session.subject?.name || log.session.event?.name || "Event Session"}</td>
                                     <td className="p-4 text-muted-foreground">
                                         <FormattedTime date={log.timestamp} includeSeconds />
                                     </td>

@@ -37,6 +37,17 @@
   --chart-3: 211 30% 50%;
   --chart-4: 214 35% 43%;
   --chart-5: 216 40% 35%;
+
+  /* ─── Premium Dashboard Tokens ─── */
+  --premium-surface: #faf8ff;
+  --premium-surface-container: #f2f3ff;
+  --premium-surface-container-low: #f2f3ff;
+  --premium-primary: #2036bd;
+  --premium-primary-container: #3e52d5;
+  --premium-on-surface: #131b2e;
+  --premium-on-surface-variant: #454654;
+  --premium-tertiary: #7e3100;
+  --premium-outline: #757686;
 }
 
 .dark {
@@ -95,6 +106,20 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  /* Premium Design tokens */
+  --color-premium-surface: var(--premium-surface);
+  --color-premium-container: var(--premium-surface-container);
+  --color-premium-container-low: var(--premium-surface-container-low);
+  --color-premium-primary: var(--premium-primary);
+  --color-premium-primary-container: var(--premium-primary-container);
+  --color-premium-text: var(--premium-on-surface);
+  --color-premium-text-muted: var(--premium-on-surface-variant);
+  --color-premium-accent: var(--premium-tertiary);
+  --color-premium-outline: var(--premium-outline);
+
+  /* Fonts */
+  --font-headline: "Manrope", sans-serif;
+  --font-body: "Inter", sans-serif;
 }
 
 @layer base {
