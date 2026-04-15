@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { LogOut, Menu } from "lucide-react";
+import { LogOut, Menu, UserCircle } from "lucide-react";
 import { signOut } from "next-auth/react";
 import MobileSidebar from "@/components/MobileSidebar";
 import LogoutButton from "@/components/LogoutButton";
@@ -68,10 +68,20 @@ export function Navbar({ links }: NavbarProps) {
                 <div className="hidden md:flex items-center gap-2">
                     <ThemeToggle />
                     <div className="h-6 w-px bg-border mx-2" />
+                    <Link href="/admin/profile">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                        >
+                            <UserCircle className="w-4 h-4 mr-2" />
+                            Profile
+                        </Button>
+                    </Link>
                     <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => signOut({ callbackUrl: "/login" })}
+                        onClick={() => signOut({ callbackUrl: "/auth/login" })}
                         className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                     >
                         <LogOut className="w-4 h-4 mr-2" />
@@ -112,7 +122,13 @@ export function Navbar({ links }: NavbarProps) {
                                 ))}
                             </nav>
 
-                            <LogoutButton />
+                            <div className="p-4 border-t space-y-2">
+                                <Link href="/admin/profile" className="flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground hover:bg-muted">
+                                    <UserCircle className="w-5 h-5" />
+                                    <span>My Profile</span>
+                                </Link>
+                                <LogoutButton />
+                            </div>
                         </div>
                     </MobileSidebar>
                 </div>

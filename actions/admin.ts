@@ -21,7 +21,7 @@ export async function createFaculty(formData: FormData) {
     }
 
     const session = await getServerSession(authOptions);
-    if (session?.user.role !== "ADMIN") {
+    if (!session || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) {
         return { error: "Unauthorized Access" };
     }
 
@@ -69,7 +69,7 @@ export async function updateFaculty(facultyId: number, formData: FormData) {
     const batchIds: number[] = batchIdsRaw ? JSON.parse(batchIdsRaw) : [];
 
     const session = await getServerSession(authOptions);
-    if (session?.user.role !== "ADMIN") {
+    if (!session || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) {
         return { error: "Unauthorized Access" };
     }
 
@@ -135,7 +135,7 @@ export async function createStudent(formData: FormData) {
     }
 
     const session = await getServerSession(authOptions);
-    if (session?.user.role !== "ADMIN") {
+    if (!session || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) {
         return { error: "Unauthorized Access" };
     }
 
@@ -178,7 +178,7 @@ export async function createStudent(formData: FormData) {
 export async function resetDevice(studentId: number) {
     try {
         const session = await getServerSession(authOptions);
-        if (session?.user.role !== "ADMIN") {
+        if (!session || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) {
             return { error: "Unauthorized Access" };
         }
         await prisma.student.update({
@@ -202,7 +202,7 @@ export async function resetDevice(studentId: number) {
 
 export async function getGlobalAnalytics() {
     const session = await getServerSession(authOptions);
-    if (session?.user.role !== "ADMIN") return [];
+    if (!session || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) return [];
 
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -266,7 +266,7 @@ export async function getGlobalAnalytics() {
 
 export async function getSecurityOverview() {
     const session = await getServerSession(authOptions);
-    if (session?.user.role !== "ADMIN") return [];
+    if (!session || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) return [];
 
     const fourteenDaysAgo = new Date();
     fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
@@ -315,7 +315,7 @@ export async function getSecurityOverview() {
 
 export async function getActiveSessions() {
     const session = await getServerSession(authOptions);
-    if (session?.user.role !== "ADMIN") return [];
+    if (!session || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) return [];
 
     return await prisma.session.findMany({
         where: { isActive: true },
@@ -342,7 +342,7 @@ export async function getActiveSessions() {
 export async function approveStudent(userId: number) {
     try {
         const session = await getServerSession(authOptions);
-        if (session?.user.role !== "ADMIN") {
+        if (!session || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) {
             return { error: "Unauthorized Access" };
         }
 
@@ -362,7 +362,7 @@ export async function approveStudent(userId: number) {
 export async function rejectStudent(userId: number) {
     try {
         const session = await getServerSession(authOptions);
-        if (session?.user.role !== "ADMIN") {
+        if (!session || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) {
             return { error: "Unauthorized Access" };
         }
 
@@ -391,7 +391,7 @@ export async function rejectStudent(userId: number) {
 export async function removeStudentFromBatch(studentId: number, batchId: number) {
     try {
         const session = await getServerSession(authOptions);
-        if (session?.user.role !== "ADMIN") {
+        if (!session || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) {
             return { error: "Unauthorized Access" };
         }
 
@@ -411,7 +411,7 @@ export async function removeStudentFromBatch(studentId: number, batchId: number)
 export async function getFacultyBatches(facultyId: number) {
     // Single-Tenant App: Admin has global access.
     const session = await getServerSession(authOptions);
-    if (session?.user.role !== "ADMIN") return { error: "Unauthorized" };
+    if (!session || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) return { error: "Unauthorized" };
 
     try {
         const faculty = await prisma.faculty.findUnique({
@@ -438,7 +438,7 @@ export async function getFacultyBatches(facultyId: number) {
 export async function resetAllDevices() {
     try {
         const session = await getServerSession(authOptions);
-        if (session?.user.role !== "ADMIN") {
+        if (!session || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) {
             return { error: "Unauthorized Access" };
         }
 

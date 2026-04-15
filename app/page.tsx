@@ -11,6 +11,8 @@ export default async function Home() {
     // If logged in, redirect to dashboard
     if (session) {
         switch (session.user.role) {
+            case "SUPER_ADMIN":
+                redirect("/super-admin");
             case "ADMIN":
                 redirect("/admin");
             case "FACULTY":

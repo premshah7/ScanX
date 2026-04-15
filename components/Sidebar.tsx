@@ -20,6 +20,13 @@ export function Sidebar({ userRole }: SidebarProps) {
 
     const getLinks = (role?: string) => {
         switch (role) {
+            case "SUPER_ADMIN":
+                return [
+                    { href: "/super-admin", label: "Platform Overview", icon: ShieldAlert },
+                    { href: "/super-admin/admins", label: "Admin Management", icon: Users },
+                    { href: "/admin", label: "System Metrics", icon: LayoutDashboard },
+                    { href: "/admin/profile", label: "My Profile", icon: User },
+                ];
             case "ADMIN":
                 return [
                     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -28,13 +35,15 @@ export function Sidebar({ userRole }: SidebarProps) {
                     { href: "/admin/subjects", label: "Subjects", icon: BookOpen },
                     { href: "/admin/attendance", label: "Logs", icon: ShieldAlert },
                     { href: "/admin/batches", label: "Batches", icon: Layers },
+                    { href: "/admin/profile", label: "My Profile", icon: User },
                     { href: "/admin/settings", label: "Settings", icon: Settings },
                 ];
             case "FACULTY":
                 return [
-                    { href: "/faculty", label: "Dashboard", icon: LayoutDashboard }, // Added
-                    { href: "/faculty/history", label: "History", icon: History }, // Added
-                    { href: "/faculty/events", label: "Events", icon: Ticket }, // Added
+                    { href: "/faculty", label: "Dashboard", icon: LayoutDashboard },
+                    { href: "/faculty/history", label: "History", icon: History },
+                    { href: "/faculty/events", label: "Events", icon: Ticket },
+                    { href: "/admin/profile", label: "My Profile", icon: User }, // Shared profile page
                 ];
 
             case "STUDENT":

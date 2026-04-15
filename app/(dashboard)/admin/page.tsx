@@ -66,7 +66,8 @@ export default async function AdminDashboard() {
         redirect("/auth/login");
     }
 
-    if (session.user.role !== "ADMIN") {
+    const allowedRoles = ["ADMIN", "SUPER_ADMIN"];
+    if (!allowedRoles.includes(session.user.role)) {
         redirect("/unauthorized");
     }
 

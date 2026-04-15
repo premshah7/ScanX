@@ -36,21 +36,28 @@ export const proxy = withAuth(
 
         // 1. Admin Route Protection
         if (pathname.startsWith("/admin")) {
-            if (role !== "ADMIN") {
+            if (role !== "ADMIN" && role !== "SUPER_ADMIN") {
                 return NextResponse.redirect(new URL("/unauthorized", req.url));
             }
         }
 
         // 2. Faculty Route Protection
         if (pathname.startsWith("/faculty")) {
-            if (role !== "FACULTY") {
+            if (role !== "FACULTY" && role !== "SUPER_ADMIN") {
                 return NextResponse.redirect(new URL("/unauthorized", req.url));
             }
         }
 
         // 3. Student Route Protection
         if (pathname.startsWith("/student")) {
-            if (role !== "STUDENT") {
+            if (role !== "STUDENT" && role !== "SUPER_ADMIN") {
+                return NextResponse.redirect(new URL("/unauthorized", req.url));
+            }
+        }
+
+        // 4. Super Admin Route Protection
+        if (pathname.startsWith("/super-admin")) {
+            if (role !== "SUPER_ADMIN") {
                 return NextResponse.redirect(new URL("/unauthorized", req.url));
             }
         }

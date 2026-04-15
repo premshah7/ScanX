@@ -203,6 +203,7 @@ enum Role {
   STUDENT
   GUEST
   ORGANIZER
+  SUPER_ADMIN
 }
 
 enum UserStatus {

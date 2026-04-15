@@ -142,3 +142,73 @@ export async function updateFacultyProfile(facultyId: number, data: FacultyUpdat
         return { error: "Failed to update faculty" };
     }
 }
+
+export async function updateMyProfile(formData: FormData) {
+    const session = await getServerSession(authOptions);
+    if (!session) return { error: "Unauthorized" };
+
+    const name = formData.get("name") as string;
+    const email = formData.get("email") as string;
+    const phoneNumber = formData.get("phoneNumber") as string;
+
+    if (!name || !email) return { error: "Name and Email are required" };
+
+    try {
+        const userId = parseInt(session.user.id);
+        
+        // Check email uniqueness if changed
+        if (email !== session.user.email) {
+            const existing = await prisma.user.findUnique({ where: { email } });
+            if (existing) return { error: "Email already in use" };
+        }
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { name, email, phoneNumber }
+        });
+
+        revalidatePath("/admin/profile");
+        return { success: true };
+    } catch (error) {
+        console.error("Self Profile Update Error:", error);
+        return { error: "Failed to update profile" };
+    }
+}
+
+export async function changeMyPassword(formData: FormData) {
+    const session = await getServerSession(authOptions);
+    if (!session) return { error: "Unauthorized" };
+
+    const oldPassword = formData.get("oldPassword") as string;
+    const newPassword = formData.get("newPassword") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
+        return { error: "All password fields are required" };
+    }
+
+    if (newPassword !== confirmPassword) {
+        return { error: "New passwords do not match" };
+    }
+
+    try {
+        const userId = parseInt(session.user.id);
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) return { error: "User not found" };
+
+        const isValid = await bcrypt.compare(oldPassword, user.password);
+        if (!isValid) return { error: "Incorrect current password" };
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await prisma.user.update({
+            where: { id: userId },
+            data: { password: hashedPassword }
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error("Password Change Error:", error);
+        return { error: "Failed to change password" };
+    }
+}
+
