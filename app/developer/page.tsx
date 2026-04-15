@@ -69,7 +69,7 @@ export default async function DeveloperPage() {
                             {/* Social Links */}
                             <div className="flex gap-4 pt-2">
                                 <SocialLink href="https://github.com/premshah7" icon={Github} label="GitHub" />
-                                <SocialLink href="https://linkedin.com/in/premshah7" icon={Linkedin} label="LinkedIn" />
+                                <SocialLink href="https://www.linkedin.com/in/prem-shah77" icon={Linkedin} label="LinkedIn" />
                                 <SocialLink href="mailto:contact@premshah.dev" icon={Mail} label="Email" />
                             </div>
                         </div>

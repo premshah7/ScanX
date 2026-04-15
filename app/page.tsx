@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ShieldCheck, MapPin, Lock, Smartphone, ArrowRight, Sparkles } from "lucide-react";
+import { ShieldCheck, MapPin, Lock, Smartphone, ArrowRight, Sparkles, Star,ScanQrCode } from "lucide-react";
 import Navbar from "@/components/landing/Navbar";
 
 export default async function Home() {
@@ -42,10 +42,10 @@ export default async function Home() {
             <main className="relative z-10 flex-1 flex flex-col items-center justify-center p-6 text-center">
                 <div className="max-w-5xl space-y-8 animate-slide-up">
                     {/* Badge */}
-                    <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full glass-card text-primary text-sm font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105 cursor-default">
+                    {/* <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full glass-card text-primary text-sm font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105 cursor-default">
                         <Sparkles className="w-4 h-4" />
                         Fast, Smart, Seamless attendance
-                    </div>
+                    </div> */}
 
                     {/* Main Heading */}
                     <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-tight">
@@ -77,7 +77,7 @@ export default async function Home() {
                 {/* Features Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto mt-24 w-full">
                     <FeatureCard
-                        icon={Sparkles}
+                        icon={ScanQrCode}
                         title="Smart Attendance"
                         description="Experience seamless, secure, and fast attendance marking with our advanced system."
                         color="#86a7c8"

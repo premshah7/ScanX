@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "ScanX",
-  description: "Fast, Smart, Seamless attendance",
+  // description: "Fast, Smart, Seamless attendance",
 
   appleWebApp: {
     capable: true,

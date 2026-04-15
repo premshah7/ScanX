@@ -1,6 +1,6 @@
 import { getPublicEvents } from "@/actions/event";
 import PublicEventCard from "@/components/events/PublicEventCard";
-import { Calendar, Search, Sparkles, ArrowLeft } from "lucide-react";
+import { Calendar, Search, Star, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -36,7 +36,7 @@ export default async function StudentDiscoverEventsPage() {
                     </Link>
 
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold mb-4">
-                        <Sparkles className="w-3.5 h-3.5" />
+                        <Star className="w-3.5 h-3.5" />
                         <span>Discover Experiences</span>
                     </div>
                     <h1 className="text-3xl font-extrabold text-foreground tracking-tight mb-2">
