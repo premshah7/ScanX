@@ -115,3 +115,27 @@ export async function registerGuest(data: {
         return { error: "Failed to register guest" };
     }
 }
+
+export async function resetPassword(email: string, otp: string, newPassword: string) {
+    if (!email || !otp || !newPassword) {
+        return { error: "All fields are required" };
+    }
+
+    try {
+        // Verify OTP (also deletes it on success)
+        const { verifyOtpCode } = await import("@/lib/otp");
+        const isValid = await verifyOtpCode(email, otp);
+        if (!isValid) return { error: "Invalid or expired OTP. Please try again." };
+
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) return { error: "User not found" };
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await prisma.user.update({ where: { email }, data: { password: hashedPassword } });
+
+        return { success: true };
+    } catch (error) {
+        console.error("Password Reset Error:", error);
+        return { error: "Failed to reset password" };
+    }
+}
