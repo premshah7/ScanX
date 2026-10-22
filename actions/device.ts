@@ -25,3 +25,18 @@ export async function getOrSetDeviceId() {
 
     return newDeviceId;
 }
+
+export async function setDeviceOwnerCookie(studentId: number) {
+    try {
+        const cookieStore = await cookies();
+        cookieStore.set("device_owner_student_id", studentId.toString(), {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            path: "/",
+            maxAge: 60 * 60 * 24 * 365 * 10, // 10 years
+        });
+    } catch (e) {
+        console.error("Failed to set device owner cookie", e);
+    }
+}

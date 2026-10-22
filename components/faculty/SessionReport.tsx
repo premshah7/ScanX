@@ -261,18 +261,15 @@ export default function SessionReport({
                                         <div className="text-xs text-gray-500 flex flex-col gap-0.5">
                                             <span>{log.student.rollNumber}</span>
                                             {log.type === 'proxy' && (
-                                                (log.attemptedHash || "").startsWith("IP_CONFLICT") ? (
-                                                    log.deviceOwner?.user?.name && (
-                                                        <span className="text-red-400 font-semibold text-[11px] mt-0.5">
-                                                            IP Conflict with: {log.deviceOwner.user.name} ({log.deviceOwner.rollNumber})
-                                                        </span>
-                                                    )
+                                                log.deviceOwner?.user?.name ? (
+                                                    <span className="text-red-400 font-semibold text-[11px] mt-0.5">
+                                                        {(log.attemptedHash || "").startsWith("IP_CONFLICT") ? "IP Conflict with: " : "Proxy via: "}
+                                                        <span className="underline">{log.deviceOwner.user.name}</span> ({log.deviceOwner.rollNumber})
+                                                    </span>
                                                 ) : (
-                                                    log.deviceOwner?.user?.name && (
-                                                        <span className="text-red-400 font-semibold text-[11px] mt-0.5">
-                                                            Using {log.deviceOwner.user.name}'s Device ({log.deviceOwner.rollNumber})
-                                                        </span>
-                                                    )
+                                                    <span className="text-red-400/80 text-[11px] mt-0.5">
+                                                        {(log.attemptedHash || "").startsWith("IP_CONFLICT") ? "Network Conflict" : "Unregistered Device"}
+                                                    </span>
                                                 )
                                             )}
                                         </div>

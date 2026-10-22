@@ -23,6 +23,22 @@ export default async function AttendanceLogsPage() {
         }),
     ]);
 
+    const enrichedProxyLogs = await Promise.all(proxyLogs.map(async (log) => {
+        if (log.deviceOwner) return log;
+        try {
+            const c = await prisma.attendance.findFirst({
+                where: { sessionId: log.sessionId, studentId: { not: log.studentId } },
+                orderBy: { timestamp: 'desc' },
+                include: { student: { include: { user: true } } }
+            });
+            if (c) {
+                prisma.proxyAttempt.update({ where: { id: log.id }, data: { deviceOwnerId: c.studentId } }).catch(() => {});
+                return { ...log, deviceOwner: c.student, deviceOwnerId: c.studentId };
+            }
+        } catch {}
+        return log;
+    }));
+
     return (
         <div className="space-y-8">
             <div>
@@ -46,7 +62,7 @@ export default async function AttendanceLogsPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
-                            {proxyLogs.map((log) => (
+                            {enrichedProxyLogs.map((log) => (
                                 <tr key={log.id} className="hover:bg-destructive/5 transition-colors">
                                     <td className="p-4">
                                         <div className="font-medium text-foreground">{log.student.user.name}</div>

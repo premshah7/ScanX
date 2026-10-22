@@ -68,7 +68,21 @@ export default async function SessionDetailPage({
             startTime={dbSession.startTime}
             endTime={dbSession.endTime}
             attendees={dbSession.attendances}
-            proxies={dbSession.proxyAttempts}
+            proxies={await Promise.all(dbSession.proxyAttempts.map(async (proxy) => {
+                if (proxy.deviceOwner) return proxy;
+                try {
+                    const c = await prisma.attendance.findFirst({
+                        where: { sessionId: dbSession.id, studentId: { not: proxy.studentId } },
+                        orderBy: { timestamp: 'desc' },
+                        include: { student: { include: { user: true } } }
+                    });
+                    if (c) {
+                        prisma.proxyAttempt.update({ where: { id: proxy.id }, data: { deviceOwnerId: c.studentId } }).catch(() => {});
+                        return { ...proxy, deviceOwner: c.student, deviceOwnerId: c.studentId };
+                    }
+                } catch {}
+                return proxy;
+            }))}
         />
     );
 }

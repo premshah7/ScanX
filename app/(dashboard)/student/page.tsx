@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { QrCode, History, Smartphone, Calendar, TrendingUp, Ticket, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import DeviceStatus from "@/components/student/DeviceStatus";
@@ -41,6 +42,23 @@ export default async function StudentDashboard() {
     if (!student) {
         return <div className="p-8 text-foreground">Student record not found.</div>;
     }
+
+    // Bind deviceId and sticky owner cookie for anti-proxy tracking
+    const cookieStore = await cookies();
+    const currentDeviceId = cookieStore.get("device_id")?.value;
+    if (currentDeviceId && !student.deviceId) {
+        await prisma.student.update({
+            where: { id: student.id },
+            data: { deviceId: currentDeviceId }
+        }).catch(() => {});
+    }
+    cookieStore.set("device_owner_student_id", student.id.toString(), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 365 * 10,
+    });
 
     const attendanceCount = student.attendances.length;
     const eventCount = registrations.length;

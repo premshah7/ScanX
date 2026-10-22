@@ -507,20 +507,18 @@ export default function SessionView({ sessionId, subjectName, subjectId }: { ses
                                                     {log.student.rollNumber}
                                                 </p>
                                                 {log.type === 'proxy' && (
-                                                     (log.attemptedHash || "").startsWith("IP_CONFLICT") ? (
-                                                         log.deviceOwner?.user?.name && (
-                                                             <p className="text-xs text-red-600 dark:text-red-400 font-semibold mt-0.5">
-                                                                 IP Conflict with: {log.deviceOwner.user.name} ({log.deviceOwner.rollNumber})
-                                                             </p>
-                                                         )
-                                                     ) : (
-                                                         log.deviceOwner?.user?.name && (
-                                                             <p className="text-xs text-red-600 dark:text-red-400 font-semibold mt-0.5">
-                                                                 Using {log.deviceOwner.user.name}'s Device ({log.deviceOwner.rollNumber})
-                                                             </p>
-                                                         )
-                                                     )
-                                                 )}
+                                                    log.deviceOwner?.user?.name ? (
+                                                        <p className="text-xs text-red-600 dark:text-red-400 font-bold mt-0.5 flex items-center gap-1">
+                                                            <span>{(log.attemptedHash || "").startsWith("IP_CONFLICT") ? "IP Conflict with:" : "Proxy via:"}</span>
+                                                            <span className="underline decoration-red-500/50">{log.deviceOwner.user.name}</span>
+                                                            <span className="opacity-80 font-mono text-[11px]">({log.deviceOwner.rollNumber})</span>
+                                                        </p>
+                                                    ) : (
+                                                        <p className="text-xs text-red-500/80 font-medium mt-0.5">
+                                                            {(log.attemptedHash || "").startsWith("IP_CONFLICT") ? "Network Conflict" : "Unregistered Device"}
+                                                        </p>
+                                                    )
+                                                )}
                                             </div>
                                         </div>
                                         <div className="text-right shrink-0">

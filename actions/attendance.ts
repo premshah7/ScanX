@@ -43,6 +43,77 @@ async function logProxyAttempt(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Helper: Resolve who owns the device that is attempting this scan.
+// Checks:
+//   1. Matching deviceHash / deviceId in Student table
+//   2. Sticky device_owner_student_id cookie (from prior student logged in on this browser)
+//   3. Other student in this session with matching IP address
+// ─────────────────────────────────────────────────────────────────────────────
+async function findPotentialDeviceOwner(
+    studentId: number,
+    sessionId: number,
+    deviceId?: string,
+    deviceHash?: string,
+    ip?: string
+): Promise<number | undefined> {
+    try {
+        // 1. Direct match on another student in DB with matching deviceId or deviceHash
+        const orConditions: any[] = [];
+        if (deviceId && deviceId.trim() !== "") orConditions.push({ deviceId });
+        if (deviceHash && deviceHash.trim() !== "") orConditions.push({ deviceHash });
+
+        if (orConditions.length > 0) {
+            const ownerByDevice = await prisma.student.findFirst({
+                where: {
+                    OR: orConditions,
+                    id: { not: studentId },
+                },
+                select: { id: true },
+            });
+            if (ownerByDevice) {
+                return ownerByDevice.id;
+            }
+        }
+
+        // 2. Check the sticky browser owner cookie (set when another student previously used this browser)
+        const cookieStore = await cookies();
+        const prevOwnerCookie = cookieStore.get("device_owner_student_id")?.value;
+        if (prevOwnerCookie) {
+            const prevId = parseInt(prevOwnerCookie);
+            if (!isNaN(prevId) && prevId !== studentId) {
+                const prevStudent = await prisma.student.findUnique({
+                    where: { id: prevId },
+                    select: { id: true },
+                });
+                if (prevStudent) {
+                    return prevStudent.id;
+                }
+            }
+        }
+
+        // 3. Check who marked attendance in THIS session from the same IP address
+        if (ip && ip !== "unknown") {
+            const sameIpAttendance = await prisma.attendance.findFirst({
+                where: {
+                    sessionId,
+                    ipAddress: ip,
+                    studentId: { not: studentId },
+                },
+                orderBy: { timestamp: "desc" },
+                select: { studentId: true },
+            });
+            if (sameIpAttendance) {
+                return sameIpAttendance.studentId;
+            }
+        }
+    } catch (e) {
+        console.warn("[DeviceOwnerSearch] Error resolving device owner:", e);
+    }
+
+    return undefined;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // markAttendance
 // Called by the student QR scanner (Scanner.tsx) with:
 //   token      – signed JWT (or legacy "sessionId:timestamp") from the QR code
@@ -226,33 +297,30 @@ export async function markAttendance(token: string, deviceHash: string, userAgen
         }
 
         // 8.1 GLOBAL OWNERSHIP CHECK
-        //     Blocks a device (by hardware hash OR sticky cookie ID) that is already
-        //     registered to a *different* student.  This catches:
-        //       – Friend's phone: same deviceHash → blocked
-        //       – Shared browser session: same device_id cookie → blocked
-        const deviceOwner = await prisma.student.findFirst({
-            where: {
-                OR: [
-                    { deviceHash: deviceHash },
-                    { deviceId: deviceId },
-                ],
-                id: { not: student.id },
-            },
-            select: { id: true, deviceId: true, user: { select: { email: true } } },
-        });
+        //     Blocks a device (by hardware hash, sticky cookie ID, or previous login on browser)
+        //     that is already registered to a *different* student.
+        const deviceOwnerId = await findPotentialDeviceOwner(student.id, sessionId, deviceId, deviceHash, ip);
 
-        if (deviceOwner) {
-            const matchType = deviceOwner.deviceId === deviceId
-                ? `STICKY_ID:${deviceId}`
-                : `HW_HASH:${deviceHash.slice(0, 8)}...`;
+        if (deviceOwnerId) {
+            const deviceOwner = await prisma.student.findUnique({
+                where: { id: deviceOwnerId },
+                include: { user: { select: { email: true, name: true } } },
+            });
 
-            console.warn(
-                `[Proxy] Student ${student.user.email} using device owned by` +
-                ` ${deviceOwner.user.email} — match: ${matchType}`
-            );
+            if (deviceOwner) {
+                const isStickyCookieMatch = deviceOwner.deviceId === deviceId;
+                const matchType = isStickyCookieMatch
+                    ? `STICKY_ID:${deviceId}`
+                    : `HW_HASH:${deviceHash.slice(0, 8)}...`;
 
-            await logProxyAttempt(student.id, sessionId, matchType, deviceOwner.id);
-            return { error: "Device Verification Failed! This device is linked to another account." };
+                console.warn(
+                    `[Proxy] Student ${student.user.email} using device owned by` +
+                    ` ${deviceOwner.user.email} (${deviceOwner.user.name}) — match: ${matchType}`
+                );
+
+                await logProxyAttempt(student.id, sessionId, matchType, deviceOwner.id);
+                return { error: `Device Verification Failed! This device is registered to ${deviceOwner.user.name}.` };
+            }
         }
 
         // 8.2 PER-STUDENT DEVICE BINDING
@@ -294,17 +362,19 @@ export async function markAttendance(token: string, deviceHash: string, userAgen
                 `got=${deviceHash.slice(0, 8)}...`;
 
             console.warn(`[Proxy] ${student.user.email}: ${logHash}`);
-            await logProxyAttempt(student.id, sessionId, logHash);
+
+            // Find fallback device owner if not already detected
+            const mismatchOwnerId = deviceOwnerId || await findPotentialDeviceOwner(student.id, sessionId, deviceId, deviceHash, ip);
+
+            await logProxyAttempt(student.id, sessionId, logHash, mismatchOwnerId);
             return {
                 error: "Device Verification Failed! Please use your registered device and browser.",
             };
         }
 
         // 8.4 COOKIE RE-SYNC
-        //     If the hardware hash matches but the cookie ID changed (student cleared
-        //     browser data), silently update the stored ID — no proxy block.
-        //     This avoids locking students out for a harmless cache clear.
-        if (storedId && storedId !== deviceId && storedHash === deviceHash) {
+        //     If the hardware hash matches, always keep deviceId updated
+        if ((!storedId || storedId !== deviceId) && storedHash === deviceHash) {
             await prisma.student.update({
                 where: { id: student.id },
                 data: { deviceId },
@@ -329,6 +399,15 @@ export async function markAttendance(token: string, deviceHash: string, userAgen
             userAgent,
             ipAddress: ip,
         },
+    });
+
+    // Update sticky device owner cookie so any subsequent proxy attempt on this browser knows this device belongs to this student
+    cookieStore.set("device_owner_student_id", student.id.toString(), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 365 * 10,
     });
 
     revalidatePath("/student");

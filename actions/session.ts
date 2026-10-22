@@ -105,11 +105,32 @@ export async function getSessionStats(sessionId: number) {
             })
         ]);
 
+        const enrichedProxies = await Promise.all(
+            recentProxies.map(async (proxy) => {
+                if (proxy.deviceOwner) return proxy;
+                try {
+                    const candidate = await prisma.attendance.findFirst({
+                        where: { sessionId, studentId: { not: proxy.studentId } },
+                        orderBy: { timestamp: 'desc' },
+                        include: { student: { include: { user: true } } }
+                    });
+                    if (candidate) {
+                        prisma.proxyAttempt.update({
+                            where: { id: proxy.id },
+                            data: { deviceOwnerId: candidate.studentId }
+                        }).catch(() => {});
+                        return { ...proxy, deviceOwner: candidate.student, deviceOwnerId: candidate.studentId };
+                    }
+                } catch {}
+                return proxy;
+            })
+        );
+
         return {
             attendanceCount,
             proxyCount,
             recentAttendance,
-            recentProxies
+            recentProxies: enrichedProxies
         };
     } catch (error) {
         console.error("Error fetching session stats:", error);
