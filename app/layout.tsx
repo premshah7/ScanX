@@ -1,28 +1,30 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { FingerprintProvider } from "@/components/FingerprintProvider";
 import NextAuthSessionProvider from "@/components/SessionProvider";
 import { Toaster } from "sonner";
-import { Analytics } from '@vercel/analytics/next';
+import { Analytics } from "@vercel/analytics/next";
 import { NavigationLoader } from "@/components/NavigationLoader";
-import Script from "next/script";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const sans = IBM_Plex_Sans({
+  weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const mono = IBM_Plex_Mono({
+  weight: ["400", "500", "600"],
   subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "ScanX",
-  // description: "Fast, Smart, Seamless attendance",
-
+  title: "ScanX — Academic Attendance Protocol",
+  description: "Device-verified QR attendance system for higher education institutions.",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -34,12 +36,15 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport = {
-  themeColor: "#000000",
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F8F9FA" },
+    { media: "(prefers-color-scheme: dark)", color: "#0F141C" },
+  ],
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  userScalable: false, 
+  userScalable: false,
 };
 
 export default function RootLayout({
@@ -49,36 +54,32 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
-        <Script
-          async
-          crossOrigin="anonymous"
-          src="https://tweakcn.com/live-preview.min.js"
-        />
-      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${sans.variable} ${mono.variable} font-sans antialiased bg-background text-foreground`}
       >
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:shadow-md focus:text-xs focus:font-medium"
+        >
+          Skip to main content
+        </a>
         <NextAuthSessionProvider>
           <NavigationLoader />
           <FingerprintProvider>
             <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem={false}
-            >
-            {/* <ThemeProvider
               attribute="class"
               defaultTheme="system"
               enableSystem
               disableTransitionOnChange
-            > */}
+            >
               {children}
               <Analytics />
-              <Toaster richColors position="top-center" />
+              <Toaster
+                position="top-center"
+                toastOptions={{
+                  className: "border border-border bg-card text-card-foreground shadow-sm rounded-md text-sm",
+                }}
+              />
             </ThemeProvider>
           </FingerprintProvider>
         </NextAuthSessionProvider>

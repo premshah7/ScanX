@@ -2,96 +2,131 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ShieldCheck, Menu, X } from "lucide-react";
+import Image from "next/image";
+import { Menu, X } from "lucide-react";
+import { LandingThemeToggle } from "./LandingThemeToggle";
 
-const navLinks = [
-    { href: "/about", label: "About Us" },
-    { href: "/impact", label: "Impact" },
-    { href: "/developer", label: "Developer" },
+const navItems = [
+    { href: "#about", label: "About Us" },
+    { href: "#impact", label: "Impact" },
+    { href: "#developer", label: "Developer" },
+    { href: "#faq", label: "FAQ" },
 ];
 
 export default function Navbar() {
-    const [open, setOpen] = useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
+
+    const handleAnchorClick = () => {
+        setMobileOpen(false);
+    };
 
     return (
-        <nav className="relative z-10 border-b border-border/50 backdrop-blur-xl bg-card/30 p-4 md:p-5 sticky top-0">
-            <div className="max-w-7xl mx-auto flex justify-between items-center">
-                {/* Logo */}
-                <Link href="/" className="flex items-center gap-2.5 group">
-                    <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all group-hover:scale-110">
-                        <ShieldCheck className="w-5 h-5 text-primary-foreground" />
+        <header className="sticky top-0 z-40 w-full border-b border-border bg-card/95 backdrop-blur-[2px]">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+                {/* Brand Logo */}
+                <Link
+                    href="/"
+                    className="flex items-center gap-2.5 text-foreground hover:opacity-90 transition-opacity"
+                    aria-label="ScanX Home"
+                >
+                    <div className="w-6 h-6 relative rounded overflow-hidden shrink-0">
+                        <Image
+                            src="/logo.svg"
+                            alt="ScanX mark"
+                            width={24}
+                            height={24}
+                            priority
+                            className="object-contain"
+                        />
                     </div>
-                    <span className="text-xl font-bold text-primary">
-                        ScanX
-                    </span>
+                    <span className="text-sm font-semibold tracking-tight">ScanX</span>
                 </Link>
 
-                {/* Desktop nav */}
-                <div className="hidden md:flex items-center gap-2">
-                    {navLinks.map((l) => (
-                        <Link
-                            key={l.href}
-                            href={l.href}
-                            className="px-4 py-2 rounded-xl hover:bg-muted transition-all font-medium text-sm text-muted-foreground hover:text-foreground"
-                        >
-                            {l.label}
-                        </Link>
-                    ))}
-                    <Link
-                        href="/auth/login"
-                        className="px-4 py-2 rounded-xl bg-card/80 backdrop-blur-sm border border-border/50 hover:bg-card transition-all font-medium text-sm hover:shadow-md"
-                    >
-                        Log In
-                    </Link>
-                    <Link
-                        href="/auth/register"
-                        className="px-4 py-2 rounded-xl bg-primary hover:shadow-xl transition-all font-medium text-primary-foreground text-sm hover:scale-105 shadow-lg"
-                    >
-                        Get Started
-                    </Link>
-                </div>
+                {/* Desktop Nav */}
+                <nav aria-label="Main Navigation" className="hidden md:flex items-center gap-6">
+                    <div className="flex items-center gap-5">
+                        {navItems.map((item) => (
+                            <a
+                                key={item.href}
+                                href={item.href}
+                                className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                {item.label}
+                            </a>
+                        ))}
+                    </div>
 
-                {/* Mobile hamburger */}
-                <button
-                    onClick={() => setOpen(!open)}
-                    className="md:hidden p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground"
-                    aria-label="Toggle menu"
-                >
-                    {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-                </button>
-            </div>
+                    <div className="h-4 w-px bg-border" aria-hidden="true" />
 
-            {/* Mobile menu */}
-            {open && (
-                <div className="md:hidden mt-3 pt-3 border-t border-border/50 flex flex-col gap-1 animate-slide-up">
-                    {navLinks.map((l) => (
-                        <Link
-                            key={l.href}
-                            href={l.href}
-                            onClick={() => setOpen(false)}
-                            className="px-4 py-2.5 rounded-xl hover:bg-muted transition-all font-medium text-sm text-muted-foreground hover:text-foreground"
-                        >
-                            {l.label}
-                        </Link>
-                    ))}
-                    <div className="flex gap-2 mt-2">
+                    <div className="flex items-center gap-3">
+                        <LandingThemeToggle />
+
                         <Link
                             href="/auth/login"
-                            onClick={() => setOpen(false)}
-                            className="flex-1 text-center px-4 py-2.5 rounded-xl bg-card/80 border border-border/50 hover:bg-card transition-all font-medium text-sm"
+                            className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-2 py-1"
                         >
-                            Log In
+                            Log in
+                        </Link>
+
+                        <Link
+                            href="/auth/register"
+                            className="inline-flex items-center justify-center px-3 py-1.5 rounded-md bg-primary hover:bg-primary/90 text-xs font-medium text-primary-foreground transition-colors shadow-xs"
+                        >
+                            Get started
+                        </Link>
+                    </div>
+                </nav>
+
+                {/* Mobile Header Actions */}
+                <div className="flex items-center gap-2 md:hidden">
+                    <LandingThemeToggle />
+
+                    <button
+                        type="button"
+                        onClick={() => setMobileOpen(!mobileOpen)}
+                        aria-expanded={mobileOpen}
+                        aria-label={mobileOpen ? "Close menu" : "Open menu"}
+                        className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    >
+                        {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                    </button>
+                </div>
+            </div>
+
+            {/* Mobile Dropdown Menu */}
+            {mobileOpen && (
+                <div className="md:hidden border-t border-border px-4 py-3 bg-card flex flex-col gap-1 shadow-sm">
+                    <nav aria-label="Mobile Navigation" className="flex flex-col">
+                        {navItems.map((item) => (
+                            <a
+                                key={item.href}
+                                href={item.href}
+                                onClick={handleAnchorClick}
+                                className="px-3 py-2.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors min-h-[44px] flex items-center"
+                            >
+                                {item.label}
+                            </a>
+                        ))}
+                    </nav>
+
+                    <div className="flex gap-2 pt-2 border-t border-border mt-1">
+                        <Link
+                            href="/auth/login"
+                            onClick={() => setMobileOpen(false)}
+                            className="flex-1 text-center py-2.5 rounded-md border border-border bg-card hover:bg-muted text-xs font-medium text-foreground min-h-[44px] flex items-center justify-center"
+                        >
+                            Log in
                         </Link>
                         <Link
                             href="/auth/register"
-                            onClick={() => setOpen(false)}
-                            className="flex-1 text-center px-4 py-2.5 rounded-xl bg-primary hover:shadow-xl transition-all font-medium text-primary-foreground text-sm shadow-lg"
+                            onClick={() => setMobileOpen(false)}
+                            className="flex-1 text-center py-2.5 rounded-md bg-primary hover:bg-primary/90 text-xs font-medium text-primary-foreground min-h-[44px] flex items-center justify-center shadow-xs"
                         >
-                            Get Started
+                            Get started
                         </Link>
                     </div>
                 </div>
             )}
-        </nav>
+        </header>
     );
 }
