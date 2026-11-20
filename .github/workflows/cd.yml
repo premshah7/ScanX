@@ -47,7 +47,7 @@ jobs:
             type=sha,prefix=sha-
 
       - name: Build Docker image for security scan
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           load: true
@@ -56,7 +56,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: DevSecOps Vulnerability Scan (Trivy)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.29.0
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:test-scan
           format: 'table'
@@ -66,7 +66,7 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
       - name: Push Production Docker Image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true

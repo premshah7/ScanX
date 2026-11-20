@@ -1,7 +1,7 @@
 
-const fs = require('fs');
-const PDFParser = require("pdf2json");
-const { jsPDF } = require('jspdf');
+import fs from 'fs';
+import PDFParser from 'pdf2json';
+import { jsPDF } from 'jspdf';
 
 const pdfParser = new PDFParser();
 

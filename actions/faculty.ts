@@ -364,16 +364,14 @@ export async function getFacultyAnalytics(email: string) {
         }
     });
 
-    const uniqueDateSessions = [];
-    const seenDates = new Set();
+    const uniqueDateSessions: Array<typeof trendSessions[number] & { dateStr: string }> = [];
+    const seenDates = new Set<string>();
 
     for (const session of trendSessions) {
         const dateStr = new Date(session.startTime).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
         if (!seenDates.has(dateStr)) {
             seenDates.add(dateStr);
-            // @ts-ignore
-            session.dateStr = dateStr;
-            uniqueDateSessions.push(session);
+            uniqueDateSessions.push({ ...session, dateStr });
         }
         if (uniqueDateSessions.length >= 7) break;
     }
@@ -388,7 +386,6 @@ export async function getFacultyAnalytics(email: string) {
             : 0;
 
         return {
-            // @ts-ignore
             date: session.dateStr,
             percentage: Math.round(percentage),
             subject: session.subject!.name,

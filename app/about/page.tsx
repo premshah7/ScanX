@@ -31,7 +31,7 @@ export default async function AboutPage() {
                         <span className="text-primary">Academic Integrity.</span>
                     </h1>
                     <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                        ScanX isn't just an attendance system. It's a fortified digital ecosystem designed to eliminate proxies, ensure accurate records, and streamline the classroom experience.
+                        ScanX isn&apos;t just an attendance system. It&apos;s a fortified digital ecosystem designed to eliminate proxies, ensure accurate records, and streamline the classroom experience.
                     </p>
                 </div>
 
@@ -43,7 +43,7 @@ export default async function AboutPage() {
                             Traditional attendance methods are flawed. Roll calls waste time, and simple sign-in sheets are easily manipulated. We built ScanX to solve this problem once and for all.
                         </p>
                         <p className="text-muted-foreground leading-relaxed">
-                            By leveraging advanced browser fingerprinting, IP geolocation, and device-binding technology, we ensure that <strong>one student = one device</strong>. No more "marking for a friend."
+                            By leveraging advanced browser fingerprinting, IP geolocation, and device-binding technology, we ensure that <strong>one student = one device</strong>. No more &ldquo;marking for a friend.&rdquo;
                         </p>
                     </div>
                     <div className="grid grid-cols-2 gap-4">

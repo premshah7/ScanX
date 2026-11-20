@@ -19,31 +19,39 @@ const ALL_FIELDS = [
     { key: "semester", label: "Semester", required: false, types: ["STUDENT"] },
 ];
 
+function getInitialMapping(headers: string[]): Record<string, string> {
+    const initialMapping: Record<string, string> = {};
+
+    headers.forEach((header) => {
+        const h = header.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+        if (h.includes("name") && !initialMapping["name"]) initialMapping["name"] = header;
+        else if (h.includes("email") && !initialMapping["email"]) initialMapping["email"] = header;
+        else if ((h.includes("roll") || h === "id") && !initialMapping["roll"]) initialMapping["roll"] = header;
+        else if (h.includes("enroll") && !initialMapping["enrollment"]) initialMapping["enrollment"] = header;
+        else if (h.includes("batch") && !initialMapping["batch"]) initialMapping["batch"] = header;
+        else if ((h.includes("sem") || h.includes("semester")) && !initialMapping["semester"]) initialMapping["semester"] = header;
+    });
+
+    return initialMapping;
+}
+
 export default function ColumnMappingStep({ data, onMap, userType }: ColumnMappingStepProps) {
     const headers = data[0] || [];
     const previewRows = data.slice(1, 6);
 
     // Map: System Field Key -> Source Header Name
-    const [mapping, setMapping] = useState<Record<string, string>>({});
+    const [mapping, setMapping] = useState<Record<string, string>>(() => getInitialMapping(headers));
+    const [prevHeaders, setPrevHeaders] = useState(headers);
 
-    // Auto-guess mapping on mount
+    if (prevHeaders !== headers) {
+        setPrevHeaders(headers);
+        setMapping(getInitialMapping(headers));
+    }
+
     useEffect(() => {
-        const initialMapping: Record<string, string> = {};
-
-        headers.forEach((header, index) => {
-            const h = header.toLowerCase().replace(/[^a-z0-9]/g, "");
-
-            if (h.includes("name") && !initialMapping["name"]) initialMapping["name"] = header;
-            else if (h.includes("email") && !initialMapping["email"]) initialMapping["email"] = header;
-            else if ((h.includes("roll") || h === "id") && !initialMapping["roll"]) initialMapping["roll"] = header;
-            else if (h.includes("enroll") && !initialMapping["enrollment"]) initialMapping["enrollment"] = header;
-            else if (h.includes("batch") && !initialMapping["batch"]) initialMapping["batch"] = header;
-            else if ((h.includes("sem") || h.includes("semester")) && !initialMapping["semester"]) initialMapping["semester"] = header;
-        });
-
-        setMapping(initialMapping);
-        onMap(initialMapping);
-    }, [headers]); // Only run when headers change
+        onMap(mapping);
+    }, [mapping, onMap]);
 
     const handleMappingChange = (systemKey: string, headerName: string) => {
         const newMapping = { ...mapping };
@@ -53,7 +61,6 @@ export default function ColumnMappingStep({ data, onMap, userType }: ColumnMappi
             newMapping[systemKey] = headerName;
         }
         setMapping(newMapping);
-        onMap(newMapping);
     };
 
     const fieldsToShow = ALL_FIELDS.filter(f => f.types.includes(userType));

@@ -63,7 +63,7 @@ export default async function Home() {
                             </div>
 
                             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-foreground leading-[1.12]">
-                                Classroom attendance verified at the student's device.
+                                Classroom attendance verified at the student&apos;s device.
                             </h1>
 
                             <p className="text-sm sm:text-base text-muted-foreground max-w-xl leading-relaxed">
@@ -331,7 +331,7 @@ export default async function Home() {
                             </div>
                             <h3 className="text-sm font-semibold text-foreground mb-1">Live Mismatch Alerts</h3>
                             <p className="text-xs text-muted-foreground leading-relaxed">
-                                If a student attempts to log in from another student's phone, the screen flags both names and roll numbers immediately.
+                                If a student attempts to log in from another student&apos;s phone, the screen flags both names and roll numbers immediately.
                             </p>
                         </div>
 
@@ -385,14 +385,14 @@ export default async function Home() {
                                 <div className="p-4 rounded-md border border-border bg-background">
                                     <div className="font-mono text-xs font-semibold text-foreground mb-1">2. Sticky Handset Cookie</div>
                                     <p className="text-xs text-muted-foreground leading-relaxed">
-                                        A secure persistent cookie stores the handset identifier. If Student B attempts to scan on Student A's phone, the device owner is detected.
+                                        A secure persistent cookie stores the handset identifier. If Student B attempts to scan on Student A&apos;s phone, the device owner is detected.
                                     </p>
                                 </div>
 
                                 <div className="p-4 rounded-md border border-border bg-background">
                                     <div className="font-mono text-xs font-semibold text-foreground mb-1">3. Mismatch Quarantine</div>
                                     <p className="text-xs text-muted-foreground leading-relaxed">
-                                        The scan is blocked, attendance is not marked, a ProxyAttempt audit row is saved in PostgreSQL, and the teacher's UI displays a red alert.
+                                        The scan is blocked, attendance is not marked, a ProxyAttempt audit row is saved in PostgreSQL, and the teacher&apos;s UI displays a red alert.
                                     </p>
                                 </div>
                             </div>
@@ -596,7 +596,7 @@ export default async function Home() {
                                 <span className="text-muted-foreground group-open:rotate-180 transition-transform">&darr;</span>
                             </summary>
                             <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
-                                Students can click "Request Device Reset" directly from their profile. The request queues in the department administrator panel, who verifies the student and resets the device hash with one click.
+                                Students can click &ldquo;Request Device Reset&rdquo; directly from their profile. The request queues in the department administrator panel, who verifies the student and resets the device hash with one click.
                             </p>
                         </details>
 

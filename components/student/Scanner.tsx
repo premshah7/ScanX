@@ -6,7 +6,6 @@ import FingerprintJS from "@fingerprintjs/fingerprintjs";
 import { markAttendance } from "@/actions/attendance";
 import { Loader2, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { v4 as uuidv4 } from "uuid";
 
 interface ScannerProps {
     isDeviceResetRequested?: boolean;
@@ -22,30 +21,6 @@ export default function Scanner({ isDeviceResetRequested = false, successRedirec
     const [paused, setPaused] = useState(false);
     const [isIncognito, setIsIncognito] = useState(false);
     const [securityCheckComplete, setSecurityCheckComplete] = useState(false);
-
-    // Block immediately if reset is requested
-    if (isDeviceResetRequested) {
-        return (
-            <div className="flex flex-col items-center justify-center p-8 text-center bg-blue-500/10 border border-blue-500/20 rounded-2xl space-y-4 max-w-sm mx-auto">
-                <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center animate-pulse">
-                    <Loader2 className="w-8 h-8 text-blue-500" />
-                </div>
-                <h3 className="text-xl font-bold text-blue-500">Device Reset Pending</h3>
-                <p className="text-blue-400/80 text-sm">
-                    Your request to reset your device is being reviewed by an admin.
-                </p>
-                <p className="text-zinc-400 text-xs mt-2">
-                    You cannot mark attendance until this request is approved or rejected.
-                </p>
-                <button
-                    onClick={() => router.push("/student")}
-                    className="w-full py-2 mt-4 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors text-sm"
-                >
-                    Back to Dashboard
-                </button>
-            </div>
-        );
-    }
 
     useEffect(() => {
         // 1. Initialize FingerprintJS (Browser Fingerprint)
@@ -147,6 +122,29 @@ export default function Scanner({ isDeviceResetRequested = false, successRedirec
         setResult(null);
         setPaused(false);
     };
+
+    if (isDeviceResetRequested) {
+        return (
+            <div className="flex flex-col items-center justify-center p-8 text-center bg-blue-500/10 border border-blue-500/20 rounded-2xl space-y-4 max-w-sm mx-auto">
+                <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center animate-pulse">
+                    <Loader2 className="w-8 h-8 text-blue-500" />
+                </div>
+                <h3 className="text-xl font-bold text-blue-500">Device Reset Pending</h3>
+                <p className="text-blue-400/80 text-sm">
+                    Your request to reset your device is being reviewed by an admin.
+                </p>
+                <p className="text-zinc-400 text-xs mt-2">
+                    You cannot mark attendance until this request is approved or rejected.
+                </p>
+                <button
+                    onClick={() => router.push("/student")}
+                    className="w-full py-2 mt-4 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors text-sm"
+                >
+                    Back to Dashboard
+                </button>
+            </div>
+        );
+    }
 
     if (isIncognito) {
         return (

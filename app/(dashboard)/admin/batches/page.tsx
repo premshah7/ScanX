@@ -21,7 +21,6 @@ export default function BatchesPage() {
     const [error, setError] = useState("");
 
     const fetchBatches = async () => {
-        setLoading(true);
         const result = await getBatches();
         if (result.batches) {
             setBatches(result.batches);
@@ -32,7 +31,19 @@ export default function BatchesPage() {
     };
 
     useEffect(() => {
-        fetchBatches();
+        let isMounted = true;
+        getBatches().then((result) => {
+            if (!isMounted) return;
+            if (result.batches) {
+                setBatches(result.batches);
+            } else if (result.error) {
+                setError(result.error);
+            }
+            setLoading(false);
+        });
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
     const handleCreate = async (e: React.FormEvent) => {

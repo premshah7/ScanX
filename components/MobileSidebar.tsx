@@ -1,17 +1,19 @@
 "use client";
 
 import { Menu, X } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 
 export default function MobileSidebar({ children }: { children: React.ReactNode }) {
     const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
+    const [prevPathname, setPrevPathname] = useState(pathname);
 
     // Close sidebar on route change
-    useEffect(() => {
+    if (prevPathname !== pathname) {
+        setPrevPathname(pathname);
         setIsOpen(false);
-    }, [pathname]);
+    }
 
     return (
         <>

@@ -1,16 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 import { Laptop, Moon, Sun } from "lucide-react";
 
+const emptySubscribe = () => () => {};
+
 export function LandingThemeToggle() {
     const { theme, setTheme } = useTheme();
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+    const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
     // Placeholder during SSR to prevent hydration mismatch
     if (!mounted) {

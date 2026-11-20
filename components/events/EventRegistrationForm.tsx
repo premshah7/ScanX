@@ -35,7 +35,7 @@ export default function EventRegistrationForm({
 
         const form = new FormData(e.currentTarget);
         
-        let guestData: any = { 
+        const guestData: any = { 
             name: "", 
             username: "", 
             phone: "", 
@@ -43,7 +43,7 @@ export default function EventRegistrationForm({
             isStudent: isStudent,
             enrollmentNo: form.get("enrollment_no") as string
         };
-        let formDataObj: Record<string, any> = {};
+        const formDataObj: Record<string, any> = {};
 
         if (currentUser) {
             guestData.name = currentUser.name;

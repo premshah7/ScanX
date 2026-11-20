@@ -24,7 +24,7 @@ export default async function GuestScanPage() {
             <div className="flex-1 flex flex-col items-center justify-center">
                 <div className="text-center mb-8">
                     <h1 className="text-2xl font-bold text-white mb-2 tracking-tight">Scan Event QR</h1>
-                    <p className="text-gray-400">Point your camera at the organizer's QR code</p>
+                    <p className="text-gray-400">Point your camera at the organizer&apos;s QR code</p>
                 </div>
 
                 <Scanner isDeviceResetRequested={false} successRedirect="/guest/events" />

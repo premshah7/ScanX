@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { assignStudentsToSubject, removeStudentFromSubject, getStudentsForEnrollment, getSubjectDetails } from "@/actions/subject";
 import { Loader2, Search, X, UserPlus, Trash2 } from "lucide-react";
 import { useDebounce } from "use-debounce";
@@ -19,6 +19,18 @@ export default function SubjectEnrollment({ subjectId, subjectName, isOpen, onCl
     const [debouncedQuery] = useDebounce(searchQuery, 300);
     const [loading, setLoading] = useState(true); // Initial load of subject details
     const [searchLoading, setSearchLoading] = useState(false);
+    const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+    const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
+    const [adding, setAdding] = useState(false);
+    const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+
+    if (prevIsOpen !== isOpen) {
+        setPrevIsOpen(isOpen);
+        if (!isOpen) {
+            setSelectedIds(new Set());
+            setLastSelectedIndex(null);
+        }
+    }
 
     // Fetch Subject Details (Existing Enrolled Students)
     const fetchDetails = async () => {
@@ -31,16 +43,26 @@ export default function SubjectEnrollment({ subjectId, subjectName, isOpen, onCl
     };
 
     useEffect(() => {
-        if (isOpen && subjectId) {
-            fetchDetails();
-        }
+        if (!isOpen || !subjectId) return;
+        let isMounted = true;
+        getSubjectDetails(subjectId).then((response) => {
+            if (!isMounted) return;
+            if (response.subject) {
+                setEnrolledStudents(response.subject.students);
+            }
+            setLoading(false);
+        });
+        return () => {
+            isMounted = false;
+        };
     }, [isOpen, subjectId]);
 
     // Search for students to add
     useEffect(() => {
-        const handleSearch = async () => {
-            setSearchLoading(true);
-            const res = await getStudentsForEnrollment(debouncedQuery);
+        if (!isOpen) return;
+        let isMounted = true;
+        getStudentsForEnrollment(debouncedQuery).then((res) => {
+            if (!isMounted) return;
             if (res.students) {
                 // Filter out already enrolled
                 const notEnrolled = res.students.filter(
@@ -49,9 +71,10 @@ export default function SubjectEnrollment({ subjectId, subjectName, isOpen, onCl
                 setSearchResults(notEnrolled);
             }
             setSearchLoading(false);
+        });
+        return () => {
+            isMounted = false;
         };
-
-        if (isOpen) handleSearch();
     }, [debouncedQuery, enrolledStudents, isOpen]);
 
 
@@ -90,20 +113,6 @@ export default function SubjectEnrollment({ subjectId, subjectName, isOpen, onCl
             // Yes, useEffect([..., enrolledStudents,...]) triggers.
         }
     };
-
-    if (!isOpen) return null;
-
-    const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-    const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
-    const [adding, setAdding] = useState(false);
-
-    // Reset selection when search results change dramatically or on close
-    useEffect(() => {
-        if (!isOpen) {
-            setSelectedIds(new Set());
-            setLastSelectedIndex(null);
-        }
-    }, [isOpen]);
 
     const toggleSelection = (studentId: number, index: number, multiSelect: boolean) => {
         const newSelected = new Set(selectedIds);
@@ -153,6 +162,8 @@ export default function SubjectEnrollment({ subjectId, subjectName, isOpen, onCl
     };
 
     // ... (keep handleRemove as is) ...
+
+    if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">

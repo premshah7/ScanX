@@ -1,22 +1,16 @@
 "use client";
 
 import { Share2, Check, ExternalLink } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
 
 export default function ShareLinkButton({ path }: { path: string }) {
     const [copied, setCopied] = useState(false);
-    const [origin, setOrigin] = useState("");
-
-    useEffect(() => {
-        setOrigin(window.location.origin);
-    }, []);
-
-    const fullUrl = `${origin}${path}`;
 
     const handleCopy = () => {
-        if (!origin) return;
+        if (typeof window === "undefined") return;
+        const fullUrl = `${window.location.origin}${path}`;
         navigator.clipboard.writeText(fullUrl);
         setCopied(true);
         toast.success("Event link copied to clipboard!");

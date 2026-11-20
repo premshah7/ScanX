@@ -5,6 +5,8 @@ import jwt from "jsonwebtoken";
 
 const QR_SECRET = process.env.NEXT_PUBLIC_QR_SECRET || "fallback_secret";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session || session.user.role !== "FACULTY" && session.user.role !== "ADMIN") {

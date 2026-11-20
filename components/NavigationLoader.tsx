@@ -18,8 +18,10 @@ export function NavigationLoader() {
         prevPathnameRef.current = pathname;
 
         // Show loader when pathname changes
-        setLoading(true);
-        setProgress(0);
+        const startTimer = setTimeout(() => {
+            setLoading(true);
+            setProgress(0);
+        }, 0);
 
         // Simulate progress
         const progressInterval = setInterval(() => {
@@ -39,6 +41,7 @@ export function NavigationLoader() {
         }, 500);
 
         return () => {
+            clearTimeout(startTimer);
             clearInterval(progressInterval);
             clearTimeout(timer);
         };

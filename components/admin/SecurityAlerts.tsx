@@ -25,7 +25,7 @@ export default function SecurityAlerts({ alerts }: Props) {
                             <span className="text-foreground font-semibold">{alert.student.user.name}</span>
                             {" tried to mark attendance using "}
                             {alert.deviceOwner ? (
-                                <span className="text-yellow-600 font-semibold">{alert.deviceOwner.user.name}'s</span>
+                                <span className="text-yellow-600 font-semibold">{alert.deviceOwner.user.name}&apos;s</span>
                             ) : (
                                 "an unknown"
                             )}

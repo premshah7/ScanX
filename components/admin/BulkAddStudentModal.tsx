@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getUnassignedStudents, addStudentsToBatch } from "@/actions/batch";
 import { Loader2, UserPlus, X, CheckSquare, Square, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -29,12 +29,6 @@ export default function BulkAddStudentModal({ batchId }: Props) {
     const [searchQuery, setSearchQuery] = useState("");
     const router = useRouter();
 
-    useEffect(() => {
-        if (isOpen) {
-            fetchStudents();
-        }
-    }, [isOpen]);
-
     const fetchStudents = async () => {
         setLoading(true);
         const res = await getUnassignedStudents();
@@ -43,6 +37,21 @@ export default function BulkAddStudentModal({ batchId }: Props) {
         }
         setLoading(false);
     };
+
+    useEffect(() => {
+        if (!isOpen) return;
+        let isMounted = true;
+        getUnassignedStudents().then((res) => {
+            if (!isMounted) return;
+            if (res.students) {
+                setStudents(res.students as unknown as Student[]);
+            }
+            setLoading(false);
+        });
+        return () => {
+            isMounted = false;
+        };
+    }, [isOpen]);
 
     const toggleSelect = (userId: number) => {
         const newSelected = new Set(selectedIds);

@@ -1,8 +1,10 @@
 "use client";
 
 import { AlertTriangle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+
+const emptySubscribe = () => () => {};
 
 interface ConfirmDialogProps {
     isOpen: boolean;
@@ -27,11 +29,7 @@ export default function ConfirmDialog({
     variant = "danger",
     loading = false,
 }: ConfirmDialogProps) {
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+    const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
     if (!isOpen || !mounted) return null;
 

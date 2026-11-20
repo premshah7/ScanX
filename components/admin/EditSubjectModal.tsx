@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { updateSubject } from "@/actions/subject";
 import { Loader2, Save, X } from "lucide-react";
 
@@ -40,21 +40,33 @@ export default function EditSubjectModal({ subject, isOpen, onClose, facultyList
     const [selectedFaculty, setSelectedFaculty] = useState<number>(subject.faculty?.id || 0);
     const [availableBatches, setAvailableBatches] = useState<{ id: number, name: string }[]>([]);
     const [selectedBatches, setSelectedBatches] = useState<number[]>(subject.batches?.map(b => b.id) || []);
+    const [prevSubject, setPrevSubject] = useState(subject);
 
-    // Initial load of batches for the current faculty
-    useEffect(() => {
-        if (isOpen && subject.faculty?.id) {
-            fetchBatches(subject.faculty.id);
-            setSelectedFaculty(subject.faculty.id);
-            setSelectedBatches(subject.batches?.map(b => b.id) || []);
-        }
-    }, [isOpen, subject]);
+    if (prevSubject !== subject) {
+        setPrevSubject(subject);
+        setSelectedFaculty(subject.faculty?.id || 0);
+        setSelectedBatches(subject.batches?.map(b => b.id) || []);
+    }
 
     const fetchBatches = async (facultyId: number) => {
         const res = await getFacultyBatches(facultyId);
         if (res.batches) setAvailableBatches(res.batches);
         else setAvailableBatches([]);
     };
+
+    // Initial load of batches for the current faculty
+    useEffect(() => {
+        if (!isOpen || !subject.faculty?.id) return;
+        let isMounted = true;
+        getFacultyBatches(subject.faculty.id).then((res) => {
+            if (!isMounted) return;
+            if (res.batches) setAvailableBatches(res.batches);
+            else setAvailableBatches([]);
+        });
+        return () => {
+            isMounted = false;
+        };
+    }, [isOpen, subject.faculty?.id]);
 
     const handleFacultyChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
         const facultyId = parseInt(e.target.value);

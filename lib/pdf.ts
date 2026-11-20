@@ -1,4 +1,3 @@
-// @ts-ignore
 import PDFParser from "pdf2json";
 
 export async function extractTextFromPdf(buffer: Buffer): Promise<string> {

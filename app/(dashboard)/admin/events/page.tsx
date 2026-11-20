@@ -25,8 +25,10 @@ export default async function AdminEventsPage() {
         }
     });
 
-    const activeEvents = events.filter(e => e.isActive && e.eventDate >= new Date(Date.now() - 86400000));
-    const pastEvents = events.filter(e => !e.isActive || e.eventDate < new Date(Date.now() - 86400000));
+    const oneDayAgo = 24 * 60 * 60 * 1000;
+    const cutoffDate = new Date(new Date().getTime() - oneDayAgo);
+    const activeEvents = events.filter(e => e.isActive && e.eventDate >= cutoffDate);
+    const pastEvents = events.filter(e => !e.isActive || e.eventDate < cutoffDate);
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 text-foreground animate-slide-up">

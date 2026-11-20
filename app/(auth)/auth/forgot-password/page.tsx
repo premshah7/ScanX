@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect, Suspense } from "react";
+import { useState, useTransition, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Loader2, Mail, KeyRound, Eye, EyeOff, CheckCircle } from "lucide-react";
@@ -11,30 +11,19 @@ type Step = "email" | "otp" | "done";
 
 function ForgotPasswordForm() {
     const searchParams = useSearchParams();
-    const [step, setStep] = useState<Step>("email");
-    const [email, setEmail] = useState("");
-    const [otp, setOtp] = useState("");
+    const identifierParam = searchParams.get("identifier") || "";
+    const otpParam = searchParams.get("otp") || "";
+    const magicParam = searchParams.get("magic");
+    const isMagic = Boolean(identifierParam && otpParam && magicParam === "true");
+
+    const [step, setStep] = useState<Step>(() => (isMagic ? "otp" : "email"));
+    const [email, setEmail] = useState(() => identifierParam);
+    const [otp, setOtp] = useState(() => otpParam);
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showPass, setShowPass] = useState(false);
     const [error, setError] = useState("");
     const [isPending, startTransition] = useTransition();
-
-    useEffect(() => {
-        const identifierParam = searchParams.get("identifier");
-        const otpParam = searchParams.get("otp");
-        const magicParam = searchParams.get("magic");
-
-        if (identifierParam) {
-            setEmail(identifierParam);
-        }
-        if (otpParam) {
-            setOtp(otpParam);
-        }
-        if (identifierParam && otpParam && magicParam === "true") {
-            setStep("otp");
-        }
-    }, [searchParams]);
 
     const handleSendOtp = () => {
         setError("");
