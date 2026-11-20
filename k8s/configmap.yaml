@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scanx-config
+  namespace: scanx-prod
+data:
+  NODE_ENV: "production"
+  PORT: "3000"
+  NEXTAUTH_URL: "https://scanx.example.com"
+  POSTGRES_DB: "scanx"

@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ScanX — OOP Concepts & Design Patterns Interview Master Guide</title>
+<style>
+  :root {
+    --bg: #090d16;
+    --bg2: #121a2c;
+    --bg3: #1c273e;
+    --card: #152037;
+    --card-hover: #1b2a47;
+    --border: #263859;
+    --text: #f8fafc;
+    --muted: #94a3b8;
+    --primary: #3b82f6;
+    --primary-light: #60a5fa;
+    --green: #10b981;
+    --green-light: #6ee7b7;
+    --yellow: #f59e0b;
+    --yellow-light: #fde68a;
+    --red: #ef4444;
+    --purple: #a855f7;
+    --purple-light: #d8b4fe;
+    --cyan: #06b6d4;
+    --cyan-light: #67e8f9;
+    --radius: 12px;
+    --shadow: 0 10px 30px -5px rgba(0,0,0,0.5);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 15px;
+  }
+
+  /* ── HEADER ── */
+  .hero {
+    background: radial-gradient(circle at 50% 0%, rgba(168,85,247,0.18) 0%, transparent 75%),
+                linear-gradient(180deg, #101626 0%, #090d16 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 20px 36px;
+    text-align: center;
+    position: relative;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(168,85,247,0.12);
+    border: 1px solid rgba(168,85,247,0.3);
+    color: var(--purple-light);
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .hero h1 {
+    font-size: clamp(26px, 4.5vw, 42px);
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+  }
+  .hero h1 span {
+    background: linear-gradient(135deg, #c084fc 0%, #60a5fa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero p {
+    color: var(--muted);
+    font-size: clamp(14px, 2vw, 16px);
+    max-width: 720px;
+    margin: 0 auto 24px;
+  }
+  .hero-chips {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .chip {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .chip span { color: var(--purple-light); }
+
+  /* ── STICKY BAR ── */
+  .sticky-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(9,13,22,0.92);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+  }
+  .nav-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  #search {
+    flex: 1;
+    min-width: 220px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 14px 9px 38px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 12px center;
+    background-size: 16px;
+    transition: all 0.2s;
+  }
+  #search:focus { border-color: var(--purple); box-shadow: 0 0 0 2px rgba(168,85,247,0.25); }
+  #search::placeholder { color: var(--muted); }
+
+  .filter-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .f-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .f-btn:hover { border-color: var(--purple); color: var(--text); }
+  .f-btn.active { background: var(--purple); border-color: var(--purple); color: #fff; }
+
+  /* ── CONTAINER ── */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 16px 80px;
+  }
+
+  /* ── SECTION HEADING ── */
+  .sec-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 40px 0 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sec-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .sec-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .sec-pill {
+    margin-left: auto;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+
+  /* ── ELEVATOR PITCH BOX ── */
+  .pitch-card {
+    background: linear-gradient(135deg, rgba(168,85,247,0.12) 0%, rgba(59,130,246,0.1) 100%);
+    border: 1px solid rgba(168,85,247,0.3);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 30px;
+    box-shadow: var(--shadow);
+  }
+  .pitch-card h3 {
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--purple-light);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pitch-text {
+    font-size: 15px;
+    color: #e2e8f0;
+    line-height: 1.8;
+  }
+
+  /* ── 4 PILLARS GRID ── */
+  .pillars-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+    margin-bottom: 30px;
+  }
+  .pillar-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    border-top: 4px solid;
+    transition: all 0.2s;
+  }
+  .pillar-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.2); }
+  .pillar-card.encap { border-top-color: var(--green); }
+  .pillar-card.abstract { border-top-color: var(--primary); }
+  .pillar-card.inherit { border-top-color: var(--yellow); }
+  .pillar-card.poly { border-top-color: var(--purple); }
+  .pillar-card h4 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pillar-desc {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+  .pillar-code {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: #cbd5e1;
+    overflow-x: auto;
+  }
+
+  /* ── GOF PATTERNS GRID ── */
+  .pattern-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 30px;
+  }
+  .pattern-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+  .pattern-card h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--cyan-light);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .pattern-where {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .pattern-body {
+    font-size: 13px;
+    color: #e2e8f0;
+    line-height: 1.6;
+  }
+
+  /* ── CODE TABS COMPONENT ── */
+  .code-tabs-wrapper {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 30px;
+  }
+  .tabs-nav {
+    display: flex;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .tab-btn {
+    padding: 12px 20px;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active {
+    color: var(--purple-light);
+    border-bottom-color: var(--purple);
+    background: rgba(168,85,247,0.06);
+  }
+  .tab-pane {
+    display: none;
+    padding: 20px;
+  }
+  .tab-pane.active { display: block; }
+
+  pre {
+    background: #070b12;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #93c5fd;
+    overflow-x: auto;
+    line-height: 1.6;
+  }
+
+  /* ── QUESTION ACCORDION CARDS ── */
+  .q-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+  .q-card:hover { border-color: #3f547c; background: var(--card-hover); }
+  .q-card.open { border-color: var(--purple); box-shadow: 0 4px 20px rgba(168,85,247,0.15); }
+  .q-card.hidden { display: none; }
+
+  .q-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 20px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .q-badge {
+    background: rgba(168,85,247,0.15);
+    border: 1px solid rgba(168,85,247,0.3);
+    color: var(--purple-light);
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+  .q-title {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .q-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--muted);
+    transition: transform 0.25s;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .q-card.open .q-icon { transform: rotate(180deg); color: var(--purple-light); }
+
+  .q-body {
+    display: none;
+    padding: 0 20px 20px 20px;
+    border-top: 1px solid var(--border);
+  }
+  .q-card.open .q-body { display: block; }
+
+  .block-label {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 16px 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .block-label.ans { color: var(--green-light); }
+  .block-label.code-ex { color: var(--cyan-light); }
+  .block-label.followup { color: var(--purple-light); }
+  .block-label.ref { color: var(--yellow-light); }
+
+  .ans-box {
+    background: rgba(16,185,129,0.06);
+    border-left: 3px solid var(--green);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #e2e8f0;
+  }
+  .followup-box {
+    background: rgba(168,85,247,0.07);
+    border-left: 3px solid var(--purple);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: #f3e8ff;
+  }
+  .ref-tag {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 3px 8px;
+    border-radius: 4px;
+    color: var(--yellow-light);
+    display: inline-block;
+  }
+
+  code {
+    font-family: 'Courier New', monospace;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #93c5fd;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  /* ── SOLID TABLE ── */
+  .solid-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .solid-table th {
+    background: var(--bg3);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 12px 16px;
+    text-align: left;
+  }
+  .solid-table td {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.6;
+  }
+  .solid-table td:first-child {
+    font-weight: 800;
+    color: var(--purple-light);
+    white-space: nowrap;
+    width: 160px;
+  }
+
+  /* ── NO RESULTS ── */
+  .no-results {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    display: none;
+  }
+  .no-results.show { display: block; }
+
+  /* ── SCROLL TO TOP ── */
+  #scrollTop {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 44px;
+    height: 44px;
+    background: var(--purple);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.25s;
+    z-index: 200;
+  }
+  #scrollTop.visible { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 768px) {
+    .pattern-grid { grid-template-columns: 1fr; }
+    .hero { padding: 36px 16px 28px; }
+    .sec-title { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="badge">🏛️ Object-Oriented Design & Clean Architecture</div>
+  <h1><span>OOP Concepts & Design Patterns</span> in ScanX</h1>
+  <p>How the 4 Pillars, SOLID Principles, and GoF Patterns are applied, defended, and refactored for senior engineering technical interviews.</p>
+  <div class="hero-chips">
+    <div class="chip"><span>4</span> OOP Pillars in Action</div>
+    <div class="chip"><span>5</span> GoF Patterns Mapped</div>
+    <div class="chip"><span>SOLID</span> Analysis</div>
+    <div class="chip"><span>15</span> Verbatim Model Q&As</div>
+  </div>
+</div>
+
+<!-- STICKY SEARCH & FILTERS -->
+<div class="sticky-bar">
+  <div class="nav-inner">
+    <input type="text" id="search" placeholder="Search OOP concepts, patterns, or questions (Press '/' to focus)..." oninput="applyFilters()" autocomplete="off"/>
+    <div class="filter-group">
+      <button class="f-btn active" onclick="setCat('all', this)">All</button>
+      <button class="f-btn" onclick="setCat('pillars', this)">4 Pillars</button>
+      <button class="f-btn" onclick="setCat('patterns', this)">Design Patterns</button>
+      <button class="f-btn" onclick="setCat('refactor', this)">Refactoring / Clean OOP</button>
+      <button class="f-btn" onclick="setCat('solid', this)">SOLID</button>
+      <button class="f-btn" onclick="setCat('questions', this)">Interview Q&A</button>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ════════════════════════════════════
+     60-SECOND OOP PITCH
+════════════════════════════════════ -->
+<div class="pitch-card" data-category="overview">
+  <h3>⚡ The 60-Second "OOP in My Project" Elevator Pitch</h3>
+  <div class="pitch-text">
+    "While Next.js 15 App Router encourages functional Server Actions at the boundary, ScanX leverages core <strong>Object-Oriented Programming (OOP) concepts</strong> across its business logic, database ORM, and architecture.<br><br>
+    We use <strong>Encapsulation</strong> in our device security modules and singleton system settings to conceal validation complexity. We use <strong>Polymorphism</strong> in our multi-role authorization hierarchies and our polymorphic Session domain model, where <code>AcademicSession</code> and <code>EventSession</code> share common session lifecycle state but execute divergent attendance and absent calculations.<br><br>
+    We utilize the <strong>Singleton Pattern</strong> to prevent database connection exhaustion in Prisma via Node's <code>globalThis</code>, the <strong>Strategy Pattern</strong> in NextAuth's multi-flow credentials provider, and when asked how to scale our 9-gate attendance pipeline, we refactor it into an object-oriented <strong>Chain of Responsibility Pattern</strong>, decoupling each security check into independent, testable handler classes following the Open/Closed Principle."
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     THE 4 PILLARS IN SCANX
+════════════════════════════════════ -->
+<div class="sec-heading" data-category="pillars">
+  <div class="sec-icon" style="background:rgba(168,85,247,0.15);">🏛️</div>
+  <div class="sec-title">The 4 Pillars of OOP Mapped to ScanX</div>
+  <div class="sec-pill">Core Theory + Real Code</div>
+</div>
+
+<div class="pillars-grid" data-category="pillars">
+  <!-- Encapsulation -->
+  <div class="pillar-card encap">
+    <h4>🔒 1. Encapsulation</h4>
+    <div class="pillar-desc">Bundling data and methods together, while restricting direct access to internal state to maintain invariants.</div>
+    <div class="pillar-code">
+// lib/otp.ts
+// Internal state & hashing hidden
+// Only public methods exposed
+export async function generateOtp(...)
+export async function verifyOtpCode(...)
+
+// actions/device.ts
+// HttpOnly cookie write hidden from JS
+    </div>
+  </div>
+
+  <!-- Abstraction -->
+  <div class="pillar-card abstract">
+    <h4>🧩 2. Abstraction</h4>
+    <div class="pillar-desc">Hiding low-level implementation details behind clean, high-level interfaces so callers only deal with concepts, not raw mechanics.</div>
+    <div class="pillar-code">
+// Prisma ORM abstracts raw SQL
+await prisma.attendance.create(...)
+
+// Nodemailer abstracts SMTP protocol
+await sendEmail(to, subject, html)
+
+// pdf2json abstracts PDF stream parser
+await parsePdfToTable(buffer)
+    </div>
+  </div>
+
+  <!-- Inheritance -->
+  <div class="pillar-card inherit">
+    <h4>🧬 3. Inheritance / Extension</h4>
+    <div class="pillar-desc">Reusing and extending base attributes and behaviors across specialized sub-domains without code duplication.</div>
+    <div class="pillar-code">
+// types/next-auth.d.ts
+interface Session {
+  user: {
+    role: string;
+    status: string;
+  } & DefaultSession["user"]
+}
+// NextAuth base session extended
+// Schema: User 1:1 Student / Faculty
+    </div>
+  </div>
+
+  <!-- Polymorphism -->
+  <div class="pillar-card poly">
+    <h4>🎭 4. Polymorphism</h4>
+    <div class="pillar-desc">Treating diverse object types through a shared interface, while each type executes specialized behavior dynamically.</div>
+    <div class="pillar-code">
+// Session Model:
+// If session.subjectId -> Academic Attendance
+// If session.eventId   -> Event Guest Check-in
+
+// Role Polymorphism:
+// getDashboardRoute(role) -> /admin, /faculty,
+//                            /student, /guest
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     5 DESIGN PATTERNS IN SCANX
+════════════════════════════════════ -->
+<div class="sec-heading" data-category="patterns">
+  <div class="sec-icon" style="background:rgba(6,182,212,0.15);">📐</div>
+  <div class="sec-title">GoF Design Patterns Used & Applicable in ScanX</div>
+  <div class="sec-pill">System Design</div>
+</div>
+
+<div class="pattern-grid" data-category="patterns">
+  <!-- Singleton -->
+  <div class="pattern-card">
+    <h4>1. Singleton Pattern <span>Creational</span></h4>
+    <div class="pattern-where">📂 <code>lib/prisma.ts</code> & <code>actions/settings.ts</code></div>
+    <div class="pattern-body">
+      <strong>Problem:</strong> Next.js hot-reloading in development instantiates a new <code>PrismaClient</code> on every file edit, rapidly exhausting the PostgreSQL connection pool.<br>
+      <strong>OOP Solution:</strong> We bind the client instance to Node's <code>globalThis</code> singleton container so only one shared connection pool exists across the runtime.<br>
+      Also used in <code>SystemSettings</code> where only one configuration row is ever instantiated in PostgreSQL.
+    </div>
+  </div>
+
+  <!-- Chain of Responsibility -->
+  <div class="pattern-card">
+    <h4>2. Chain of Responsibility Pattern <span>Behavioral</span></h4>
+    <div class="pattern-where">📂 <code>actions/attendance.ts</code> (The 9-Gate Pipeline)</div>
+    <div class="pattern-body">
+      <strong>Problem:</strong> <code>markAttendance()</code> contains 450 lines of sequential <code>if (!gate) return error</code> checks, violating the Single Responsibility and Open/Closed Principles.<br>
+      <strong>OOP Solution:</strong> Each gate (Cookie Gate, Expiry Gate, IP Gate, Device Gate, Duplicate Gate) becomes an independent handler class in a pipeline. Each handler either passes to <code>nextHandler.handle(req)</code> or short-circuits with a failure result.
+    </div>
+  </div>
+
+  <!-- Strategy Pattern -->
+  <div class="pattern-card">
+    <h4>3. Strategy Pattern <span>Behavioral</span></h4>
+    <div class="pattern-where">📂 <code>lib/auth.ts</code> (Authentication Strategies)</div>
+    <div class="pattern-body">
+      <strong>Problem:</strong> Authentication handles 3 totally different verification algorithms (Password bcrypt compare, OTP cryptographic lookup, and Guest bypass) inside nested switch/if statements.<br>
+      <strong>OOP Solution:</strong> Encapsulate each algorithm behind an <code>AuthStrategy</code> interface (<code>PasswordStrategy</code>, <code>OtpStrategy</code>, <code>GuestStrategy</code>) selected dynamically based on user input credentials.
+    </div>
+  </div>
+
+  <!-- Factory Pattern -->
+  <div class="pattern-card">
+    <h4>4. Factory Method Pattern <span>Creational</span></h4>
+    <div class="pattern-where">📂 <code>actions/session.ts</code> & <code>actions/auth.ts</code></div>
+    <div class="pattern-body">
+      <strong>Problem:</strong> Initializing sessions or registering users requires creating paired relational records (User + Student or User + Faculty) with conditional properties.<br>
+      <strong>OOP Solution:</strong> A <code>SessionFactory</code> creates concrete <code>AcademicSession</code> or <code>EventSession</code> instances with proper foreign key assertions, ensuring callers never create invalid polymorphic records.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     CODE COMPARISON: PROCEDURAL VS CLEAN OOP
+════════════════════════════════════ -->
+<div class="sec-heading" data-category="refactor">
+  <div class="sec-icon" style="background:rgba(16,185,129,0.15);">⚡</div>
+  <div class="sec-title">Interactive Refactoring: Procedural vs Clean OOP</div>
+  <div class="sec-pill">Before / After Code</div>
+</div>
+
+<div class="code-tabs-wrapper" data-category="refactor">
+  <div class="tabs-nav">
+    <button class="tab-btn active" onclick="switchTab('tab-procedural', this)">❌ Current Procedural Waterfall</button>
+    <button class="tab-btn" onclick="switchTab('tab-oop-chain', this)">✅ Clean OOP: Chain of Responsibility</button>
+    <button class="tab-btn" onclick="switchTab('tab-oop-strategy', this)">✅ Clean OOP: Auth Strategy Pattern</button>
+    <button class="tab-btn" onclick="switchTab('tab-oop-domain', this)">✅ Clean OOP: Domain Class Hierarchy</button>
+  </div>
+
+  <!-- Tab 1 -->
+  <div id="tab-procedural" class="tab-pane active">
+    <p style="color:var(--muted);font-size:13px;margin-bottom:12px;">This is how <code>actions/attendance.ts</code> currently works: 450 lines of tight procedural coupling where every security rule is hardcoded inside one function.</p>
+    <pre>
+// actions/attendance.ts (CURRENT IMPLEMENTATION)
+export async function markAttendance(token: string, deviceHash: string, userAgent: string) {
+    // Gate 0: Cookie check
+    const cookieStore = await cookies();
+    if (!cookieStore.get("device_id")?.value) return { error: "Device Identity Missing" };
+
+    // Gate 1: Auth check
+    const session = await getServerSession(authOptions);
+    if (!session || (session.user.role !== "STUDENT" && session.user.role !== "GUEST")) {
+        return { error: "Unauthorized" };
+    }
+
+    // Gate 2: JWT verify
+    const decoded = jwt.verify(token, QR_SECRET);
+
+    // Gate 3: Expiry
+    if (Date.now() - decoded.timestamp > 4000) return { error: "QR Code Expired" };
+
+    // Gate 5: Status
+    if (student.user.status !== "APPROVED") return { error: "Not Approved" };
+
+    // Gate 7: IP Checks...
+    // Gate 8: Device Binding & Mismatch...
+    // Gate 9: Duplicate Attendance...
+
+    await prisma.attendance.create(...);
+    return { success: true };
+}
+    </pre>
+  </div>
+
+  <!-- Tab 2 -->
+  <div id="tab-oop-chain" class="tab-pane">
+    <p style="color:var(--muted);font-size:13px;margin-bottom:12px;"><strong>How to explain in an interview:</strong> "I refactor the 9 gates into the Chain of Responsibility Pattern. Each gate extends an abstract <code>AttendanceGate</code> class and handles one single validation."</p>
+    <pre>
+// OOP Refactoring: Chain of Responsibility Pattern
+abstract class AttendanceGate {
+    protected nextGate?: AttendanceGate;
+
+    public setNext(gate: AttendanceGate): AttendanceGate {
+        this.nextGate = gate;
+        return gate;
+    }
+
+    public async handle(context: AttendanceContext): Promise&lt;GateResult&gt; {
+        const result = await this.validate(context);
+        if (!result.success) return result; // Short-circuit on failure
+        return this.nextGate ? await this.nextGate.handle(context) : { success: true };
+    }
+
+    protected abstract validate(context: AttendanceContext): Promise&lt;GateResult&gt;;
+}
+
+// Concrete Gate Handlers (Single Responsibility Principle)
+class DeviceCookieGate extends AttendanceGate {
+    protected async validate(ctx: AttendanceContext): Promise&lt;GateResult&gt; {
+        return ctx.deviceId ? { success: true } : { success: false, error: "Device Cookie Missing" };
+    }
+}
+
+class QrExpiryGate extends AttendanceGate {
+    protected async validate(ctx: AttendanceContext): Promise&lt;GateResult&gt; {
+        return (Date.now() - ctx.tokenTimestamp &lt;= 4000)
+            ? { success: true }
+            : { success: false, error: "QR Code Expired" };
+    }
+}
+
+class DeviceBindingGate extends AttendanceGate {
+    protected async validate(ctx: AttendanceContext): Promise&lt;GateResult&gt; {
+        if (!ctx.student.deviceHash) {
+            await ctx.repo.bindDevice(ctx.student.id, ctx.deviceHash, ctx.deviceId);
+            return { success: true };
+        }
+        return ctx.student.deviceHash === ctx.deviceHash 
+            ? { success: true } 
+            : { success: false, error: "Device Mismatch - Proxy Blocked" };
+    }
+}
+
+// Assembling the Pipeline (Open/Closed Principle: Add new gates without editing existing ones!)
+const attendancePipeline = new DeviceCookieGate();
+attendancePipeline
+    .setNext(new QrExpiryGate())
+    .setNext(new AccountStatusGate())
+    .setNext(new CampusIpGate())
+    .setNext(new DeviceBindingGate())
+    .setNext(new DuplicateCheckGate());
+    </pre>
+  </div>
+
+  <!-- Tab 3 -->
+  <div id="tab-oop-strategy" class="tab-pane">
+    <p style="color:var(--muted);font-size:13px;margin-bottom:12px;"><strong>Strategy Pattern:</strong> Decoupling password, OTP, and guest authentication algorithms into interchangeable classes.</p>
+    <pre>
+// Strategy Interface
+interface IAuthenticationStrategy {
+    supports(credentials: AuthCredentials): boolean;
+    authenticate(credentials: AuthCredentials): Promise&lt;AuthenticatedUser&gt;;
+}
+
+// Concrete Strategy 1: Password Bcrypt
+class PasswordAuthStrategy implements IAuthenticationStrategy {
+    supports(c: AuthCredentials): boolean { return !!c.password && !c.otp; }
+    async authenticate(c: AuthCredentials): Promise&lt;AuthenticatedUser&gt; {
+        const user = await prisma.user.findFirst({ where: { email: c.email } });
+        if (!user || !(await bcrypt.compare(c.password, user.password))) {
+            throw new Error("Invalid credentials");
+        }
+        return new AuthenticatedUser(user);
+    }
+}
+
+// Concrete Strategy 2: One-Time Password
+class OtpAuthStrategy implements IAuthenticationStrategy {
+    supports(c: AuthCredentials): boolean { return !!c.otp; }
+    async authenticate(c: AuthCredentials): Promise&lt;AuthenticatedUser&gt; {
+        const valid = await verifyOtpCode(c.email, c.otp);
+        if (!valid) throw new Error("Invalid or expired OTP");
+        const user = await prisma.user.findFirst({ where: { email: c.email } });
+        return new AuthenticatedUser(user!);
+    }
+}
+
+// Concrete Strategy 3: Guest Bypass
+class GuestAuthStrategy implements IAuthenticationStrategy {
+    supports(c: AuthCredentials): boolean { return c.isGuest; }
+    async authenticate(c: AuthCredentials): Promise&lt;AuthenticatedUser&gt; {
+        const user = await prisma.user.findFirst({ where: { username: c.username, role: "GUEST" } });
+        return new AuthenticatedUser(user!);
+    }
+}
+
+// Strategy Context Resolver
+class AuthenticationService {
+    constructor(private strategies: IAuthenticationStrategy[]) {}
+
+    async login(credentials: AuthCredentials): Promise&lt;AuthenticatedUser&gt; {
+        const strategy = this.strategies.find(s => s.supports(credentials));
+        if (!strategy) throw new Error("Unsupported authentication method");
+        return await strategy.authenticate(credentials);
+    }
+}
+    </pre>
+  </div>
+
+  <!-- Tab 4 -->
+  <div id="tab-oop-domain" class="tab-pane">
+    <p style="color:var(--muted);font-size:13px;margin-bottom:12px;"><strong>Domain Class Hierarchy:</strong> True Object-Oriented Polymorphism for academic subjects vs event sessions.</p>
+    <pre>
+// Abstract Base Session Class
+abstract class BaseSession {
+    constructor(
+        public readonly id: number,
+        public readonly startTime: Date,
+        public isActive: boolean
+    ) {}
+
+    public abstract calculateAbsentees(): Promise&lt;StudentSummary[]&gt;;
+    public abstract canStudentAttend(student: StudentProfile): Promise&lt;boolean&gt;;
+}
+
+// Polymorphic Subclass 1: Academic Lecture Session
+class AcademicSession extends BaseSession {
+    constructor(id: number, startTime: Date, isActive: boolean, public readonly subjectId: number) {
+        super(id, startTime, isActive);
+    }
+
+    public async calculateAbsentees(): Promise&lt;StudentSummary[]&gt; {
+        // Enrolled students minus students in attendance table
+        const enrolled = await prisma.subject.findUnique({ where: { id: this.subjectId } }).students();
+        const attended = await prisma.attendance.findMany({ where: { sessionId: this.id } });
+        const attendedIds = new Set(attended.map(a => a.studentId));
+        return enrolled.filter(s => !attendedIds.has(s.id));
+    }
+
+    public async canStudentAttend(student: StudentProfile): Promise&lt;boolean&gt; {
+        return student.isEnrolledInSubject(this.subjectId);
+    }
+}
+
+// Polymorphic Subclass 2: Public Event Session
+class EventSession extends BaseSession {
+    constructor(id: number, startTime: Date, isActive: boolean, public readonly eventId: number) {
+        super(id, startTime, isActive);
+    }
+
+    public async calculateAbsentees(): Promise&lt;StudentSummary[]&gt; {
+        // Events do not calculate absent academic students
+        return [];
+    }
+
+    public async canStudentAttend(student: StudentProfile): Promise&lt;boolean&gt; {
+        const reg = await prisma.eventRegistration.findUnique({
+            where: { eventId_userId: { eventId: this.eventId, userId: student.userId } }
+        });
+        return reg?.status === "APPROVED";
+    }
+}
+    </pre>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     SOLID PRINCIPLES ANALYSIS
+════════════════════════════════════ -->
+<div class="sec-heading" data-category="solid">
+  <div class="sec-icon" style="background:rgba(245,158,11,0.15);">⚖️</div>
+  <div class="sec-title">SOLID Principles Breakdown in ScanX</div>
+  <div class="sec-pill">Interview Evaluation</div>
+</div>
+
+<div class="table-card" style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:30px;" data-category="solid">
+  <table class="solid-table">
+    <thead>
+      <tr>
+        <th>Principle</th>
+        <th>Where Followed in ScanX</th>
+        <th>Where Violated & How to Fix</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>S</strong> — Single Responsibility</td>
+        <td><code>lib/otp.ts</code> handles ONLY OTP generation and verification. <code>actions/device.ts</code> handles ONLY device cookie identity.</td>
+        <td><code>actions/attendance.ts</code> violates SRP by parsing tokens, checking IP, checking batches, binding devices, and logging proxies all in one function. <em>Fix: Split into dedicated Gate classes.</em></td>
+      </tr>
+      <tr>
+        <td><strong>O</strong> — Open / Closed</td>
+        <td>NextAuth's provider architecture: adding a new OAuth provider (Google/GitHub) doesn't require modifying the core session callback flow.</td>
+        <td>Adding a new attendance gate (e.g. Geolocation GPS Gate) requires editing the core <code>markAttendance()</code> method. <em>Fix: Chain of Responsibility pipeline.</em></td>
+      </tr>
+      <tr>
+        <td><strong>L</strong> — Liskov Substitution</td>
+        <td>User role hierarchy: <code>ADMIN</code>, <code>FACULTY</code>, and <code>STUDENT</code> all satisfy the base <code>User</code> contract and can be authenticated through NextAuth interchangeably.</td>
+        <td><code>GUEST</code> users lack roll numbers and email domains, causing potential crashes if downstream functions expect full student academic properties without null checks.</td>
+      </tr>
+      <tr>
+        <td><strong>I</strong> — Interface Segregation</td>
+        <td><code>SessionView.tsx</code> and <code>Scanner.tsx</code> receive segregated, minimal props rather than entire monolithic database models.</td>
+        <td>The <code>User</code> model carries student, faculty, and guest fields all together. <em>Fix: Separate <code>IStudentProfile</code>, <code>IFacultyProfile</code> interfaces.</em></td>
+      </tr>
+      <tr>
+        <td><strong>D</strong> — Dependency Inversion</td>
+        <td>NextAuth accepts abstract credentials providers rather than depending on a hardcoded Prisma database query.</td>
+        <td>Server Actions directly instantiate and query <code>prisma</code> directly rather than depending on an injected <code>IRepository</code> abstraction. <em>Fix: Implement Repository Pattern.</em></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════
+     TOP 15 OOP INTERVIEW QUESTIONS
+════════════════════════════════════ -->
+<div class="sec-heading" data-category="questions">
+  <div class="sec-icon" style="background:rgba(168,85,247,0.15);">🎙️</div>
+  <div class="sec-title">Top 15 OOP Interview Questions & Answers</div>
+  <div class="sec-pill">Verbatim Responses</div>
+</div>
+
+<!-- Q1 -->
+<div class="q-card" data-category="questions pillars" data-tags="oop where used 4 pillars polymorphism encapsulation">
+  <div class="q-header" onclick="toggleCard(this.parentElement)">
+    <span class="q-badge">Q1</span>
+    <span class="q-title">"Where did you use Object-Oriented Programming (OOP) in your project?"</span>
+    <svg class="q-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+  </div>
+  <div class="q-body">
+    <div class="block-label ans">💬 Interview-Ready Answer</div>
+    <div class="ans-box">
+      "While Next.js uses functional React components on the frontend, our backend domain architecture relies on core OOP principles:<br>
+      1. <strong>Encapsulation:</strong> In <code>lib/otp.ts</code> and <code>actions/device.ts</code>, we hide internal implementation details—like cryptographic random integer generation and HttpOnly cookie flags—behind a clean, restricted public interface.<br>
+      2. <strong>Abstraction:</strong> Our database operations rely on Prisma's ORM classes, abstracting raw PostgreSQL joins and indexes behind strongly typed object models.<br>
+      3. <strong>Polymorphism:</strong> In our session management, a single <code>Session</code> entity behaves polymorphically depending on whether it represents an academic class (subject-linked, batch-restricted, absent calculations) or a public campus event (open check-in, guest-allowed).<br>
+      4. <strong>Design Patterns:</strong> We use the <strong>Singleton Pattern</strong> in <code>lib/prisma.ts</code> to maintain a single database pool across hot reloads, and the <strong>Strategy Pattern</strong> in our multi-flow authentication provider."
+    </div>
+    <div class="block-label ref">📂 Code Reference</div>
+    <span class="ref-tag">lib/prisma.ts, lib/otp.ts, prisma/schema.prisma</span>
+  </div>
+</div>
+
+<!-- Q2 -->
+<div class="q-card" data-category="questions patterns" data-tags="singleton pattern prisma globalThis connection pool">
+  <div class="q-header" onclick="toggleCard(this.parentElement)">
+    <span class="q-badge">Q2</span>
+    <span class="q-title">"Explain the Singleton Pattern in ScanX. Why is globalThis required?"</span>
+    <svg class="q-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+  </div>
+  <div class="q-body">
+    <div class="block-label ans">💬 Interview-Ready Answer</div>
+    <div class="ans-box">
+      "In <code>lib/prisma.ts</code>, we implement the <strong>Singleton Pattern</strong> to guarantee that only one instance of <code>PrismaClient</code> exists across the application runtime.<br><br>
+      In Next.js development mode, hot module replacement (HMR) re-evaluates module files on every code edit. If we simply wrote <code>export const prisma = new PrismaClient()</code>, every file save would instantiate a new database connection pool, rapidly exceeding PostgreSQL's max connection threshold.<br><br>
+      By caching the client on Node's global object: <code>const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }</code>, the singleton survives module re-evaluations while remaining active across the entire application lifecycle."
+    </div>
+    <div class="block-label ref">📂 Code Reference</div>
+    <span class="ref-tag">lib/prisma.ts L1-L9</span>
+  </div>
+</div>
+
+<!-- Q3 -->
+<div class="q-card" data-category="questions refactor patterns" data-tags="chain of responsibility refactor attendance 9 gates waterfall">
+  <div class="q-header" onclick="toggleCard(this.parentElement)">
+    <span class="q-badge">Q3</span>
+    <span class="q-title">"How would you refactor your 450-line markAttendance function using OOP?"</span>
+    <svg class="q-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+  </div>
+  <div class="q-body">
+    <div class="block-label ans">💬 Interview-Ready Answer</div>
+    <div class="ans-box">
+      "Currently, <code>markAttendance()</code> executes 9 sequential procedural gates. It violates the <strong>Single Responsibility Principle</strong> (doing token parsing, IP verification, device binding, and proxy logging in one method) and the <strong>Open/Closed Principle</strong> (adding a 10th gate requires modifying this core function).<br><br>
+      I would refactor this using the <strong>Chain of Responsibility Pattern</strong>:<br>
+      1. Create an abstract base class <code>AttendanceGate</code> with a <code>handle(context)</code> method that calls <code>nextGate.handle()</code> on success or short-circuits on failure.<br>
+      2. Implement discrete handler classes for each gate: <code>DeviceCookieGate</code>, <code>QrExpiryGate</code>, <code>AccountStatusGate</code>, <code>BatchGate</code>, <code>IpGate</code>, <code>DeviceBindingGate</code>, and <code>DuplicateAttendanceGate</code>.<br>
+      3. Assemble the pipeline at bootstrap: <code>cookieGate.setNext(expiryGate).setNext(deviceGate)...</code>.<br>
+      This makes each validation unit-testable in isolation and allows adding new security gates (like a Geolocation Gate) without touching existing code."
+    </div>
+    <div class="block-label followup">🎯 Trap Follow-up & Response</div>
+    <div class="followup-box">
+      <strong>Follow-up:</strong> <em>"What design pattern would you use if gates needed to share state like the parsed student record?"</em><br>
+      <strong>Your Answer:</strong> "I would pass a strongly typed <strong>Context Object</strong> (Parameter Object Pattern) through the chain containing the incoming request, resolved student entity, and shared telemetry."
+    </div>
+    <div class="block-label ref">📂 Code Reference</div>
+    <span class="ref-tag">actions/attendance.ts L55-L337</span>
+  </div>
+</div>
+
+<!-- Q4 -->
+<div class="q-card" data-category="questions pillars" data-tags="polymorphism session academic event calculateAbsentees">
+  <div class="q-header" onclick="toggleCard(this.parentElement)">
+    <span class="q-badge">Q4</span>
+    <span class="q-title">"Give an example of Polymorphism in your database schema and business logic."</span>
+    <svg class="q-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+  </div>
+  <div class="q-body">
+    <div class="block-label ans">💬 Interview-Ready Answer</div>
+    <div class="ans-box">
+      "Our <code>Session</code> model is polymorphic: it contains two mutually exclusive nullable foreign keys: <code>subjectId</code> (academic course) and <code>eventId</code> (public workshop/hackathon).<br><br>
+      In business logic, this manifests as <strong>Subtype Polymorphism</strong>:
+      - When an <strong>Academic Session</strong> is active, attendance checks verify batch enrollment, and session termination computes an absent list by taking the subject's enrolled students minus attendees.
+      - When an <strong>Event Session</strong> is active, absent calculations are bypassed (since public events have no static roster), and attendance checks verify whether the user's <code>EventRegistration</code> was approved.<br><br>
+      The caller interacts with a unified session entity, but runtime behaviors diverge depending on whether it is an academic or event session."
+    </div>
+    <div class="block-label ref">📂 Code Reference</div>
+    <span class="ref-tag">prisma/schema.prisma L96-L108 & actions/session.ts L169-L182</span>
+  </div>
+</div>
+
+<!-- Q5 -->
+<div class="q-card" data-category="questions pillars" data-tags="encapsulation information hiding otp device cookie">
+  <div class="q-header" onclick="toggleCard(this.parentElement)">
+    <span class="q-badge">Q5</span>
+    <span class="q-title">"How is Encapsulation used to enhance security in ScanX?"</span>
+    <svg class="q-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+  </div>
+  <div class="q-body">
+    <div class="block-label ans">💬 Interview-Ready Answer</div>
+    <div class="ans-box">
+      "Encapsulation is central to our security boundaries:<br>
+      1. <strong>Device Cookie Encapsulation:</strong> In <code>actions/device.ts</code>, the generation and assignment of the <code>device_id</code> cookie is encapsulated on the server with <code>httpOnly: true</code>, <code>secure: true</code>, and <code>sameSite: 'strict'</code>. Client-side JavaScript is physically prevented from accessing or modifying this identifier.<br>
+      2. <strong>OTP Logic Encapsulation:</strong> In <code>lib/otp.ts</code>, internal state details—such as the 5-minute expiry calculation, the 60-second cooldown query, and atomic deletion on verification—are encapsulated inside functions. Callers cannot manipulate expiration timestamps or bypass rate limits."
+    </div>
+    <div class="block-label ref">📂 Code Reference</div>
+    <span class="ref-tag">actions/device.ts & lib/otp.ts</span>
+  </div>
+</div>
+
+<!-- Q6 -->
+<div class="q-card" data-category="questions solid" data-tags="solid open closed principle extension modification">
+  <div class="q-header" onclick="toggleCard(this.parentElement)">
+    <span class="q-badge">Q6</span>
+    <span class="q-title">"Explain how the Open/Closed Principle applies to ScanX."</span>
+    <svg class="q-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+  </div>
+  <div class="q-body">
+    <div class="block-label ans">💬 Interview-Ready Answer</div>
+    <div class="ans-box">
+      "The Open/Closed Principle states that software entities should be <strong>open for extension, but closed for modification</strong>.<br><br>
+      - <strong>Where followed:</strong> NextAuth's <code>authOptions.providers</code> array. If we want to support Google OAuth or GitHub login tomorrow, we simply append a new provider instance to the array without editing the core session token generation or route callback logic.<br>
+      - <strong>Where violated:</strong> In <code>actions/attendance.ts</code>, adding a new verification rule (e.g. WiFi BSSID verification) requires modifying the monolithic <code>markAttendance()</code> function. In our refactored architecture, implementing the Chain of Responsibility satisfies OCP by allowing new gates to be chained without modifying existing gate code."
+    </div>
+    <div class="block-label ref">📂 Code Reference</div>
+    <span class="ref-tag">lib/auth.ts L7-L180</span>
+  </div>
+</div>
+
+<!-- Q7 -->
+<div class="q-card" data-category="questions patterns" data-tags="strategy pattern nextauth credentials authentication">
+  <div class="q-header" onclick="toggleCard(this.parentElement)">
+    <span class="q-badge">Q7</span>
+    <span class="q-title">"How does the Strategy Pattern solve multi-path authentication in your project?"</span>
+    <svg class="q-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+  </div>
+  <div class="q-body">
+    <div class="block-label ans">💬 Interview-Ready Answer</div>
+    <div class="ans-box">
+      "Our system supports three distinct authentication pathways: Password authentication, One-Time Password (OTP) verification, and Guest bypass.<br><br>
+      Rather than having deeply nested conditional statements inside <code>authorize()</code>, the <strong>Strategy Pattern</strong> defines a common <code>IAuthStrategy</code> interface with a method <code>authenticate(credentials)</code>. We have three concrete strategies:<br>
+      - <code>PasswordStrategy</code> (hashes and compares with bcrypt)<br>
+      - <code>OtpStrategy</code> (validates code against Otp table and enforces 5-min TTL)<br>
+      - <code>GuestStrategy</code> (authenticates event attendees by username)<br><br>
+      The provider context selects the appropriate strategy at runtime based on the credentials payload, decoupling validation logic from the session pipeline."
+    </div>
+    <div class="block-label ref">📂 Code Reference</div>
+    <span class="ref-tag">lib/auth.ts L31-L178</span>
+  </div>
+</div>
+
+<!-- Q8 -->
+<div class="q-card" data-category="questions pillars" data-tags="inheritance vs composition prisma relations typescript">
+  <div class="q-header" onclick="toggleCard(this.parentElement)">
+    <span class="q-badge">Q8</span>
+    <span class="q-title">"Inheritance vs. Composition: Which did you favor in ScanX and why?"</span>
+    <svg class="q-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+  </div>
+  <div class="q-body">
+    <div class="block-label ans">💬 Interview-Ready Answer</div>
+    <div class="ans-box">
+      "We strongly favored <strong>Composition over Inheritance</strong>, which is the recommended practice in modern TypeScript and relational data modeling:<br><br>
+      Instead of having <code>Student</code> and <code>Faculty</code> inherit from a base <code>User</code> class in the database (Table-per-Hierarchy inheritance), we used <strong>Relational Composition</strong>:<br>
+      - A <code>User</code> has an optional 1-to-1 relationship with a <code>Student</code> record.<br>
+      - A <code>User</code> has an optional 1-to-1 relationship with a <code>Faculty</code> record.<br><br>
+      This avoids bloated tables with endless nullable columns and prevents rigid inheritance coupling. If an institution has a Teaching Assistant who is both a Student and Faculty member, composition allows a User to attach to both profiles without breaking an inheritance tree."
+    </div>
+    <div class="block-label ref">📂 Code Reference</div>
+    <span class="ref-tag">prisma/schema.prisma L12-L65</span>
+  </div>
+</div>
+
+<!-- Q9 -->
+<div class="q-card" data-category="questions solid" data-tags="dependency inversion repository pattern prisma testing">
+  <div class="q-header" onclick="toggleCard(this.parentElement)">
+    <span class="q-badge">Q9</span>
+    <span class="q-title">"How would you apply the Dependency Inversion Principle to make your code testable?"</span>
+    <svg class="q-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+  </div>
+  <div class="q-body">
+    <div class="block-label ans">💬 Interview-Ready Answer</div>
+    <div class="ans-box">
+      "Currently, our Server Actions directly import and call the concrete <code>prisma</code> singleton. This violates the <strong>Dependency Inversion Principle (DIP)</strong> because high-level business logic directly depends on a low-level database client, making unit testing impossible without an active PostgreSQL database.<br><br>
+      To fix this, we introduce the <strong>Repository Pattern</strong>:<br>
+      1. Define an interface <code>IAttendanceRepository</code> with methods like <code>hasAttended(studentId, sessionId)</code> and <code>recordAttendance(data)</code>.<br>
+      2. Implement <code>PrismaAttendanceRepository</code> for production.<br>
+      3. For unit testing, inject a <code>MockAttendanceRepository</code> that stores records in an in-memory Map.<br>
+      Now, our attendance service depends on an abstraction, not a concrete database tool."
+    </div>
+  </div>
+</div>
+
+<!-- Q10 -->
+<div class="q-card" data-category="questions patterns" data-tags="factory pattern session bulk upload creation">
+  <div class="q-header" onclick="toggleCard(this.parentElement)">
+    <span class="q-badge">Q10</span>
+    <span class="q-title">"Where would a Factory Pattern be useful in ScanX?"</span>
+    <svg class="q-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+  </div>
+  <div class="q-body">
+    <div class="block-label ans">💬 Interview-Ready Answer</div>
+    <div class="ans-box">
+      "In two key areas:<br>
+      1. <strong>Session Creation (<code>createSession</code>):</strong> A <code>SessionFactory.create(params)</code> method encapsulates the complex validation logic required to ensure a session never has both a <code>subjectId</code> and an <code>eventId</code>, or neither. It acts as a factory producing properly initialized, valid session objects.<br>
+      2. <strong>Bulk Student Ingestion (<code>actions/bulk.ts</code>):</strong> When parsing CSVs or PDFs, a <code>StudentFactory</code> maps unstructured raw table rows into sanitized <code>User</code> and <code>Student</code> entity pairs, assigning default passwords, generating enrollment keys, and formatting batch relations before sending them to PostgreSQL."
+    </div>
+    <div class="block-label ref">📂 Code Reference</div>
+    <span class="ref-tag">actions/session.ts L8-L49 & actions/bulk.ts</span>
+  </div>
+</div>
+
+<!-- Q11 -->
+<div class="q-card" data-category="questions pillars" data-tags="abstraction orm prisma pdf2json nodemailer">
+  <div class="q-header" onclick="toggleCard(this.parentElement)">
+    <span class="q-badge">Q11</span>
+    <span class="q-title">"Can you show where you used Abstraction in your third-party integrations?"</span>
+    <svg class="q-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+  </div>
+  <div class="q-body">
+    <div class="block-label ans">💬 Interview-Ready Answer</div>
+    <div class="ans-box">
+      "We used abstraction across three major utilities:<br>
+      1. <strong>Email Service (<code>lib/email.ts</code>):</strong> The caller simply executes <code>sendEmail(to, subject, html)</code>. The caller has no knowledge of whether Nodemailer is using real SMTP credentials or falling back to development console logging when <code>EMAIL_SERVER_USER</code> is missing.<br>
+      2. <strong>PDF Table Parser (<code>lib/pdf.ts</code>):</strong> Callers simply call <code>parsePdfToTable(buffer)</code> and receive normalized arrays of rows. The low-level text coordinates, float tolerances (0.5), and stream events from <code>pdf2json</code> are completely abstracted away.<br>
+      3. <strong>Database ORM:</strong> Prisma abstracts raw SQL statements (<code>SELECT</code>, <code>JOIN</code>, <code>INSERT</code>) behind high-level declarative TypeScript APIs."
+    </div>
+    <div class="block-label ref">📂 Code Reference</div>
+    <span class="ref-tag">lib/email.ts, lib/pdf.ts, lib/prisma.ts</span>
+  </div>
+</div>
+
+<!-- Q12 -->
+<div class="q-card" data-category="questions pillars" data-tags="typescript interfaces types augmentation encapsulation">
+  <div class="q-header" onclick="toggleCard(this.parentElement)">
+    <span class="q-badge">Q12</span>
+    <span class="q-title">"How does TypeScript's Interface Declaration Augmentation demonstrate OOP concepts?"</span>
+    <svg class="q-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+  </div>
+  <div class="q-body">
+    <div class="block-label ans">💬 Interview-Ready Answer</div>
+    <div class="ans-box">
+      "In <code>types/next-auth.d.ts</code>, we use TypeScript's <strong>Declaration Merging / Interface Augmentation</strong>:<br>
+      ```typescript
+      declare module 'next-auth' {
+          interface Session {
+              user: { id: string; role: string; status: string } & DefaultSession['user'];
+          }
+      }
+      ```<br>
+      This represents <strong>Interface Extension (Inheritance)</strong>: we inherit the base <code>DefaultSession['user']</code> contract (name, email, image) and extend it with our domain-specific attributes (role and approval status). This enforces compile-time type safety across all consumers of <code>session.user</code> without altering the upstream NextAuth package."
+    </div>
+    <div class="block-label ref">📂 Code Reference</div>
+    <span class="ref-tag">types/next-auth.d.ts L1-L28</span>
+  </div>
+</div>
+
+<!-- Q13 -->
+<div class="q-card" data-category="questions refactor" data-tags="anti-pattern god object monolithic actions refactoring">
+  <div class="q-header" onclick="toggleCard(this.parentElement)">
+    <span class="q-badge">Q13</span>
+    <span class="q-title">"What OOP anti-patterns exist in your current codebase and how would you fix them?"</span>
+    <svg class="q-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+  </div>
+  <div class="q-body">
+    <div class="block-label ans">💬 Interview-Ready Answer</div>
+    <div class="ans-box">
+      "I identified two classic anti-patterns during code review:<br>
+      1. <strong>God Object / Monolithic Function:</strong> <code>markAttendance()</code> in <code>actions/attendance.ts</code> is 450 lines long and handles 9 gates, token extraction, IP parsing, atomic writes, and proxy alerts. <em>Fix: Refactor into the Chain of Responsibility Pattern.</em><br>
+      2. <strong>Anemic Domain Model:</strong> Our Prisma models are plain data bags with no behavior. All domain logic lives in separate procedural Server Actions. <em>Fix: Wrap Prisma models in Rich Domain Entities (e.g. <code>StudentEntity.canScan(session)</code>, <code>SessionEntity.hasExpired()</code>) to keep business rules colocated with the data they govern.</em>"
+    </div>
+  </div>
+</div>
+
+<!-- Q14 -->
+<div class="q-card" data-category="questions solid" data-tags="liskov substitution guest user student rollNumber">
+  <div class="q-header" onclick="toggleCard(this.parentElement)">
+    <span class="q-badge">Q14</span>
+    <span class="q-title">"Can you give an example of the Liskov Substitution Principle (LSP) in ScanX?"</span>
+    <svg class="q-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+  </div>
+  <div class="q-body">
+    <div class="block-label ans">💬 Interview-Ready Answer</div>
+    <div class="ans-box">
+      "LSP states that objects of a superclass should be replaceable with objects of its subclasses without breaking application behavior.<br><br>
+      - <strong>Where followed:</strong> In our authorization system, <code>ADMIN</code>, <code>FACULTY</code>, and <code>STUDENT</code> can all be passed to <code>getServerSession()</code> and satisfy the <code>User</code> contract.<br>
+      - <strong>Subtle violation to be aware of:</strong> In <code>lib/auth.ts</code>, a <code>GUEST</code> user is synthesized without a genuine email (assigned <code>@event.scanx.local</code>) and with artificial enrollment numbers (<code>EVT-XXXX</code>). If downstream functions expect a real institutional email or genuine student roll number without checking role types, substituting a Guest where a Student is expected could lead to silent formatting errors."
+    </div>
+    <div class="block-label ref">📂 Code Reference</div>
+    <span class="ref-tag">lib/auth.ts L101-L107</span>
+  </div>
+</div>
+
+<!-- Q15 -->
+<div class="q-card" data-category="questions pillars" data-tags="functional vs oop nextjs typescript server actions">
+  <div class="q-header" onclick="toggleCard(this.parentElement)">
+    <span class="q-badge">Q15</span>
+    <span class="q-title">"Next.js App Router is heavily functional. Why combine it with OOP?"</span>
+    <svg class="q-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+  </div>
+  <div class="q-body">
+    <div class="block-label ans">💬 Interview-Ready Answer</div>
+    <div class="ans-box">
+      "Modern full-stack development is <strong>multi-paradigm</strong>. Functional programming and Object-Oriented programming excel at different layers:<br><br>
+      - <strong>Functional at the Boundary:</strong> React Server Components and Server Actions work best as stateless, pure, side-effect-free input/output pipelines. Server Actions act as thin HTTP controllers.<br>
+      - <strong>OOP in the Core Domain:</strong> Behind the Server Action boundary, complex business domains (like device binding rules, multi-gate validation pipelines, and role access matrices) are much more maintainable when modeled with OOP classes, encapsulation, and design patterns.<br><br>
+      This gives us the best of both worlds: clean, reactive Next.js web endpoints calling robust, encapsulated OOP domain services."
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<!-- SCROLL TO TOP -->
+<button id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Scroll to top">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m18 15-6-6-6 6"/></svg>
+</button>
+
+<script>
+  let activeCat = 'all';
+
+  function toggleCard(card) {
+    card.classList.toggle('open');
+  }
+
+  function setCat(cat, btn) {
+    activeCat = cat;
+    document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyFilters();
+  }
+
+  function switchTab(tabId, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+  }
+
+  function applyFilters() {
+    const q = document.getElementById('search').value.toLowerCase().trim();
+    const cat = activeCat;
+    let visibleCount = 0;
+
+    // Filter question cards
+    document.querySelectorAll('.q-card').forEach(card => {
+      const cardCat = card.dataset.category || '';
+      const tags = (card.dataset.tags || '') + ' ' + (card.querySelector('.q-title')?.textContent || '').toLowerCase();
+      
+      const catMatch = (cat === 'all' || cardCat.includes(cat));
+      const textMatch = !q || tags.includes(q);
+
+      if (catMatch && textMatch) {
+        card.classList.remove('hidden');
+        visibleCount++;
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+
+    // Handle sections
+    document.querySelectorAll('.sec-heading, .pitch-card, .pillars-grid, .pattern-grid, .code-tabs-wrapper, .table-card').forEach(el => {
+      const elCat = el.dataset.category || '';
+      if (cat === 'all') {
+        el.style.display = q ? 'none' : '';
+      } else if (elCat.includes(cat)) {
+        el.style.display = q ? 'none' : '';
+      } else {
+        el.style.display = 'none';
+      }
+    });
+
+    document.getElementById('noResults').classList.toggle('show', visibleCount === 0 && q.length > 0);
+  }
+
+  window.addEventListener('scroll', () => {
+    document.getElementById('scrollTop').classList.toggle('visible', window.scrollY > 300);
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === '/' && document.activeElement !== document.getElementById('search')) {
+      e.preventDefault();
+      document.getElementById('search').focus();
+    }
+    if (e.key === 'Escape') {
+      document.getElementById('search').value = '';
+      applyFilters();
+      document.getElementById('search').blur();
+    }
+  });
+</script>
+</body>
+</html>

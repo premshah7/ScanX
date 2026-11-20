@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: scanx-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgrespassword}
+      POSTGRES_DB: ${POSTGRES_DB:-scanx}
+    ports:
+      - "5432:5432"
+    volumes:
+      - scanx_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d scanx"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - scanx-net
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: scanx-web
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgrespassword}@db:5432/${POSTGRES_DB:-scanx}?schema=public
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-development-secret-key-32-chars-long!}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NODE_ENV=production
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - scanx-net
+
+volumes:
+  scanx_pgdata:
+    driver: local
+
+networks:
+  scanx-net:
+    driver: bridge
