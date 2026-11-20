@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { CheckCircle, AlertTriangle } from "lucide-react";
 import FormattedTime from "@/components/FormattedTime";
 
+export const dynamic = "force-dynamic";
+
 export default async function AttendanceLogsPage() {
     const [attendanceLogs, proxyLogs] = await Promise.all([
         prisma.attendance.findMany({
