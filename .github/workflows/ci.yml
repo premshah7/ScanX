@@ -64,4 +64,8 @@ jobs:
       - name: Build Next.js project
         env:
           NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: 1
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/scanx?schema=public"
+          NEXTAUTH_SECRET: "ci-test-secret-key-at-least-32-characters-long!"
+          NEXTAUTH_URL: "http://localhost:3000"
         run: npm run build
