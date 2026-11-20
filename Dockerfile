@@ -31,12 +31,17 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Dummy build-time environment variables for Next.js prerendering & Prisma client
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+ENV DATABASE_URL="postgresql://postgres:postgres@localhost:5432/scanx?schema=public"
+ENV NEXTAUTH_SECRET="build-time-secret-key-at-least-32-characters-long"
+ENV NEXTAUTH_URL="http://localhost:3000"
+
 # Generate Prisma Client with schema present
 RUN npx prisma generate
 
 # Build Next.js application in standalone mode
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_ENV=production
 RUN npm run build
 
 # ------------------------------------------------------------------------------
